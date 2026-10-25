@@ -59,7 +59,7 @@
 
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
-import { clearsBeat, type BeatResult, type MasteryLevel } from "./types";
+import { clearsBeat, rightFirstTry, type BeatResult, type MasteryLevel } from "./types";
 import type { Card, Reco } from "../cards/types";
 import type { CardOffer } from "../cards/Recommendation";
 import { decks, PERSONAL_DECK_ID } from "../cards/store";
@@ -100,6 +100,8 @@ import {
   stepHasDraft,
   stepRecogniseBeats,
   missedMcqIdsFrom,
+  hintsAllowed,
+  runFlawless,
   missedPoolIdsOf,
   planLesson,
   recipeProgress,
@@ -409,7 +411,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         live = false;
       };
     }
-    const flawless = !run.recycled && run.clearedBeats === run.totalBeats;
+    // A hinted answer is not first-try right, so it never counts here (template.ts runFlawless).
+    const flawless = runFlawless(run);
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
     void Promise.all([import("../app/progress"), import("../chest/chestFlow"), import("../upsell/noteLessonClear")]).then(([{ progress }, { earnChestForClear }, { noteLessonClear }]) => {
@@ -614,6 +617,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     total: number,
     missedMcqIds?: readonly string[],
     missedPoolIds?: readonly string[],
+    hinted?: number,
   ) => {
     stepResult.current = null;
     answeredBefore.current += Math.max(total, mcqSave.current?.results.length ?? 0);
@@ -628,6 +632,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             total,
             ...(missedMcqIds !== undefined ? { missedMcqIds } : {}),
             ...(missedPoolIds !== undefined ? { missedPoolIds } : {}),
+            ...(hinted !== undefined && hinted > 0 ? { hinted } : {}),
           }),
     );
   };
@@ -769,8 +774,16 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             {...resumeResults}
             onCommit={(results, progress) => saveAnswer(results, progress.clearedFraction)}
             onOfferCard={handleOfferCard}
+            hints={hintsAllowed(node, run.mode)}
+            // First-try right counts as cleared; a right answer after a Hint is counted apart (template.ts).
             onDone={(results) =>
-              advanceStep(results.filter((r) => clearsBeat(r)).length, results.length, missedMcqIdsFrom(results))
+              advanceStep(
+                results.filter(rightFirstTry).length,
+                results.length,
+                missedMcqIdsFrom(results),
+                undefined,
+                results.filter((r) => clearsBeat(r) && r.hinted === true).length,
+              )
             }
           />
         ) : null}
@@ -876,6 +889,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             level="declared"
             beats={recycleBeatsFor(run.plan, run.missedMcqIds)}
             missedBefore={run.missedMcqIds}
+            hints={hintsAllowed(node, run.mode)}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={strip}
@@ -1152,6 +1166,7 @@ function RewardSlot({
           <p className="text-scale-base text-bb-foreground">
             {/* First-try count, so a recycled miss is not counted twice ("3 of 3 right, 1 of 1 fixed"); CHANGED 2026-10-17. */}
             {run.clearedBeats} of {played} right
+            {(run.hintedBeats ?? 0) > 0 ? `, ${run.hintedBeats} with a hint` : ""}
             {run.recycled ? `, ${run.recycleCleared} of ${run.recycleTotal} fixed on the second try.` : "."}
           </p>
           {stillRough > 0 ? (

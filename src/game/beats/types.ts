@@ -585,6 +585,12 @@ interface BeatResultBase {
   readonly elapsedMs: number;
   /** ISO 8601. */
   readonly at: string;
+  /**
+   * Set when the student pressed Hint before answering (beats/mcq/hint.ts).
+   * The answer still clears the beat, but it was not right on the first try,
+   * so it never counts toward a flawless lesson (rightFirstTry below).
+   */
+  readonly hinted?: true;
 }
 
 /**
@@ -638,6 +644,16 @@ export function isSound(result: BeatResult): boolean {
 /** Whether this result advances the node. The other two are sound and not done. */
 export function clearsBeat(result: BeatResult): boolean {
   return result.kind === "correct" || result.kind === "correct_alternative_route";
+}
+
+/**
+ * Right on the first try, unaided: it clears and no Hint was used. What a
+ * lesson's first-try count, its flawless bonus and the unit's pace read, so a
+ * hinted answer moves the student on without counting as flawless (owner,
+ * 25 Oct, Q9 "add hint").
+ */
+export function rightFirstTry(result: BeatResult): boolean {
+  return clearsBeat(result) && result.hinted !== true;
 }
 
 /* ------------------------------------------------------------------ */

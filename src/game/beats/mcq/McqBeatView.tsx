@@ -121,6 +121,22 @@ function optionState(answered: boolean, isAnswer: boolean, isSelected: boolean):
 }
 
 
+/**
+ * The Hint key's state, handed down by McqRunner (hint.ts says what one press
+ * does). Absent means no Hint on this screen: a graded final, or a preview.
+ */
+export interface McqHintView {
+  /** Pressed already on this question. The key then reads "Hint used". */
+  readonly used: boolean;
+  /** The one line of nudge, once pressed. */
+  readonly nudge: string | null;
+  /** The wrong option the press greyed out, or null. Never the keyed one. */
+  readonly ruledOutId: string | null;
+  readonly onHint: () => void;
+  /** Non-zero puts Bloom's hint ring on the key (BloomHintRing). */
+  readonly ringKey: number;
+}
+
 export interface McqBeatViewProps {
   readonly beat: McqBeat;
   readonly level: MasteryLevel;
@@ -164,6 +180,8 @@ export interface McqBeatViewProps {
   readonly bloom?: BerryReactions;
   /** Non-zero on a wrong-again tray: the Why? control wears the hint ring (BloomHintRing). */
   readonly hintRingKey?: number;
+  /** The Hint key beside Check. Absent: no Hint (graded finals stay hint-free). */
+  readonly hint?: McqHintView;
   /** What the lesson's topic makes the berry (berryTopicState.ts). */
   readonly topicState?: BerryState;
   /** What it wears for this lesson (berryCostume.ts costumeForNode). */
@@ -172,6 +190,26 @@ export interface McqBeatViewProps {
 
 const HOW_TO_PICKING = "Pick one, then press Check. You can change your mind as many times as you like first.";
 const HOW_TO_REVEALED = "Read the reason, then press Continue. Nothing here is timed.";
+
+/** A small bulb, the Hint key's glyph. Decorative: the key says "Hint" in words. */
+function HintMark() {
+  return (
+    <svg className="mcq-hint__mark" viewBox="0 0 16 16" width="16" height="16" aria-hidden>
+      <path d="M8 1.5a4.5 4.5 0 0 0-2.6 8.2c.4.3.6.7.6 1.2V12h4v-1.1c0-.5.2-.9.6-1.2A4.5 4.5 0 0 0 8 1.5Z" fill="currentColor" />
+      <path d="M6 13.5h4M6.8 15h2.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/** The word on an option Hint ruled out, so "out" is never said by grey alone. */
+function OutMark() {
+  return (
+    <span className="option-out-mark">
+      <span aria-hidden>Out</span>
+      <span className="sr-only">ruled out by the hint</span>
+    </span>
+  );
+}
 
 export function McqBeatView({
   beat,
@@ -192,6 +230,7 @@ export function McqBeatView({
   combo,
   bloom,
   hintRingKey = 0,
+  hint,
   topicState = "neutral",
   costume,
 }: McqBeatViewProps) {
@@ -204,8 +243,9 @@ export function McqBeatView({
   const charred = bloom?.berry.state === "charred";
   const berryState: BerryState = charred ? "charred" : topicState;
   const howTo = showHowTo ?? level === 0;
+  const ruledOut = answered ? null : (hint?.ruledOutId ?? null);
   const choose = (optionId: string) => {
-    if (answered) return;
+    if (answered || optionId === ruledOut) return;
     onSelect(optionId);
   };
 
@@ -381,9 +421,10 @@ export function McqBeatView({
                   <button
                     type="button"
                     onClick={() => choose(option.id)}
-                    aria-disabled={answered || undefined}
+                    aria-disabled={answered || option.id === ruledOut || undefined}
                     aria-pressed={isSelected}
                     data-state={optionState(answered, isAnswer, isSelected)}
+                    data-out={option.id === ruledOut ? "true" : undefined}
                     className="option-tile"
                   >
                     <StructureFigure figure={tile.figure} className="option-tile__figure" />
@@ -399,6 +440,7 @@ export function McqBeatView({
                         name, a drawing is no option at all to a student who
                         cannot see it. */}
                     <span className="sr-only">{option.text}</span>
+                    {option.id === ruledOut ? <OutMark /> : null}
                     <OptionMark state={optionState(answered, isAnswer, isSelected)} />
                   </button>
                 </li>
@@ -419,9 +461,10 @@ export function McqBeatView({
                   key={option.id}
                   type="button"
                   onClick={() => choose(option.id)}
-                  aria-disabled={answered || undefined}
+                  aria-disabled={answered || option.id === ruledOut || undefined}
                   aria-pressed={isSelected}
                   data-state={optionState(answered, isAnswer, isSelected)}
+                  data-out={option.id === ruledOut ? "true" : undefined}
                   className={`option-card text-scale-base font-normal ${
                     answered ? "" : "max-h-36 flex-1"
                   }`}
@@ -430,6 +473,7 @@ export function McqBeatView({
                       the graded states also carry a mark neither fact is told
                       by colour alone. See OptionMark. */}
                   <span>{option.text}</span>
+                  {option.id === ruledOut ? <OutMark /> : null}
                   <OptionMark state={optionState(answered, isAnswer, isSelected)} />
                 </button>
               );
@@ -496,7 +540,7 @@ export function McqBeatView({
               <TrayWhy
                 lead={reveal.answerWhy}
                 yours={reveal.chosenWhy}
-                ring={<BloomHintRing ringKey={hintRingKey} reducedMotion={reducedMotion} />}
+                ring={hint === undefined ? <BloomHintRing ringKey={hintRingKey} reducedMotion={reducedMotion} /> : undefined}
               />
             </>
           )}
@@ -518,9 +562,42 @@ export function McqBeatView({
               />
             </BloomStage>
           </span>
-          <ChipPress className="w-full" disabled={!primaryEnabled} onClick={onPrimary}>
-            {primaryLabel}
-          </ChipPress>
+          {hint === undefined ? (
+            <ChipPress className="w-full" disabled={!primaryEnabled} onClick={onPrimary}>
+              {primaryLabel}
+            </ChipPress>
+          ) : (
+            <>
+              {/* The nudge is a polite status, so a screen reader hears it
+                  the moment Hint is pressed without losing its place. */}
+              {hint.nudge !== null ? (
+                <p className="mcq-hint__nudge" role="status">
+                  <HintMark />
+                  <span>{hint.nudge}</span>
+                </p>
+              ) : null}
+              <div className="mcq-hint__row">
+                {/* aria-disabled rather than disabled once used, so focus is
+                    not dropped to the page when the key goes quiet. */}
+                <ChipPress
+                  variant="quiet"
+                  block={false}
+                  className="mcq-hint__key"
+                  aria-label={hint.used ? "Hint used" : "Hint: one line of help, and one wrong option greyed out"}
+                  aria-disabled={hint.used || undefined}
+                  data-used={hint.used ? "true" : undefined}
+                  onClick={hint.used ? undefined : hint.onHint}
+                >
+                  <HintMark />
+                  {hint.used ? "Used" : "Hint"}
+                  <BloomHintRing ringKey={hint.ringKey} reducedMotion={reducedMotion} />
+                </ChipPress>
+                <ChipPress className="mcq-hint__check" disabled={!primaryEnabled} onClick={onPrimary}>
+                  {primaryLabel}
+                </ChipPress>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

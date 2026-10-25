@@ -397,7 +397,21 @@ to shrink. Never touch `validators.lock.json`.
    has passed"), so [WIR] left `TrainerScreen.tsx` as it was. Keep the deferred face, or change the
    pin and swap the mood on the commit frame? Under reduced motion it already reacts at t=0.
 9. **DECIDED 2026-10-25: add a Hint button.** The owner: "add hint". The answer tray gets a real
-   Hint control, and the hint ring goes on it. The question as it was put: **Hint offer without a
+   Hint control, and the hint ring goes on it. **Built 2026-10-25** (`beats/mcq/hint.ts`), with
+   defaults the orchestrator chose that the owner can change: a Hint key left of Check on a
+   Practice lesson's multiple-choice question, a real button with an aria-label, 52px tall. Free.
+   One press per question shows one line (the greyed option's own `why`, first sentence, led by
+   "Ruled out:"; else the lesson's first guide idea; else the brief; else a plain line with no
+   chemistry; any line holding the key's text is skipped, and the guide line drawn from the question
+   itself is never used, since it restates the answer) and greys out one wrong option, never the
+   key, the same one every time, marked "Out" and unpickable. A right answer after Hint clears but
+   is not right first try (`types.ts rightFirstTry`): it breaks the combo, stays out of the
+   first-try count, so the lesson is not flawless. The ring sits on the Hint key when a missed
+   question returns in the recycle pass, at the full 1.5 swell (the action bar does not clip it),
+   in `--bb-primary-ink` because `--bb-primary` measured near invisible there. Graded finals stay
+   hint-free: Challenges, unit checkpoints, section quizzes, test-outs, unit exams and review stops
+   (`template.ts hintsAllowed`; the other runners never pass `hints`). MCQ only: sort and match have
+   no wrong option to grey out, so the sort tray keeps the ring as below. The question as it was put: **Hint offer without a
    hint key.** Section B rings "the tray's existing hint control", but the
    answer tray has none. As built the ring goes on the tray's help control: "Why?" when there is
    more to read, else "Why yours isn't it". Most wrong sort ladders carry no authored explanation

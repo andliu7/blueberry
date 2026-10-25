@@ -1118,3 +1118,20 @@ HEAD is 403.7 KB gz (ceiling 400). Weighed per commit: 400.5 before this run; th
 added about 1.6 (progression +0.5, costumes +0.2, wiring e4efbbf +1.0); syllabus bfa5145 added
 1.9 and 4f60752 took back 0.5. Trim before pushing: the mascot share alone does not close the gap.
 The working tree, with other sessions' uncommitted syllabus work, weighs 404.5.
+
+Hint key, 25 Oct (spec section 7 Q9, owner: "add hint"). Practice lessons' multiple-choice
+questions get a Hint key left of Check in the action bar. DEFAULTS THE ORCHESTRATOR CHOSE, the owner
+can change any of them: free (no diamonds, no economy change); one press per question shows one
+line and greys out one wrong option (never the key, always the same one for a question, marked
+"Out" and unpickable). The line is the greyed option's own `why`, first sentence ("Ruled out: ..."),
+else the lesson's first guide idea, else the brief, else a plain line naming no chemistry; any line
+containing the key's text is skipped, and the guide line drawn from the question itself is never
+used (it restates the answer). A right answer after Hint clears the question but is not right first
+try: it breaks the combo, is left out of the first-try count, so the lesson is not flawless (no
+flawless XP), and the summary says "N with a hint". Bloom's hint ring now sits on the Hint key when
+a missed question comes back in the recycle pass, at the full 1.5 swell. Hidden in Challenges, unit
+checkpoints, section quizzes, test-outs, unit exams and review stops (graded finals stay hint-free).
+MCQ only: the sort and match trays have no wrong option to grey out, and sort keeps its ring on
+Why? / the ladder headline. Files: `beats/mcq/hint.ts`, `session.ts`, `McqRunner.tsx`,
+`McqBeatView.tsx`, `template.ts` (`hintsAllowed`, `runFlawless`), `types.ts` (`rightFirstTry`),
+`BeatRunner.tsx`; tests `mcqHint.test.ts`.

@@ -34,6 +34,7 @@
 
 import { mcqCardOffer, type McqCardOffer } from "./card";
 import { gradeMcq, type McqReveal } from "./grade";
+import { hintOptionId } from "./hint";
 import { beatAllowedAt, declaredLevel, type BeatResult, type MasteryLevel, type McqBeat } from "../types";
 
 /**
@@ -64,6 +65,11 @@ export interface McqSession {
   readonly results: readonly BeatResult[];
   /** Beats the student flagged as wrong or confusing. See `mcqReportFor`. */
   readonly reported: readonly string[];
+  /**
+   * Set once Hint is pressed on the beat on screen (hint.ts), cleared by
+   * advance. Optional so a session written as a literal needs no change.
+   */
+  readonly hintUsed?: true;
 }
 
 /**
@@ -135,7 +141,30 @@ export function selectOption(session: McqSession, optionId: string): McqSession 
   const beat = currentBeat(session);
   if (beat === null) return session;
   if (!beat.options.some((option) => option.id === optionId)) return session;
+  // The option Hint greyed out is no longer a choice.
+  if (optionId === ruledOutId(session)) return session;
   return { ...session, selectedId: optionId };
+}
+
+/**
+ * Press Hint on the beat on screen: marks it hinted and greys out one wrong
+ * option (hint.ts hintOptionId). A pick sitting on that option is cleared, so
+ * Check is never live on an option the screen shows as out. Once only, and
+ * never after the answer is in.
+ */
+export function takeHint(session: McqSession): McqSession {
+  if (isRevealed(session) || session.hintUsed === true) return session;
+  const beat = currentBeat(session);
+  if (beat === null) return session;
+  const out = hintOptionId(beat);
+  return { ...session, hintUsed: true, selectedId: session.selectedId === out ? null : session.selectedId };
+}
+
+/** The option Hint greyed out on the beat on screen, or null before Hint. */
+export function ruledOutId(session: McqSession): string | null {
+  if (session.hintUsed !== true) return null;
+  const beat = currentBeat(session);
+  return beat === null ? null : hintOptionId(beat);
 }
 
 /** Whether the commit button is live. Exactly the reference's CHECK rule. */
@@ -179,8 +208,12 @@ export function commitPick(session: McqSession, input: McqCommitInput): McqCommi
     at: input.at,
   });
 
+  // A hinted answer is recorded as such, so every reader of the result
+  // (first-try count, flawless, pace, the combo) sees the same fact.
+  const result = session.hintUsed === true ? { ...reveal.result, hinted: true as const } : reveal.result;
+
   return {
-    session: { ...session, reveal, results: [...session.results, reveal.result] },
+    session: { ...session, reveal, results: [...session.results, result] },
     reveal,
     offer: mcqCardOffer(beat, reveal, input.at),
   };
@@ -195,7 +228,8 @@ export function commitPick(session: McqSession, input: McqCommitInput): McqCommi
  */
 export function advance(session: McqSession): McqSession {
   if (!isRevealed(session)) return session;
-  return { ...session, index: session.index + 1, selectedId: null, reveal: null };
+  const { hintUsed: _spent, ...rest } = session;
+  return { ...rest, index: session.index + 1, selectedId: null, reveal: null };
 }
 
 /* ------------------------------------------------------------------ */
@@ -232,12 +266,13 @@ export interface McqProgress {
  * distractorId, so it breaks the run: the run counts right answers, not passes.
  * Read at the reveal, it includes the answer just given (commitPick has
  * already recorded it), which is what the green tray's combo label shows.
+ * A hinted answer breaks it too: the combo counts unaided right answers.
  */
 export function currentRun(session: McqSession): number {
   let run = 0;
   for (let i = session.results.length - 1; i >= 0; i -= 1) {
     const result = session.results[i];
-    const right = (result.kind === "correct" || result.kind === "correct_alternative_route") && result.distractorId === undefined;
+    const right = (result.kind === "correct" || result.kind === "correct_alternative_route") && result.distractorId === undefined && result.hinted !== true;
     if (!right) break;
     run += 1;
   }

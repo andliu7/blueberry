@@ -1122,3 +1122,107 @@ main:has(> * > .lesson-frame) {
   font-size: var(--text-scale-sm);
   color: var(--bb-foreground);
 }
+
+/* ------------------------------------------------------------------ */
+/* The Hint key (owner, 25 Oct, Q9: "add hint"; mcq/hint.ts)           */
+/* ------------------------------------------------------------------ */
+
+/* Hint sits left of Check in the same action row and Check keeps the rest.
+   Both are 52px tall, over the 44px target floor. */
+.mcq-hint__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.mcq-hint__check {
+  flex: 1 1 auto;
+}
+/* The ring (BloomHintRing) takes the key's own shape and swells to the
+   spec's full 1.5: the action bar does not scroll, so nothing clips it. */
+.mcq-hint__key {
+  position: relative;
+  flex: none;
+  padding: 0 1rem;
+}
+.mcq-hint__mark {
+  flex: none;
+}
+/* The stock ring is --bb-primary, which measured near invisible on the dark
+   action bar around a quiet key. --bb-primary-ink is the violet that reads on
+   each theme's ground. Raised so the swell passes over Check, not under it. */
+.mcq-hint__key > .bloom-hint-ring {
+  border-color: var(--bb-primary-ink);
+  border-width: 3px;
+  z-index: 1;
+}
+/* Used: the cool grey of a waiting control, and no press, so it reads as
+   spent rather than broken. The word on it changes too ("Used"). */
+.mcq-hint__key[data-used] {
+  --b3-face: var(--off-face);
+  --b3-lip: var(--off-edge);
+  --b3-ink: var(--bb-muted-foreground);
+  cursor: default;
+  filter: none;
+}
+.mcq-hint__key[data-used]:active {
+  transform: none;
+  box-shadow: 0 var(--b3-lip-size) 0 var(--b3-lip);
+}
+
+/* The one line of nudge, above the keys. Full ink: it is the thing to read. */
+.mcq-hint__nudge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0 0 0.625rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bb-primary) 10%, var(--bb-card));
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  line-height: 1.35;
+}
+.mcq-hint__nudge > .mcq-hint__mark {
+  margin-top: 0.1rem;
+  color: var(--bb-primary);
+}
+
+/* The option Hint ruled out: dashed rim and the receded surface, plus the
+   word "Out", so grey never says it alone. The ink stays at the muted body
+   colour (the contrast rule in McqBeatView.tsx's header). */
+.option-card[data-out],
+.option-tile[data-out] {
+  border-style: dashed;
+  border-color: var(--off-edge);
+  background: color-mix(in srgb, var(--off-face) 55%, var(--bb-card));
+  color: var(--bb-muted-foreground);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.option-card[data-out] {
+  --opt-face: color-mix(in srgb, var(--off-face) 55%, var(--bb-card));
+  --opt-ink: var(--bb-muted-foreground);
+  --opt-rim: var(--off-edge);
+  --opt-lip: transparent;
+}
+.option-card[data-out] > span:first-child {
+  text-decoration: line-through;
+}
+.option-out-mark {
+  margin-left: auto;
+  flex: none;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--off-edge);
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bb-muted-foreground);
+}
+.option-tile .option-out-mark {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: var(--bb-card);
+}

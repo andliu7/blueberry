@@ -44,7 +44,7 @@ import { mcqBeatsForNode } from "./mcq";
 import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
-import { checkpointUnitFor, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
+import { checkpointUnitFor, isSectionFinal, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
 import { interleave, lessonPool, practicePool } from "./practice/pools";
 import { lessonTrainerFor } from "../content/u1/lessonTrainers";
 import { coveredSideQuests } from "../syllabus/syllabusPlan";
@@ -517,6 +517,12 @@ export interface LessonRun {
   readonly recycleCleared: number;
   readonly recycleTotal: number;
   readonly recycled: boolean;
+  /**
+   * Answers that cleared after a Hint (beats/mcq/hint.ts). Counted apart from
+   * clearedBeats, which is first-try right only. Optional: a save written
+   * before Hint existed has none.
+   */
+  readonly hintedBeats?: number;
 }
 
 export function startRun(plan: LessonPlan, mode: RunMode = "practice"): LessonRun {
@@ -549,6 +555,8 @@ export interface StepReport {
   readonly missedMcqIds?: readonly string[];
   /** Pool entry ids (drawings) the recycle pass should bring back. */
   readonly missedPoolIds?: readonly string[];
+  /** Beats that cleared after a Hint. Not in `cleared`, which is first-try right. */
+  readonly hinted?: number;
 }
 
 /** The run's missed pool entry ids, empty for a run saved before the field existed. */
@@ -559,6 +567,36 @@ export function missedPoolIdsOf(run: LessonRun): readonly string[] {
 /** Whether anything is waiting for the recycle pass. */
 function hasRecycle(run: LessonRun): boolean {
   return run.missedMcqIds.length > 0 || missedPoolIdsOf(run).length > 0;
+}
+
+/** The run's hinted count after a step, as a spread: nothing at all until a Hint is used. */
+function hintedAfter(run: LessonRun, report: StepReport): { readonly hintedBeats?: number } {
+  const hinted = (run.hintedBeats ?? 0) + (report.hinted ?? 0);
+  return hinted > 0 ? { hintedBeats: hinted } : {};
+}
+
+/**
+ * A FLAWLESS LESSON: nothing went to the recycle pass and every beat was right
+ * on the first try. A beat cleared after a Hint is not in clearedBeats, so a
+ * hinted lesson is never flawless (owner, 25 Oct, Q9). Read by BeatRunner when
+ * it banks the clear; the flawless XP, the pace and the quests all read that.
+ */
+export function runFlawless(run: LessonRun): boolean {
+  return !run.recycled && run.clearedBeats === run.totalBeats;
+}
+
+/**
+ * WHETHER A LESSON OFFERS HINT (owner, 25 Oct, Q9: "add hint"). A Practice
+ * lesson does. A graded final does not: a unit checkpoint, a section's
+ * closing quiz, and a Challenge, whose pass means every question right on
+ * the first try. Test-outs, unit exams and review stops play on other
+ * runners that never pass `hints`, so they have none either.
+ */
+export function hintsAllowed(node: string, mode: RunMode): boolean {
+  if (mode === "challenge") return false;
+  if (checkpointUnitFor(node) !== null) return false;
+  const row = pathwayNode(node);
+  return row === null || !isSectionFinal(row);
 }
 
 /**
@@ -588,6 +626,7 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
       index,
       clearedBeats: run.clearedBeats + report.cleared,
       totalBeats: run.totalBeats + report.total,
+      ...hintedAfter(run, report),
       phase: missedHere || contentDone ? "reward" : "content",
     };
   }
@@ -596,6 +635,7 @@ export function reportStep(run: LessonRun, report: StepReport): LessonRun {
     index,
     clearedBeats: run.clearedBeats + report.cleared,
     totalBeats: run.totalBeats + report.total,
+    ...hintedAfter(run, report),
     missedMcqIds: missed,
     missedPoolIds: missedPool,
     phase: contentDone ? (missed.length > 0 || missedPool.length > 0 ? "recycle" : "reward") : "content",

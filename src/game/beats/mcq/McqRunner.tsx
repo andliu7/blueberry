@@ -33,7 +33,7 @@
  * instead of none.
  */
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Press } from "../../app/ui/Press";
 import type { Card, Reco } from "../../cards/types";
@@ -44,6 +44,7 @@ import { resumeMcqSession } from "../../resume/lessonSave";
 import { useBerryReactions } from "../../mascot/useBerryReactions";
 import { bloomLookForNode } from "../BloomVerdictBerry";
 import { McqBeatView } from "./McqBeatView";
+import { guideIdeasFor, hintNudge, hintUnitFor, type HintGuide } from "./hint";
 import {
   advance,
   canCommit,
@@ -59,7 +60,9 @@ import {
   sessionProgress,
   currentRun,
   latestOutcome,
+  ruledOutId,
   startMcqSession,
+  takeHint,
   type McqProgress,
   type McqReport,
 } from "./session";
@@ -119,6 +122,12 @@ export interface McqRunnerProps {
    * the tray's Why? control gets the hint ring (session.ts latestOutcome).
    */
   readonly missedBefore?: readonly string[];
+  /**
+   * Offer the Hint key (hint.ts). Off unless asked for: only a Practice
+   * lesson turns it on (template.ts hintsAllowed), so test-outs, unit exams,
+   * checkpoints and Challenges stay hint-free without saying anything.
+   */
+  readonly hints?: boolean;
 }
 
 export function McqRunner({
@@ -137,6 +146,7 @@ export function McqRunner({
   resumeResults,
   onCommit,
   missedBefore = NONE_MISSED,
+  hints = false,
 }: McqRunnerProps) {
   const source = beats ?? mcqBeatsForNode(node);
   const runKey = `${node}:${level}:${source.length}`;
@@ -146,6 +156,22 @@ export function McqRunner({
     resumeMcqSession(startMcqSession(source, level), resumeResults === undefined ? null : { results: resumeResults }),
   );
   const startedAt = useRef(Date.now());
+
+  // The unit guide the nudge quotes (hint.ts). Fetched only when Hint is on,
+  // through a dynamic import, so no guide data rides on the first load. The
+  // `live` flag stops a late answer writing state after this screen has gone.
+  const [guide, setGuide] = useState<HintGuide | null>(null);
+  const guideUnit = hints ? hintUnitFor(node) : null;
+  useEffect(() => {
+    if (guideUnit === null) return;
+    let live = true;
+    void import("../../guide").then(({ loadUnitGuide }) => loadUnitGuide(guideUnit)).then((loaded) => {
+      if (live) setGuide(loaded);
+    });
+    return () => {
+      live = false;
+    };
+  }, [guideUnit]);
 
   // See the header: React's adjust-state-during-render pattern, so a swapped
   // node never shows the previous node's answers.
@@ -167,7 +193,23 @@ export function McqRunner({
   // The hint ring belongs to the tray of the wrong-again grade only: every
   // later tray mounts fresh, and a ring keyed on the standing count would
   // replay on each of them.
-  const hintRingKey = session.reveal !== null && latestOutcome(session, missedBefore) === "wrongAgain" ? reactions.hintKey : 0;
+  // With Hint on, the ring sits on the Hint key instead, the moment a question
+  // the student already missed comes back (one ring per question: its place
+  // in the run, plus one, so the next question remounts it).
+  const hintRingKey = !hints && session.reveal !== null && latestOutcome(session, missedBefore) === "wrongAgain" ? reactions.hintKey : 0;
+  // A slip line speaks to the option Hint greyed out ("That halves the ten H."),
+  // so it is led by the word that ties it to that option.
+  const nudge = hints && beat !== null && session.hintUsed === true ? hintNudge(beat, guideIdeasFor(guide, beat.node)) : null;
+  const hint =
+    hints && beat !== null
+      ? {
+          used: session.hintUsed === true,
+          nudge: nudge === null ? null : nudge.source === "slip" ? `Ruled out: ${nudge.text}` : nudge.text,
+          ruledOutId: ruledOutId(session),
+          onHint: () => setSession(takeHint(session)),
+          ringKey: session.reveal === null && missedBefore.includes(beat.id) ? session.index + 1 : 0,
+        }
+      : undefined;
 
   const primary = () => {
     if (session.reveal !== null) {
@@ -249,6 +291,7 @@ export function McqRunner({
       combo={currentRun(session)}
       bloom={reactions}
       hintRingKey={hintRingKey}
+      {...(hint !== undefined ? { hint } : {})}
       topicState={topicState}
       costume={costume}
     />
