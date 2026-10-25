@@ -80,7 +80,7 @@ import {
   type SampledPose,
 } from "./berryBehaviour";
 import { resolveLook, type BerryLook, type BerryMood } from "./berryMood";
-import { startGlance, stepGlance, type GlanceClock } from "./berryGlance";
+import { frameGlance, startGlance, type GlanceClock } from "./berryGlance";
 import {
   STATE_LABEL,
   STATE_SHAPE,
@@ -322,6 +322,8 @@ export function Berry({
     // pauses (pausing it froze the loader's blink).
     let drawn = false;
     let covered = false;
+    // Last frame's "glance is free" flag, local to this run of the loop.
+    let wasFree = true;
     const onLoader = nodeRef.current?.closest("#boot") != null;
     const tick = (now: number) => {
       const node = nodeRef.current;
@@ -404,10 +406,10 @@ export function Berry({
       // a glance mid-reaction would pull the face off the moment it reports.
       const prior = glanceRef.current ?? startGlance(now);
       const free = config.family === "ambient" && lookAtRef.current === undefined;
-      // Not free: eyes come home, and the next glance waits a full gap after
-      // the berry is free again rather than firing the instant a hop lands.
-      const held = prior.looking || now >= prior.nextAt ? startGlance(now, prior.seed) : prior;
-      const glance = free ? stepGlance(prior, now) : held;
+      // Not free: eyes come home. The frame it turns free again starts a fresh
+      // gap, so the next glance waits a full 3 to 6s after a hop lands.
+      const glance = frameGlance(prior, now, free, wasFree);
+      wasFree = free;
       if (glance !== glanceRef.current) {
         glanceRef.current = glance;
         node.style.setProperty("--berry-glance-x", glance.x.toFixed(3));

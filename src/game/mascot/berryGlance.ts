@@ -49,8 +49,9 @@ export function startGlance(now: number, seed: number = GLANCE_SEED): GlanceCloc
  * Advance the clock to `now`. Returns the SAME object when nothing is due, so
  * the caller can compare by identity and skip the style write.
  *
- * Looking off: mostly sideways, a little up or down, never less than half the
- * allowed travel so a glance at 40px is a visible glance rather than a twitch.
+ * Looking off: mostly sideways, a little up or down, never less than
+ * `minReach` of the allowed travel so a glance at 40px is a visible glance
+ * rather than a twitch.
  * The hold counts from the start of the move, so the eyes rest off to the side
  * for `holdMs` after a `moveMs` travel.
  */
@@ -63,7 +64,29 @@ export function stepGlance(clock: GlanceClock, now: number): GlanceClock {
   const [s1, side] = roll(clock.seed);
   const [s2, reach] = roll(s1);
   const [s3, tip] = roll(s2);
-  const x = (side < 0.5 ? -1 : 1) * (0.5 + reach * 0.5) * GLANCE.maxLook;
+  const x = (side < 0.5 ? -1 : 1) * (GLANCE.minReach + reach * (1 - GLANCE.minReach)) * GLANCE.maxLook;
   const y = (tip - 0.5) * GLANCE.maxLook * 0.6;
   return { seed: s3, nextAt: now + GLANCE.moveMs + GLANCE.holdMs, looking: true, x, y };
+}
+
+/**
+ * One frame of the glance as Berry runs it. `free` is "an ambient behaviour is
+ * playing and no lookAt is set"; `wasFree` is the same flag from the previous
+ * frame.
+ *
+ * - Held (a reaction is playing, or the caller set lookAt): eyes come home at
+ *   once and the clock otherwise waits, so a glance never pulls the face off
+ *   the moment a reaction reports.
+ * - The frame it turns free again: a fresh gap from now, so the next glance
+ *   waits a full 3 to 6s after a hop lands rather than firing on a deadline
+ *   that ran out while held.
+ * - Free: the plain schedule.
+ *
+ * Same identity contract as stepGlance: an unchanged clock comes back as the
+ * same object.
+ */
+export function frameGlance(prior: GlanceClock, now: number, free: boolean, wasFree: boolean): GlanceClock {
+  if (!free) return prior.looking ? startGlance(now, prior.seed) : prior;
+  if (!wasFree) return startGlance(now, prior.seed);
+  return stepGlance(prior, now);
 }

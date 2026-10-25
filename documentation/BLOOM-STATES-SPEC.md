@@ -211,7 +211,7 @@ otherwise. Names are binding; the comments are the reasoning.
 | `GLANCE.gapMinMs` / `gapMaxMs` | 3000 / 6000 | [AMB] | Bible A |
 | `GLANCE.moveMs` / `holdMs` | 200 / 900 | [AMB] | Duolingo 6 |
 | `GLANCE.eyesLeadMs` | 80 | [AMB] eyes move before the head | Duolingo 6 |
-| `GLANCE.maxLook` | 0.6 | [AMB] fraction of eye travel | chosen |
+| `GLANCE.maxLook`, `GLANCE.minReach` | 1, 0.7 | [AMB] a glance reaches 0.7 to 1 of the eye travel | measured at 40px: 0.6 (the first pick) moved the face about 1.3 screen px and did not read |
 | `IDLE.thinkingAfterMs` | 15000 | [AMB] timer, [ANS] dots | Bible B (Duolingo says 6s; the owner's Bible wins) |
 | `IDLE.boredAfterMs` | 20000 | [AMB] | Bible A |
 | `SIGH` | 1400ms; scaleY 0.94 at 0.35; tilt 0.05 rad at 0.6; rest at 1 | [AMB] behaviour `sigh` | chosen on `--bloom-ease-breathe` |

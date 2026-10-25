@@ -285,6 +285,14 @@ export const BEHAVIOURS: Record<BerryBehaviour, BehaviourConfig> = {
    * back. Reactive and short, so it fires once per idle spell and never loops:
    * a berry that keeps sighing at you is a guilt trip. No foot tap, because
    * there are no feet.
+   *
+   * The spec's last beat, "then the eyes look at the user", is not a keyframe:
+   * a behaviour owns the body, not the eyes. Berry already gives it for free
+   * to a caller that passes no mood: the sigh returns to idle, the idle face
+   * (curious) looks straight ahead, and frameGlance in berryGlance.ts holds
+   * the glance off for a full 3 to 6s gap after a reactive behaviour ends. A
+   * caller that passes a mood looking elsewhere (the PathMascot trigger is
+   * [WIR]'s) passes `lookAt={LOOK_AHEAD}` for that beat instead.
    */
   sigh: {
     family: "reactive",

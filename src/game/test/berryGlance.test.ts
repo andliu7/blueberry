@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { GLANCE_SEED, startGlance, stepGlance, type GlanceClock } from "../mascot/berryGlance";
+import { GLANCE_SEED, frameGlance, startGlance, stepGlance, type GlanceClock } from "../mascot/berryGlance";
 import { BERRY_MOODS, LOOK_AHEAD, lookForMood, resolveLook } from "../mascot/berryMood";
 import { GLANCE } from "../mascot/bloomMotion";
 
@@ -65,7 +65,9 @@ describe("the glance schedule", () => {
         if (!clock.looking) continue;
         expect(Math.abs(clock.x)).toBeLessThanOrEqual(GLANCE.maxLook);
         expect(Math.abs(clock.y)).toBeLessThanOrEqual(GLANCE.maxLook);
-        expect(Math.abs(clock.x)).toBeGreaterThanOrEqual(GLANCE.maxLook / 2);
+        // Below minReach the face moves about 1 screen px at 40px and does not
+        // read as a look (measured, see GLANCE in bloomMotion.ts).
+        expect(Math.abs(clock.x)).toBeGreaterThanOrEqual(GLANCE.minReach * GLANCE.maxLook - 1e-9);
       }
     }
   });
@@ -76,6 +78,45 @@ describe("the glance schedule", () => {
       .map((e) => Math.sign(e.clock.x));
     expect(sides).toContain(1);
     expect(sides).toContain(-1);
+  });
+});
+
+describe("the glance while a reaction holds it", () => {
+  /** A clock mid glance: eyes off to one side. */
+  function looking(): GlanceClock {
+    const clock = startGlance(0);
+    const off = stepGlance(clock, clock.nextAt);
+    expect(off.looking).toBe(true);
+    return off;
+  }
+
+  it("brings the eyes home the moment the berry is held", () => {
+    const off = looking();
+    const held = frameGlance(off, off.nextAt - 100, false, true);
+    expect(held.looking).toBe(false);
+    expect([held.x, held.y]).toEqual([0, 0]);
+  });
+
+  it("waits while held without rewriting the clock", () => {
+    const clock = startGlance(0);
+    expect(frameGlance(clock, clock.nextAt + 5000, false, false)).toBe(clock);
+  });
+
+  it("waits a full gap after the berry is free again, even if a deadline ran out while held", () => {
+    const clock = startGlance(0);
+    // Held well past the deadline, then freed.
+    const freedAt = clock.nextAt + 4000;
+    const freed = frameGlance(clock, freedAt, true, false);
+    expect(freed.looking).toBe(false);
+    expect(freed.nextAt - freedAt).toBeGreaterThanOrEqual(GLANCE.gapMinMs);
+    expect(freed.nextAt - freedAt).toBeLessThanOrEqual(GLANCE.gapMaxMs);
+    // And the frame after it does not glance yet.
+    expect(frameGlance(freed, freedAt + 16, true, true)).toBe(freed);
+  });
+
+  it("is the plain schedule while free", () => {
+    const clock = startGlance(0);
+    expect(frameGlance(clock, clock.nextAt, true, true)).toEqual(stepGlance(clock, clock.nextAt));
   });
 });
 
