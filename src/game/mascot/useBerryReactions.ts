@@ -50,8 +50,13 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   // Mirrors `charred` for react(), which can run twice before a re-render
   // (two grades inside one frame) and would otherwise read a stale value.
   const charredRef = useRef(false);
-  const [combo, setCombo] = useState<number | null>(null);
-  const [comboKey, setComboKey] = useState(0);
+  // The stage props belong to the LATEST grade only: combo is null and puffKey
+  // is 0 unless this grade reached a milestone or cleared the char. A surface
+  // that mounts a fresh <BloomStage> per reveal (the answer tray) would
+  // otherwise replay the last milestone's confetti on every later tray.
+  const [stage, setStage] = useState<BloomStageReactionProps>({ combo: null, comboKey: 0, puffKey: 0 });
+  // Counts every puff so its parity can flip the keyframe name (see BloomStage).
+  const puffCountRef = useRef(0);
   const [hintKey, setHintKey] = useState(0);
   const runRef = useRef({ correctRun: 0, missRun: 0 });
   const settleTimerRef = useRef<number | null>(null);
@@ -70,11 +75,13 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   const react = (outcome: ReactionOutcome) => {
     if (settleTimerRef.current !== null) window.clearTimeout(settleTimerRef.current);
     const run = runRef.current;
+    let cleared = false;
     if (outcome === "correct") {
       run.correctRun += 1;
       run.missRun = 0;
       if (charredRef.current) {
         charredRef.current = false;
+        cleared = true;
         setCharred(false);
         setFlashKey((k) => k + 1);
       }
@@ -88,10 +95,13 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
       setCharred(true);
     }
     if (reaction.sparkles) setSparkleKey((k) => k + 1);
-    if (reaction.combo !== null) {
-      setCombo(reaction.combo);
-      setComboKey((k) => k + 1);
-    }
+    if (cleared) puffCountRef.current += 1;
+    const puffKey = cleared ? puffCountRef.current : 0;
+    setStage((s) => ({
+      combo: reaction.combo,
+      comboKey: reaction.combo !== null ? s.comboKey + 1 : s.comboKey,
+      puffKey,
+    }));
     if (reaction.hint) setHintKey((k) => k + 1);
     bump(reaction.behaviour, reaction.mood, reaction.chain);
     if (reaction.holdMs !== null) {
@@ -105,8 +115,7 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
     berry: { behaviour, behaviourKey, mood, chain, sparkleKey, flashKey, state: charred ? "charred" : "neutral" },
     bump,
     react,
-    // The Reduced puff rides the same counter as Berry's flash ring: both mark the char clearing.
-    stage: { combo, comboKey, puffKey: flashKey },
+    stage,
     hintKey,
   };
 }

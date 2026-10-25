@@ -350,6 +350,17 @@ to shrink. Never touch `validators.lock.json`.
    would need a decision that does not revive the Return bonus.
 5. **Path lighting on unit complete** and the **Nucleophile arrow-arm** are parked for lack of an
    owner in this run.
+6. **Combo 8 confetti spills past the stage.** Section 1 says the burst "stays inside the stage".
+   As built ([ANS], `confettiPieces`) it lands up to 0.75 of the stage width from the centre (a
+   quarter stage past each edge) and rises up to 0.55 of the stage height above the head. Why: the
+   berry fills its stage and the confetti passes behind it, so a burst held inside the box is
+   almost all hidden, and one that fell straight down covered the eyes at 40px. Keep the spill, or
+   hold it inside the box? [WIR]: a tray header with `overflow: hidden` clips it; give the stage
+   room or let it overflow.
+7. **Thought dots shape.** Section 1 asks for three staggered dots and also reads the Bible's
+   floating lone pair as a ":" pair. As built it is three dots rising up and to the right, small to
+   large, like a thought bubble's tail (`THOUGHT_DOTS` timing). Keep the trail, or draw the lone
+   pair as ":" beside the head?
 
 ## 8. Commit rules for builders
 

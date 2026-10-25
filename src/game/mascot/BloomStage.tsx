@@ -30,11 +30,11 @@ import "./bloom-answers.css";
 
 /** The props useBerryReactions hands over; spread them in. */
 export interface BloomStageReactionProps {
-  /** The combo milestone last reached (3, 5 or 8), or null. */
+  /** The milestone (3, 5 or 8) THIS grade reached, or null. Null on every other grade, so a fresh mount draws nothing. */
   readonly combo: number | null;
   /** Bumped on every milestone so the overlay replays. 0 draws none. */
   readonly comboKey: number;
-  /** Bumped when a charred berry clears. 0 never puffs. */
+  /** Non-zero only on the grade that cleared the char; it counts puffs so the parity restarts the animation. 0 never puffs. */
   readonly puffKey: number;
 }
 
