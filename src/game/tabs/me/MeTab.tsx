@@ -6,6 +6,7 @@
  *   #/app/me               the profile
  *   #/app/me/settings      the settings list (one-line rows)
  *   #/app/me/settings/pka  the pKa editor, opened from a settings row
+ *   #/app/me/settings/syllabus  the syllabus import (STATUS C1), the same way
  *
  * THE PROFILE, top to bottom on a phone (at 1024px and up the calendar and
  * tools move to a side column so the wide screen is used):
@@ -70,6 +71,8 @@ import { plural } from "@/lib/helpers";
 
 // React.lazy: the pKa editor (and its 900 line store) loads only when opened.
 const PkaSettings = lazy(() => import("../../settings/PkaSettings"));
+// React.lazy again: the syllabus parser and its aliases load only on that screen.
+const SyllabusSettings = lazy(() => import("../../syllabus/SyllabusSettings"));
 
 /* ------------------------------------------------------------- icons -- */
 
@@ -839,6 +842,15 @@ function SettingsScreen() {
             <Chevron />
           </span>
         </a>
+        <a href={hrefForTab("me", "settings", "syllabus")} className="me-row">
+          <span className="me-row-text">
+            <span className="me-row-title">Syllabus</span>
+            <span className="me-row-detail">Follow your course's schedule</span>
+          </span>
+          <span className="me-row-chevron" aria-hidden>
+            <Chevron />
+          </span>
+        </a>
       </section>
 
       <section className="me-card me-group" aria-labelledby="me-set-decks">
@@ -864,6 +876,21 @@ function PkaScreen() {
       <SubHeader title="pKa values" backHref={hrefForTab("me", "settings")} backLabel="Back to Settings" />
       <Suspense fallback={<p className="me-muted font-bold">Loading pKa values…</p>}>
         <PkaSettings />
+      </Suspense>
+    </div>
+  );
+}
+
+function SyllabusScreen() {
+  // Opens at the top, the same as any new screen.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  return (
+    <div className="me me--narrow">
+      <SubHeader title="Syllabus" backHref={hrefForTab("me", "settings")} backLabel="Back to Settings" />
+      <Suspense fallback={<p className="me-muted font-bold">Loading your syllabus…</p>}>
+        <SyllabusSettings />
       </Suspense>
     </div>
   );
@@ -950,6 +977,6 @@ function ProfileScreen() {
 export default function MeTab() {
   const route = useHashRoute();
   const rest = route.kind === "tab" ? route.rest : [];
-  if (rest[0] === "settings") return rest[1] === "pka" ? <PkaScreen /> : <SettingsScreen />;
+  if (rest[0] === "settings") return rest[1] === "pka" ? <PkaScreen /> : rest[1] === "syllabus" ? <SyllabusScreen /> : <SettingsScreen />;
   return <ProfileScreen />;
 }

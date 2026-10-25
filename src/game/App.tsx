@@ -271,10 +271,17 @@ function ProgressSync() {
       if (cancelled) return;
       stopPka = startPkaSync({ userId, getClient: getSupabase }).stop;
     });
+    // And their syllabus plan (STATUS C1, syllabus/syllabusSync.ts), the same way.
+    let stopSyllabus: (() => void) | null = null;
+    void import("./syllabus/syllabusSync").then(({ startSyllabusSync }) => {
+      if (cancelled) return;
+      stopSyllabus = startSyllabusSync({ userId, getClient: getSupabase }).stop;
+    });
     return () => {
       cancelled = true;
       stop?.();
       stopPka?.();
+      stopSyllabus?.();
     };
   }, [userId]);
   return null;

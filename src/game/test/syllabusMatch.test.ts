@@ -86,7 +86,7 @@ describe("matchLines and buildPlan", () => {
       { date: "2026-11-04", title: "Exam 2", unitIds: ["u4", "u5", "u7"] },
       { date: "2026-12-14", title: "Final Exam", unitIds: ["u8", "u9", "u10"] },
     ]);
-    expect(plan.sideQuests.sort()).toEqual(["u10-hofmann-e", "u4-benzyne"]);
+    expect([...plan.sideQuests].sort()).toEqual(["u10-hofmann-e", "u4-benzyne"]);
     expect(plan.notCovered).toEqual([]);
   });
 
@@ -96,7 +96,7 @@ describe("matchLines and buildPlan", () => {
     expect(flagged).toEqual(["Ch 18", "Photosynthesis in plants"]);
     const plan = buildPlan(rows, 0);
     expect(plan.unitOrder).toEqual(["u1", "u2", "u3", "u11", "u10"]);
-    expect(plan.sideQuests.sort()).toEqual(["u10-gabriel", "u10-hofmann-r", "u11-claisen-r"]);
+    expect([...plan.sideQuests].sort()).toEqual(["u10-gabriel", "u10-hofmann-r", "u11-claisen-r"]);
     // The exam date is read even though "Ch 15-17" maps to nothing.
     expect(plan.exams[0]).toEqual({ date: "2026-09-30", title: "Exam 1", unitIds: ["u1", "u2", "u3"] });
   });

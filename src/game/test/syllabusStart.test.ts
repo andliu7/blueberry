@@ -1,5 +1,5 @@
 /**
- * START follows the syllabus (STATUS C1): the syllabus layer of pathStatus
+ * START follows the syllabus (STATUS C1): the syllabus layer over pathStatus
  * moves the one "you are here" marker and changes nothing else. Across many
  * journals, every node's state after the layer equals its state before,
  * except one current <-> open swap. With no plan the result is the same
@@ -13,6 +13,11 @@ import { clearedIdsOf, pathStatus } from "../tabs/pathway/sectionStarts";
 import { unitSections } from "../tabs/pathway/testOuts";
 import { withSyllabusStart } from "../syllabus/syllabusStart";
 import type { SyllabusPlan } from "../syllabus/syllabusPlan";
+
+/** pathStatus with the syllabus layer laid over it, as PathwayTab draws it. */
+function withPlan(journal: readonly EconomyEvent[], plan: SyllabusPlan, today: string) {
+  return withSyllabusStart(PATHWAY_UNITS, pathStatus(PATHWAY_UNITS, journal), plan, clearedIdsOf(journal), today);
+}
 
 function cleared(nodeId: string): EconomyEvent {
   return { kind: "node_cleared", at: "2026-10-23T12:00:00.000Z", tz: "UTC", nodeId, nodeKind: "concept", flawless: true, stepsInOneSitting: 1, spine: true, difficulty: 3 };
@@ -62,7 +67,7 @@ describe("withSyllabusStart", () => {
     for (const journal of WALK) {
       for (const today of DATES) {
         const base = pathStatus(PATHWAY_UNITS, journal);
-        const moved = pathStatus(PATHWAY_UNITS, journal, clearedIdsOf(journal), PLAN, today);
+        const moved = withPlan(journal, PLAN, today);
         const changed = [...base.status.nodes].filter(([id, status]) => moved.status.nodes.get(id)!.state !== status.state);
         if (moved.status.currentNodeId === base.status.currentNodeId) {
           expect(changed).toEqual([]);
@@ -85,28 +90,28 @@ describe("withSyllabusStart", () => {
   });
 
   it("points at this week's unit, walking its sections in the plan's order", () => {
-    const fresh = pathStatus(PATHWAY_UNITS, [], new Set(), PLAN, "2026-09-01");
+    const fresh = withPlan([], PLAN, "2026-09-01");
     const u3 = PATHWAY_UNITS.find((unit) => unit.id === "u3")!;
     // Week 2 is Unit 3, and its plan starts at section 2, whose first lesson is open.
     expect(fresh.status.currentNodeId).toBe(unitSections(u3)[1]!.sources[0]);
     // Week 3 is Unit 5, its first section.
     const u5 = PATHWAY_UNITS.find((unit) => unit.id === "u5")!;
-    expect(pathStatus(PATHWAY_UNITS, [], new Set(), PLAN, "2026-09-08").status.currentNodeId).toBe(unitSections(u5)[0]!.sources[0]);
+    expect(withPlan([], PLAN, "2026-09-08").status.currentNodeId).toBe(unitSections(u5)[0]!.sources[0]);
   });
 
   it("skips a section or lesson marked not covered", () => {
     const u3 = PATHWAY_UNITS.find((unit) => unit.id === "u3")!;
     const plan = { ...PLAN, notCovered: ["u3/s2"] };
-    expect(pathStatus(PATHWAY_UNITS, [], new Set(), plan, "2026-09-01").status.currentNodeId).toBe(unitSections(u3)[0]!.sources[0]);
+    expect(withPlan([], plan, "2026-09-01").status.currentNodeId).toBe(unitSections(u3)[0]!.sources[0]);
   });
 
   it("a finished week goes on to the next syllabus unit; with nothing open left, START stays put", () => {
     const u3 = PATHWAY_UNITS.find((unit) => unit.id === "u3")!;
     const journal = u3.nodes.filter((node) => node.kind !== "branch" && node.playable !== undefined).map((node) => cleared(node.id));
-    const next = pathStatus(PATHWAY_UNITS, journal, clearedIdsOf(journal), PLAN, "2026-09-01").status.currentNodeId!;
+    const next = withPlan(journal, PLAN, "2026-09-01").status.currentNodeId!;
     expect(unitOf(next)).toBe("u5");
     const onlyU3 = { ...PLAN, unitOrder: ["u3"], weeks: [{ week: 2, start: "2026-08-31", unitIds: ["u3"] }] };
     const base = pathStatus(PATHWAY_UNITS, journal);
-    expect(pathStatus(PATHWAY_UNITS, journal, clearedIdsOf(journal), onlyU3, "2026-09-01").status).toEqual(base.status);
+    expect(withSyllabusStart(PATHWAY_UNITS, base, onlyU3, clearedIdsOf(journal), "2026-09-01")).toBe(base);
   });
 });

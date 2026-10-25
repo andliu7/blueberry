@@ -46,7 +46,7 @@
  * door; the door is the sheet.
  */
 
-import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -115,6 +115,7 @@ import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/node
 import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayout";
 import { reviewHolding, reviewsAfter, type ReviewCheckpoint } from "./reviewCheckpoints";
 import { clearedIdsOf, pathStatus, sectionWaits } from "./sectionStarts";
+import { syllabusStore, todayIso } from "../../syllabus/syllabusPlan";
 import { readCelebration, type Celebration } from "./unlockCelebration";
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
@@ -1744,6 +1745,34 @@ function SectionDivider({ id, eyebrow, title }: { readonly id: string; readonly 
   );
 }
 
+type SyllabusMap = typeof import("../../syllabus/syllabusStart");
+/**
+ * The student's saved syllabus plan (STATUS C1) and the code that reads it,
+ * or null with no plan. useSyncExternalStore subscribes to the plan's store,
+ * so saving one re-renders the path. The reading code is a DYNAMIC IMPORT
+ * fetched only once a plan exists, so a student with no syllabus loads none
+ * of it on first open; useState holds the module once it lands.
+ */
+function useSyllabusMap(): { readonly map: SyllabusMap; readonly plan: NonNullable<ReturnType<SyllabusMap["sanitisePlan"]>> } | null {
+  const stored = useSyncExternalStore(syllabusStore.subscribe, syllabusStore.getSnapshot);
+  const [map, setMap] = useState<SyllabusMap | null>(null);
+  useEffect(() => {
+    if (stored === null || map !== null) return;
+    let live = true;
+    void import("../../syllabus/syllabusStart").then((module) => {
+      if (live) setMap(module);
+    });
+    return () => {
+      live = false;
+    };
+  }, [stored, map]);
+  // useMemo: sanitise the stored plan (known ids only) once per saved value.
+  return useMemo(() => {
+    const plan = stored === null || map === null ? null : map.sanitisePlan(stored);
+    return plan === null || map === null ? null : { map, plan };
+  }, [stored, map]);
+}
+
 function OrgoMapTrack({
   onOpenNode,
   onGuidebook,
@@ -1848,6 +1877,10 @@ function OrgoMapTrack({
     where it is pinned by running it.
   */
   const gateReason = unitNote(PATHWAY_UNITS, status, index);
+  /* The syllabus week chip (STATUS C1): which week the unit is taught, the
+     exam it is due before, or that it is not on the syllabus. Never a lock. */
+  const syllabus = useSyllabusMap();
+  const chip = syllabus === null ? null : syllabus.map.weekChip(syllabus.plan, unit.id, todayIso(), statusOf(status, checkpointNodeId(unit.id)).state === "done");
   /* The sentence every chip in a shut unit says, naming the unit to finish:
      "the unit before it" named the empty Unit 2 on Unit 3's chips (g11). */
   const lockSaid = unitLockSaid(PATHWAY_UNITS, status);
@@ -2384,6 +2417,19 @@ function OrgoMapTrack({
             {gateReason}
           </p>
         )}
+        {chip === null ? null : (
+          <p className="path-unit__reason mx-auto w-full max-w-md">
+            <a
+              href={hrefForTab("me", "settings", "syllabus")}
+              className={`inline-block rounded-full border-2 px-2.5 py-0.5 font-extrabold no-underline ${
+                chip.tone === "muted" ? "border-bb-border bg-bb-muted text-bb-muted-foreground" : chip.tone === "warn" ? "border-bb-primary bg-bb-primary text-bb-primary-foreground" : "border-bb-primary bg-bb-card text-bb-primary-ink"
+              }`}
+              aria-label={`Your syllabus: ${chip.text}`}
+            >
+              {chip.text}
+            </a>
+          </p>
+        )}
         {/* SKIP AHEAD, owner brief 17 Oct item 2: every unit's exam is open at
             any time, and a pass lights this unit and every unit before it
             (testOuts.ts). Gone once the unit is finished. */}
@@ -2693,7 +2739,10 @@ export default function PathwayTab({ reducedMotion }: { readonly reducedMotion: 
   const clearedIds = useMemo(() => clearedIdsOf(snapshot.journal), [snapshot.journal]);
   const passedIds = useMemo(() => passedTests(snapshot.journal), [snapshot.journal]);
   // Every layer of the unlock rule in order: the map's own, the review stops, then the open section starts (sectionStarts.ts).
-  const gated = useMemo(() => pathStatus(PATHWAY_UNITS, snapshot.journal, clearedIds), [snapshot.journal, clearedIds]);
+  const base = useMemo(() => pathStatus(PATHWAY_UNITS, snapshot.journal, clearedIds), [snapshot.journal, clearedIds]);
+  // The student's syllabus (STATUS C1) moves START to this week's unit; it opens and locks nothing (syllabus/syllabusStart.ts).
+  const syllabus = useSyllabusMap();
+  const gated = useMemo(() => (syllabus === null ? base : syllabus.map.withSyllabusStart(PATHWAY_UNITS, base, syllabus.plan, clearedIds)), [base, syllabus, clearedIds]);
   const mapStatus = gated.status;
 
   if (course === null) return <CoursePicker />;

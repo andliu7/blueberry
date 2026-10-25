@@ -4,20 +4,8 @@
  * "next up" looks in, the week chip).
  */
 import { describe, expect, it } from "vitest";
-import {
-  SYLLABUS_KEY,
-  coveredSideQuests,
-  createSyllabusStore,
-  sanitisePlan,
-  syllabusStore,
-  syllabusTarget,
-  todayIso,
-  upcomingExam,
-  weekChip,
-  weekOfUnit,
-  weekOnDate,
-  type SyllabusPlan,
-} from "../syllabus/syllabusPlan";
+import { SYLLABUS_KEY, coveredSideQuests, createSyllabusStore, syllabusStore, todayIso, type SyllabusPlan } from "../syllabus/syllabusPlan";
+import { sanitisePlan, syllabusTarget, upcomingExam, weekChip, weekOfUnit, weekOnDate } from "../syllabus/syllabusWeeks";
 
 function memory() {
   const map = new Map<string, string>();
@@ -58,7 +46,7 @@ describe("the store", () => {
   it("reads corrupt or foreign JSON as no plan", () => {
     const { map, storage } = memory();
     const store = createSyllabusStore(() => storage);
-    for (const raw of ["{not json", "[]", "null", '{"version":2}', '"text"']) {
+    for (const raw of ["{not json", "[]", "null", '{"version":2}', '"text"', '{"version":1,"weeks":[]}']) {
       map.set(SYLLABUS_KEY, raw);
       expect(store.getSnapshot(), raw).toBeNull();
     }

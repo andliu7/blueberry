@@ -24,6 +24,7 @@ import {
 } from "@/lib/officeHours";
 import { EMAIL } from "@/data/site";
 import { cn } from "@/lib/utils";
+import { hrefForTab } from "@/game/app/routes";
 import "./schedule.css";
 
 /**
@@ -260,6 +261,10 @@ export default function SchedulePage() {
           <>
             <a href="#/tutors" className="sch-ghost">
               Book a tutor
+            </a>
+            {/* Every visitor: the game keeps the plan on the device when signed out (STATUS C1). */}
+            <a href={hrefForTab("me", "settings", "syllabus")} className="sch-ghost">
+              Plan Blueberry from your syllabus
             </a>
             {isStaff && (
               <>

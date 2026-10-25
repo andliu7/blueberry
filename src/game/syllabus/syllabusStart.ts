@@ -1,5 +1,6 @@
 /**
- * THE PATH FOLLOWS THE SYLLABUS (STATUS C1): the last layer of pathStatus.
+ * THE PATH FOLLOWS THE SYLLABUS (STATUS C1): one layer over pathStatus
+ * (tabs/pathway/sectionStarts.ts), applied by PathwayTab once a plan exists.
  *
  * It moves START, the one "you are here" marker the guide follows, to the
  * first lesson that is ALREADY OPEN, not cleared and authored in this week's
@@ -14,13 +15,20 @@
  * gated) is exactly what it was. No plan, or nothing open to point at, and
  * the input comes back unchanged, the same object.
  *
- * Pure and light, in the entry chunk with the pathway.
+ * LAZY, NOT IN pathStatus. #/app's first open is over its byte budget, so
+ * PathwayTab loads this file (and syllabusWeeks.ts through it) only when the
+ * student has saved a plan; with none, nothing here is fetched. It also hands
+ * the map its week chip, so the map makes one dynamic import, not two.
+ * Pure, no React.
  */
 import type { PathwayUnit } from "../demo/pathwayMap";
 import type { MapNodeStatus, MapUnitStatus } from "../tabs/pathway/pathwayState";
 import type { GatedPathway } from "../tabs/pathway/reviewCheckpoints";
 import { unitSections } from "../tabs/pathway/testOuts";
-import { sectionKey, syllabusTarget, todayIso, type SyllabusPlan } from "./syllabusPlan";
+import { sectionKey, todayIso, type SyllabusPlan } from "./syllabusPlan";
+import { syllabusTarget } from "./syllabusWeeks";
+
+export { sanitisePlan, weekChip } from "./syllabusWeeks";
 
 /** The lesson START should hang over for this plan, or null to leave START where it is. */
 export function syllabusStartNode(units: readonly PathwayUnit[], gated: GatedPathway, plan: SyllabusPlan, today: string, cleared: ReadonlySet<string>): string | null {

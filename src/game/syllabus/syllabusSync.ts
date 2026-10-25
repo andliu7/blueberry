@@ -22,7 +22,8 @@
  * injected, so this file never imports supabase-js at runtime. No React.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { SYLLABUS_KEY, sanitisePlan, syllabusStore, type SyllabusStore } from "./syllabusPlan";
+import { SYLLABUS_KEY, syllabusStore, type SyllabusStore } from "./syllabusPlan";
+import { sanitisePlan } from "./syllabusWeeks";
 
 export const OWNER_KEY = "blueberry.syllabus.owner.v1";
 const STASH_PREFIX = "blueberry.syllabus.v1.stash:";
