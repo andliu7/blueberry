@@ -1026,6 +1026,14 @@ load) passes when rerun alone, except `bootLoader.test.ts`, red on purpose. **Pa
 ceiling. 22522bf weighed 403.7; 265a25d (account menu and site search as their own chunks) and
 e3c6104 brought it under.
 
+Bloom owner answers, 25 Oct (spec section 7, all five DECIDED): Q3 the four deferred chemical
+states built, CSS lazy (4e53edf, 8777195); Q6 combo-8 confetti spill kept, no change; Q7 thinking is
+a floating lone pair (629bb2f); Q8 the trainer face changes the instant an answer is graded
+(94de8cf); Q9 a real Hint key in the Practice MCQ tray (8b5848d). Final check on 8b5848d:
+`build:packages` and `tsc -b` clean; full vitest 337 of 341 files green under load (5,624 of
+5,627 tests), guideU4, guideU5, guideU8 red only under load (pass alone), `bootLoader.test.ts` red
+on purpose. `#/app` first open on a clean copy of 8b5848d: 369.4 KB gz, 57 files (was 368.9).
+
 Commits since the 24 Oct check (7176c72), 23, by feature:
 - Analytics: ee53a68 first-party event client, CTA tags, usage stats opt-in; 6594232 owner steps
 - Mascot, Bloom states: 7337446 answer reactions, 8650c97 answers fix round, 6b4d3a2 progression
