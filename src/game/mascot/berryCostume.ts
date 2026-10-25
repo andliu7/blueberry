@@ -152,3 +152,67 @@ const SURFACE_COSTUME: Record<BerrySurface, BerryCostume> = {
 export function costumeForSurface(surface: BerrySurface): BerryCostume {
   return SURFACE_COSTUME[surface] ?? DEFAULT_COSTUME;
 }
+
+/**
+ * What `costumeForNode` needs to know about a pathway node. A structural copy
+ * of the fields it reads from `PathwayNode` in demo/pathwayMap.ts, not an
+ * import, for the reason the header gives: this file holds no dependencies.
+ * A `PathwayNode` fits it as is; `final` is the one fact the node does not
+ * carry, so the caller adds `isSectionFinal(node)` from the same module.
+ */
+export interface CostumeNodeFacts {
+  readonly id: string;
+  /** The map's `NodeKind`: "spine", "branch", "gate" or "boss". */
+  readonly kind: string;
+  /** The map's `NodeRole`: "video", "practice", "quiz" or "lesson". Unset on older units. */
+  readonly role?: string | undefined;
+  /** True for a section quiz or a unit checkpoint (`isSectionFinal`). */
+  readonly final?: boolean | undefined;
+}
+
+/**
+ * The spectroscopy and structure lessons, by id. An explicit list rather than
+ * a unit prefix or a title search, for the reason berryTopicState.ts gives:
+ * berryCostume.test.ts checks every id still exists in pathwayMap.ts, and that
+ * every Unit 6 node is listed, so a new spectroscopy lesson fails a test
+ * instead of quietly wearing the lab coat.
+ */
+export const SPECTROSCOPY_NODES: ReadonlySet<string> = new Set([
+  // Unit 2's ring current lesson is an NMR reading lesson that links to Unit 6.
+  "u2-nmr",
+  "u6-dou",
+  "u6-ir",
+  "u6-hnmr",
+  "u6-cnmr",
+  "u6-ms",
+  "u6-2d",
+  "u6-uv",
+]);
+
+/**
+ * The surface a lesson node stands for, so a lesson dresses the berry from the
+ * same table as the tabs do. First match wins, and the order is the decision:
+ *
+ * 1. A graded final is the referee, wherever it sits, because "does not cheer
+ *    mid quiz" is the one costume rule that changes what the berry may do.
+ * 2. Spectroscopy is the trench, branch or not: the topic is the more specific
+ *    signal, and 2D NMR is still structure work.
+ * 3. A branch is the backpack: the student stepped off the spine.
+ * 4. The boss keeps the lab coat (see SURFACE_COSTUME).
+ * 5. A `video` node opens on an explainer, a concept lesson, so the tweed.
+ * 6. Everything else is practice on a reaction: the lab coat.
+ */
+export function surfaceForNode(node: CostumeNodeFacts): BerrySurface {
+  if (node.final === true || node.role === "quiz") return "unitQuiz";
+  if (SPECTROSCOPY_NODES.has(node.id)) return "spectroscopyNode";
+  if (node.kind === "branch") return "branchNode";
+  if (node.kind === "boss") return "bossNode";
+  if (node.role === "video") return "conceptNode";
+  return "reactionNode";
+}
+
+/** The costume for a lesson node. A missing node gets the default lab coat. Never `nightcap`. */
+export function costumeForNode(node: CostumeNodeFacts | null | undefined): BerryCostume {
+  if (node === null || node === undefined) return DEFAULT_COSTUME;
+  return costumeForSurface(surfaceForNode(node));
+}

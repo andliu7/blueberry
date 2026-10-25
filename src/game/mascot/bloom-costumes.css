@@ -1,0 +1,46 @@
+/*
+ * The costume change wiggle. documentation/BLOOM-STATES-SPEC.md section 1E,
+ * after the Duolingo costume reveal: when a berry's costume changes, the
+ * costume layer alone tilts 0, 4deg, -3deg, 0 over 300ms. The body and the
+ * face never move, so the mood reads straight through it.
+ *
+ * Imported by BlueberryMark.tsx, which adds `.bb-costume-wiggle` to the two
+ * costume groups only after a change, never on first mount. The numbers match
+ * COSTUME_WIGGLE in bloomMotion.ts; berryCostume.test.ts holds them to it.
+ *
+ * Pivot: the berry's centre (32, 34 in the 64-unit viewBox), so a pack, a cape
+ * and a pair of goggles all swing around the same body.
+ */
+
+.bb-costume-wiggle {
+  transform-box: view-box;
+  transform-origin: 32px 34px;
+  animation: bb-costume-wiggle 300ms var(--bloom-ease-out, cubic-bezier(0.22, 1, 0.36, 1)) both;
+}
+
+@keyframes bb-costume-wiggle {
+  0% {
+    transform: rotate(0deg);
+  }
+  33.333% {
+    transform: rotate(4deg);
+  }
+  66.667% {
+    transform: rotate(-3deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+/* Reduced motion: an instant swap. The new costume is simply there. */
+.berry-origin[data-motion="still"] .bb-costume-wiggle,
+html[data-motion="reduced"] .bb-costume-wiggle {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-costume-wiggle {
+    animation: none;
+  }
+}

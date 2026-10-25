@@ -20,10 +20,12 @@
  */
 
 import { useState } from "react";
-import { useProgress } from "../../app/hooks";
+import { useProgress, useReducedMotion } from "../../app/hooks";
 import { progress } from "../../app/progress";
 import { hrefForTab } from "../../app/routes";
+import { Berry } from "../../mascot/Berry";
 import { BlueberryMark } from "../../mascot/BlueberryMark";
+import { costumeForSurface } from "../../mascot/berryCostume";
 import { StepPips } from "../social/SocialHero";
 import { weekXpCached, type WeekDay } from "./weekModel";
 import "../social/social.css";
@@ -58,8 +60,14 @@ const MEDALS = [
  * The banner's picture: a three-step podium with Bloom standing on the gold
  * step and a trophy beside him. Bloom is the mascot, not a player, so the
  * other two steps stay empty rather than holding made-up people.
+ *
+ * THE CAPE (BLOOM-STATES-SPEC.md section 1E) is worn only once the student
+ * has placed, which today means they earned their seat: no standings exist
+ * yet, so a seat is the only placement there is. Before that Bloom stands
+ * bare, so the cape is something the student unlocked rather than a default.
+ * When standings arrive, `placed` is the one input to move to a real rank.
  */
-function PodiumArt() {
+function PodiumArt({ placed, reducedMotion }: { readonly placed: boolean; readonly reducedMotion: boolean }) {
   const steps = [
     { place: 2, height: 60 },
     { place: 1, height: 86 },
@@ -81,9 +89,19 @@ function PodiumArt() {
           );
         })}
       </div>
-      {/* Bloom on the middle (gold) step. */}
+      {/* Bloom on the middle (gold) step, in the cape once the student has placed. */}
       <span className="absolute bottom-[84px] left-1/2 -translate-x-1/2">
-        <BlueberryMark eyes mood="happy" className="h-24 w-24 drop-shadow-[0_4px_0_rgba(0,0,0,0.18)]" />
+        {placed ? (
+          <Berry
+            mood="proud"
+            costume={costumeForSurface("leaderboards")}
+            sizePx={96}
+            reducedMotion={reducedMotion}
+            className="drop-shadow-[0_4px_0_rgba(0,0,0,0.18)]"
+          />
+        ) : (
+          <BlueberryMark eyes mood="happy" className="h-24 w-24 drop-shadow-[0_4px_0_rgba(0,0,0,0.18)]" />
+        )}
       </span>
       {/* A flat gold trophy floating over the bronze step. */}
       <svg viewBox="0 0 32 32" className="absolute right-1 bottom-[48px] size-14">
@@ -355,6 +373,7 @@ function LeagueDetailsBody({ name }: { readonly name: string | null }) {
 
 export default function LeaderboardsTab() {
   const snapshot = useProgress();
+  const reducedMotion = useReducedMotion();
   const standings = standingsFor();
 
   const cleared = Object.keys(snapshot.economy.firstClears).length;
@@ -381,7 +400,7 @@ export default function LeaderboardsTab() {
   return (
     <div className="mx-auto flex w-full max-w-[34rem] flex-col items-center gap-5 px-4 pt-8 pb-10 text-center md:pt-12">
       <h1 className="sr-only">Leaderboards</h1>
-      <PodiumArt />
+      <PodiumArt placed={left === 0} reducedMotion={reducedMotion} />
       <div className="flex flex-col items-center gap-2">
         <h2 className="font-display text-[1.75rem] leading-tight font-black text-bb-foreground">
           {left > 0 ? "Unlock Leaderboards!" : "You're ready to compete!"}

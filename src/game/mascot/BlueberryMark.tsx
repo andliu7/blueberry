@@ -26,14 +26,21 @@
  * the clothes do not. Each colour below is picked to clear roughly 3:1 against
  * the berry's own blue so the silhouette survives at 40px.
  *
+ * THE WIGGLE. A costume CHANGE tilts the costume layer 0, 4, -3, 0 degrees
+ * over 300ms about the berry's centre (bloom-costumes.css, COSTUME_WIGGLE in
+ * bloomMotion.ts); the body and face hold still, so the mood never moves.
+ * The two layers are wrapped in a `<g>` only when a costume is worn, so the
+ * no-costume SVG is still byte for byte the original.
+ *
  * SIZE BUDGET. Each costume is under fifteen drawn elements and every stroke is
  * at least 1.5 viewBox units, which is about one device pixel at the 40px size
  * the tab rail and the notification thumbnail use.
  */
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import type { BerryCostume } from "./berryCostume";
 import type { BerryMood } from "./berryMood";
+import "./bloom-costumes.css";
 
 const LOBE =
   "M0 -11 C2.8 -6.7 3.7 -2.8 2.6 0 C1.6 2.2 -1.6 2.2 -2.6 0 C-3.7 -2.8 -2.8 -6.7 0 -11 Z";
@@ -258,6 +265,21 @@ export function BlueberryMark({
   const berryId = `bb-berry${uid}`;
   const calyxId = `bb-calyx${uid}`;
   const clipId = `bb-body-clip${uid}`;
+
+  // THE COSTUME CHANGE WIGGLE (BLOOM-STATES-SPEC.md section 1E). React's
+  // "adjust state while rendering" pattern: comparing the prop to the last one
+  // seen during render, instead of in an effect, so the wiggle class is on the
+  // very first frame of the new costume rather than one frame late. The first
+  // costume a mark mounts with never wiggles; only a change does.
+  const [worn, setWorn] = useState(costume);
+  const [changes, setChanges] = useState(0);
+  if (costume !== worn) {
+    setWorn(costume);
+    setChanges(changes + 1);
+  }
+  // A key that changes with `changes` remounts the costume layer so the animation replays on each change.
+  const costumeLayer = changes > 0 ? "bb-costume-wiggle" : undefined;
+
   return (
     <svg viewBox="0 0 64 64" role="img" aria-label="Blueberry" className={`block ${className}`}>
       <defs>
@@ -274,7 +296,11 @@ export function BlueberryMark({
         {costume !== undefined ? <CostumeDefs clipId={clipId} /> : null}
       </defs>
 
-      {costume !== undefined ? <CostumeBehind costume={costume} /> : null}
+      {costume !== undefined ? (
+        <g key={`behind${changes}`} className={costumeLayer}>
+          <CostumeBehind costume={costume} />
+        </g>
+      ) : null}
 
       <circle cx="32" cy="34" r="23" fill={`url(#${berryId})`} />
       <ellipse cx="19" cy="26" rx="6" ry="4.1" fill="#ffffff" opacity="0.26" transform="rotate(-30 19 26)" />
@@ -315,7 +341,11 @@ export function BlueberryMark({
         </g>
       ) : null}
 
-      {costume !== undefined ? <CostumeFront costume={costume} goggles={goggles} clipId={clipId} /> : null}
+      {costume !== undefined ? (
+        <g key={`front${changes}`} className={costumeLayer}>
+          <CostumeFront costume={costume} goggles={goggles} clipId={clipId} />
+        </g>
+      ) : null}
     </svg>
   );
 }
