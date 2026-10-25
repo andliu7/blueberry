@@ -35,7 +35,7 @@ export interface BerryReactions {
   readonly react: (outcome: ReactionOutcome) => void;
   /** Spread into <BloomStage>; the surface adds reducedMotion, thinking and the berry. */
   readonly stage: BloomStageReactionProps;
-  /** Bumped on a wrong-again miss. Pass to <BloomHintRing ringKey> on the hint control. */
+  /** Non-zero only when the latest grade was a wrong-again miss. Pass to <BloomHintRing ringKey> on the hint control. */
   readonly hintKey: number;
 }
 
@@ -44,8 +44,16 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   const [behaviourKey, setBehaviourKey] = useState(0);
   const [mood, setMood] = useState<BerryMood | undefined>(undefined);
   const [chain, setChain] = useState<readonly BerryBehaviour[]>([]);
+  // Like the stage bundle below, sparkleKey, flashKey and hintKey belong to the
+  // LATEST grade: 0 unless this grade sparkled, cleared the char or offered the
+  // hint. A <Berry> or <BloomHintRing> mounted fresh in the next tray would
+  // otherwise replay the last grade's sparkle, flash or ring. The refs count
+  // every one so two in a row still get different keys and remount.
   const [sparkleKey, setSparkleKey] = useState(0);
   const [flashKey, setFlashKey] = useState(0);
+  const sparkleCountRef = useRef(0);
+  const flashCountRef = useRef(0);
+  const hintCountRef = useRef(0);
   const [charred, setCharred] = useState(false);
   // Mirrors `charred` for react(), which can run twice before a re-render
   // (two grades inside one frame) and would otherwise read a stale value.
@@ -83,7 +91,6 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
         charredRef.current = false;
         cleared = true;
         setCharred(false);
-        setFlashKey((k) => k + 1);
       }
     } else if (outcome === "wrong" || outcome === "wrongAgain") {
       run.correctRun = 0;
@@ -94,7 +101,10 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
       charredRef.current = true;
       setCharred(true);
     }
-    if (reaction.sparkles) setSparkleKey((k) => k + 1);
+    if (reaction.sparkles) sparkleCountRef.current += 1;
+    setSparkleKey(reaction.sparkles ? sparkleCountRef.current : 0);
+    if (cleared) flashCountRef.current += 1;
+    setFlashKey(cleared ? flashCountRef.current : 0);
     if (cleared) puffCountRef.current += 1;
     const puffKey = cleared ? puffCountRef.current : 0;
     setStage((s) => ({
@@ -102,7 +112,8 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
       comboKey: reaction.combo !== null ? s.comboKey + 1 : s.comboKey,
       puffKey,
     }));
-    if (reaction.hint) setHintKey((k) => k + 1);
+    if (reaction.hint) hintCountRef.current += 1;
+    setHintKey(reaction.hint ? hintCountRef.current : 0);
     bump(reaction.behaviour, reaction.mood, reaction.chain);
     if (reaction.holdMs !== null) {
       settleTimerRef.current = window.setTimeout(

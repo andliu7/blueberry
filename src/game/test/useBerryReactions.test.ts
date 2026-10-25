@@ -8,7 +8,10 @@
  *    a fresh <BloomStage> on every reveal, so a combo or puff left set would
  *    replay the last milestone's confetti on every later tray, wrong answers
  *    included. That broke the tone rule before this test existed.
- * 2. hintKey moves on a wrong-again miss and nothing else.
+ * 2. hintKey moves on a wrong-again miss and nothing else, and clears on the
+ *    next grade, so a later tray's fresh hint control draws no ring.
+ * 2b. sparkleKey and flashKey clear the same way, for the fresh verdict berry
+ *    each tray mounts (BloomVerdictBerry).
  * 3. Two grades inside one frame cannot leave the char stuck.
  */
 
@@ -16,7 +19,8 @@ import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it } from "vitest";
-import { BloomStage } from "../mascot/BloomStage";
+import { Berry } from "../mascot/Berry";
+import { BloomHintRing, BloomStage } from "../mascot/BloomStage";
 import { useBerryReactions, type BerryReactions } from "../mascot/useBerryReactions";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -117,6 +121,46 @@ describe("useBerryReactions hintKey", () => {
     expect(h.current.hintKey).toBe(1);
     grade(h, "wrongAgain");
     expect(h.current.hintKey).toBe(2);
+  });
+
+  it("clears on the next grade, so a fresh hint control after a correct answer draws no ring", () => {
+    const h = mountHook();
+    const freshRing = () => renderToStaticMarkup(createElement(BloomHintRing, { ringKey: h.current.hintKey, reducedMotion: false }));
+    grade(h, "wrongAgain");
+    expect(freshRing()).toContain("bloom-hint-ring");
+    grade(h, "correct");
+    expect(h.current.hintKey).toBe(0);
+    expect(freshRing()).toBe("");
+    grade(h, "wrong");
+    expect(freshRing()).toBe("");
+  });
+});
+
+describe("useBerryReactions sparkleKey and flashKey", () => {
+  /** What a FRESH verdict berry would draw from the current berry props. */
+  const freshBerry = (h: { readonly current: BerryReactions }) =>
+    renderToStaticMarkup(createElement(Berry, { ...h.current.berry, reducedMotion: false }));
+
+  it("sparkles only on the grade that earned them", () => {
+    const h = mountHook();
+    grade(h, "correct");
+    expect(h.current.berry.sparkleKey).toBe(1);
+    expect(freshBerry(h)).toContain("berry-sparkles");
+    grade(h, "wrong");
+    expect(h.current.berry.sparkleKey).toBe(0);
+    expect(freshBerry(h)).not.toContain("berry-sparkles");
+    grade(h, "correct");
+    expect(h.current.berry.sparkleKey).toBe(2);
+  });
+
+  it("flashes only on the grade that clears the char", () => {
+    const h = mountHook();
+    grade(h, "wrong", "wrong", "wrong", "correct");
+    expect(h.current.berry.flashKey).toBe(1);
+    expect(freshBerry(h)).toContain("berry-flash");
+    grade(h, "correct");
+    expect(h.current.berry.flashKey).toBe(0);
+    expect(freshBerry(h)).not.toContain("berry-flash");
   });
 });
 

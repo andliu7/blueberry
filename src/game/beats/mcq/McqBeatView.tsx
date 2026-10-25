@@ -290,9 +290,10 @@ export function McqBeatView({
         {howTo ? (
           // Rendered at every stage rather than unmounted on answer. Unmounting
           // it was pulling the option list up under the student's finger at the
-          // exact frame they tapped; the line changes, the row stays.
+          // exact frame they tapped; the line changes, the row stays. No berry
+          // of its own: the bar berry or the tray's verdict berry is always in
+          // this frame, and the moment has one Bloom (BLOOM-STATES-SPEC.md, 4).
           <div className="flex items-center gap-3">
-            <Berry mood="curious" sizePx={36} reducedMotion={reducedMotion} />
             <p className="flex min-h-13 items-center rounded-2xl border border-bb-border bg-bb-card px-3 py-2 text-scale-sm text-bb-muted-foreground">
               {answered ? HOW_TO_REVEALED : HOW_TO_PICKING}
             </p>

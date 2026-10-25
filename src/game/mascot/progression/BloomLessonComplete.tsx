@@ -120,19 +120,26 @@ export function BloomLessonComplete({
   const [motion, setMotion] = useState<Motion>({ behaviour: "idle", key: 0 });
   const play = (behaviour: BerryBehaviour) => setMotion((m) => ({ behaviour, key: m.key + 1 }));
   const paid = diamonds ?? 0;
-  const beats = catchBeats(LESSON_CATCH_START_MS);
-  useBeats(
-    [
-      [LESSON_COMPLETE.entryMs, () => play("celebrate")],
-      ...(paid > 0
-        ? ([
-            [beats.fallAt, () => play("wideEyed")],
-            [beats.landAt, () => play("bounce")],
-          ] as const)
-        : []),
-    ],
-    reducedMotion,
-  );
+  useBeats([[LESSON_COMPLETE.entryMs, () => play("celebrate")]], reducedMotion);
+  // THE CATCH WAITS FOR THE DIAMONDS. The store's receipt can land after this
+  // mounts (diamonds null, then a number), so the catch starts when the count
+  // arrives: on its usual beat if that is still ahead, at once if it is past.
+  // `catchStart` is ms from the catch's own mount, which is this same commit.
+  const [openedAt] = useState(() => performance.now());
+  const [catchStart, setCatchStart] = useState<number | null>(() => (paid > 0 ? LESSON_CATCH_START_MS : null));
+  useEffect(() => {
+    if (paid <= 0 || catchStart !== null) return;
+    setCatchStart(Math.max(0, LESSON_CATCH_START_MS - (performance.now() - openedAt)));
+  }, [paid, catchStart, openedAt]);
+  useEffect(() => {
+    if (reducedMotion || catchStart === null) return;
+    const beats = catchBeats(catchStart);
+    const ids = [
+      window.setTimeout(() => setMotion((m) => ({ behaviour: "wideEyed", key: m.key + 1 })), beats.fallAt),
+      window.setTimeout(() => setMotion((m) => ({ behaviour: "bounce", key: m.key + 1 })), beats.landAt),
+    ];
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, [catchStart, reducedMotion]);
 
   return (
     <div className="bloom-lc" data-reduced={reducedMotion ? "true" : undefined}>
@@ -149,7 +156,7 @@ export function BloomLessonComplete({
           />
         </span>
         <BloomXpFlyer amount={xp ?? 0} startMs={LESSON_XP_AT_MS} reducedMotion={reducedMotion} />
-        <BloomCatch amount={paid} startMs={LESSON_CATCH_START_MS} reducedMotion={reducedMotion} />
+        <BloomCatch amount={catchStart === null ? 0 : paid} startMs={catchStart ?? 0} reducedMotion={reducedMotion} />
       </span>
       {Children.toArray(children).map((child, i) => (
         <div key={i} className="bloom-lc-line" style={reducedMotion ? undefined : { animationDelay: `${lessonRevealAt(i)}ms` }}>
