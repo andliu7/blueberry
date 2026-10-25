@@ -31,6 +31,8 @@ class FakeDb {
   seq = 0;
   missing = false;
   failPushes = 0;
+  /** Accounts the staff SELECT policy (20261024163000) lets read every row, not just their own. */
+  staff = new Set<string>();
 
   forUser(user: string): Row[] {
     return [...this.rows.values()].filter((row) => row.user === user);
@@ -45,11 +47,22 @@ class FakeDb {
         return {
           select(columns: string) {
             db.calls.push(`select ${columns}`);
+            let onlyUser: string | null = null;
             const chain = {
+              eq: (column: string, value: string) => {
+                db.calls.push(`eq ${column}=${value}`);
+                expect(column).toBe("user_id");
+                onlyUser = value;
+                return chain;
+              },
               order: () => chain,
               range: async (from: number, to: number) => {
                 if (db.missing) return missing();
-                const own = db.forUser(user).sort((a, b) => Date.parse(a.at) - Date.parse(b.at) || a.seq - b.seq);
+                // RLS: own rows only, or every row for staff; then the query's own filter.
+                const visible = db.staff.has(user) ? [...db.rows.values()] : db.forUser(user);
+                const own = visible
+                  .filter((row) => onlyUser === null || row.user === onlyUser)
+                  .sort((a, b) => Date.parse(a.at) - Date.parse(b.at) || a.seq - b.seq);
                 return { data: own.slice(from, to + 1).map((row) => ({ id: row.id, event: row.event })), error: null, status: 200 };
               },
             };
@@ -225,6 +238,33 @@ describe("progress sync", () => {
     expect(store.getSnapshot().lessons["alkenes"]).toBeUndefined();
     expect(localStorage.getItem("blueberry.progress.v2.stash:ada")).toBe(adaRaw);
     expect(localStorage.getItem(OWNER_KEY)).toBe("grace");
+  });
+
+  it("pulls only its own rows for a staff account that RLS lets read everyone's", async () => {
+    // A student's history is already on the server.
+    const studentEvents = lessonEventsFrom(createLocalProgress());
+    studentEvents.forEach((event, i) =>
+      db.rows.set(`kim|${event.id}`, { user: "kim", id: event.id as string, kind: event.kind, at: event.at, event, seq: i + 1 }),
+    );
+
+    // The owner signs in on a fresh device; the staff policy lets him read every row.
+    localStorage.clear();
+    db.staff.add("owner");
+    const store = createLocalProgress();
+    start("owner", store);
+    await settle();
+
+    expect(db.calls).toContain("eq user_id=owner");
+    const studentIds = new Set(studentEvents.map((e) => e.id));
+    expect(store.storedJournal().some((e) => studentIds.has(e.id))).toBe(false);
+    expect(store.getSnapshot().lessons["alkenes"]).toBeUndefined();
+
+    // Nothing of the student's is pushed into the owner's append-only history either.
+    store.setSettings({ reminderHour: 8 });
+    await vi.advanceTimersByTimeAsync(1500);
+    await settle();
+    expect(db.forUser("owner").some((row) => studentIds.has(row.id))).toBe(false);
+    expect(db.forUser("owner")).toHaveLength(1);
   });
 
   it("leaves one row per id when two tabs push the same events", async () => {

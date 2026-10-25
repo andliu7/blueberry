@@ -117,6 +117,9 @@ export function startProgressSync({ userId, store, getClient, storage = localSto
       const result = await client
         .from(TABLE)
         .select("id, event")
+        // Explicit, not left to RLS: staff may read every account's rows (20261024163000),
+        // and merging those would corrupt the staff account's own journal.
+        .eq("user_id", userId)
         .order("at", { ascending: true })
         .order("seq", { ascending: true })
         .range(from, from + PAGE - 1);
