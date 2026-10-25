@@ -1,0 +1,96 @@
+/* The drawing on a premade section card (SectionFigure.tsx). The molecule
+   classes inside (ug-*) are GuideMol's; their colours are restated here
+   because the guide's own sheet is not loaded on the Cards tab. */
+.ct-secfig {
+  --ug-hi: var(--bb-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  color: var(--bb-foreground);
+}
+.dark .ct-secfig {
+  --ug-hi: var(--bb-primary-bright);
+}
+.ct-secfig--wait.ct-secfig--big {
+  min-height: 7rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bb-muted-foreground) 8%, transparent);
+}
+.ct-secfig--wait.ct-secfig--small {
+  min-height: 3rem;
+}
+.ct-secfig__mols {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  max-width: 100%;
+}
+.ct-secfig__mol {
+  display: block;
+  max-width: 100%;
+}
+/* One bond length per size, never shrunk below it unless the card is narrower than the drawing. */
+.ct-secfig__mol--big {
+  width: calc(var(--w) * 1.5px);
+}
+.ct-secfig__mol--small {
+  width: calc(var(--w) * 0.85px);
+}
+.ct-secfig .ug-mol__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.ct-secfig .ug-hi-ink {
+  color: var(--ug-hi);
+}
+.ct-secfig .ug-halo {
+  stroke: color-mix(in srgb, var(--bb-primary) 18%, var(--bb-card));
+}
+.dark .ct-secfig .ug-halo {
+  stroke: color-mix(in srgb, var(--bb-primary) 48%, var(--bb-card));
+}
+.ct-secfig .ug-badge {
+  fill: var(--bb-primary);
+}
+.ct-secfig .ug-badge__sign {
+  stroke: #ffffff;
+}
+.ct-secfig .ug-radical {
+  fill: var(--ug-hi);
+}
+.ct-secfig__arrow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  color: var(--bb-muted-foreground);
+}
+.ct-secfig__arrow svg {
+  grid-column: 2;
+  width: 1rem;
+  height: 2.5rem;
+}
+.ct-secfig__reagents {
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--bb-foreground);
+  text-align: left;
+}
+.ct-secfig__under {
+  font-weight: 600;
+  color: var(--bb-muted-foreground);
+}
+.ct-secfig--small .ct-secfig__reagents {
+  font-size: 0.75rem;
+}

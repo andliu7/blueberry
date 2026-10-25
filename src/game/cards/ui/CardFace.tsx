@@ -32,6 +32,7 @@ import type { Card, ReactionCardData, ReagentStep } from "../types";
 import { presentReveal, type ReactionRevealField } from "../types";
 import { CARD_STATE_LABELS, type CardSchedulerState } from "./cardState";
 import { structureOnCard } from "./cardStructure";
+import { SectionFigure } from "../sections/SectionFigure";
 import { FormulaLabel } from "./FormulaLabel";
 import "./cards.css";
 
@@ -150,6 +151,8 @@ function PlainFront({ card }: { readonly card: Card }) {
           <MoleculeSvg step={structure.step} scene={structure.scene} progress={0} reducedMotion={false} />
         </div>
       )}
+      {/* A premade section card draws its guide row (sections/SectionFigure.tsx). */}
+      <SectionFigure card={card} side="front" size="big" />
       <p className="whitespace-pre-line text-scale-lg font-semibold leading-snug">{card.front}</p>
     </>
   );
@@ -160,6 +163,7 @@ function Back({ card, scheme }: { readonly card: Card; readonly scheme: Reaction
   if (scheme === null) {
     return (
       <div className="rxn-reveal">
+        <SectionFigure card={card} side="back" size="big" />
         <p className="whitespace-pre-line text-scale-lg font-semibold leading-snug">{card.back}</p>
         {card.why.trim().length > 0 && (
           <p className="whitespace-pre-line text-scale-sm leading-normal text-bb-muted-foreground">{card.why}</p>

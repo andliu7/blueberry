@@ -9,7 +9,8 @@
  * "What forms?", with the reagents beside the arrow. Its definition is the
  * product drawn and named, with the reaction's name under it. A three-sided card the student wrote
  * shows their words, and a plain card its front and back, with its tagged
- * structure when it has one (cardStructure.ts).
+ * structure when it has one (cardStructure.ts) or, on a premade section
+ * card, its guide drawing (cards/sections/SectionFigure.tsx).
  *
  * Nothing here adds chemistry: every string and drawing is on the card
  * already. See cards/ui/CardFace.tsx's header for where those come from.
@@ -28,6 +29,7 @@ import { labelPieces, shorthandLinkFor } from "../../glossary/cardLinks";
 import { Drawing } from "../../cards/ui/CardFace";
 import { FormulaLabel } from "../../cards/ui/FormulaLabel";
 import { structureOnCard } from "../../cards/ui/cardStructure";
+import { SectionFigure } from "../../cards/sections/SectionFigure";
 import { InfoButton } from "./MoleculeInfo";
 import { answerText } from "./studyModel";
 
@@ -131,6 +133,8 @@ export function TermSide({ card, size, onInfo }: { readonly card: Card; readonly
           <MoleculeSvg step={structure.step} scene={structure.scene} progress={0} reducedMotion={false} />
         </div>
       )}
+      {/* A premade section card draws its guide row; draws nothing for any other card. */}
+      <SectionFigure card={card} side="front" size={size} />
       <p className="ct-words">{card.front}</p>
     </div>
   );
@@ -172,6 +176,7 @@ export function DefinitionSide({
   const why = card.sides === undefined ? card.why.trim() : "";
   return (
     <div className={`ct-def ct-def--plain ct-def--${size}`}>
+      <SectionFigure card={card} side="back" size={size} />
       <p className="ct-words">{answerText(card)}</p>
       {size === "big" && why.length > 0 && <p className="ct-why">{why}</p>}
     </div>

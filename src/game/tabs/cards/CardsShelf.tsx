@@ -13,7 +13,7 @@
  * state. Nothing on this screen animates on arrival.
  */
 
-import { useRef, useState } from "react";
+import { lazy, Suspense, useRef, useState } from "react";
 import type { SavedMistake } from "../trainer/mistakes";
 import type { Card, DeckId, DeckSnapshot, DeckSource } from "../../cards/types";
 import { cardsIn } from "../../cards/types";
@@ -25,6 +25,10 @@ import { Berry } from "../../mascot/Berry";
 import { ChevronIcon, FlashcardsIcon, PlusIcon } from "./StudyIcons";
 import { splitSegments } from "./studyModel";
 import { plural } from "@/lib/helpers";
+
+// React.lazy: the premade section decks list (SectionDecks.tsx) is fetched
+// after the shelf draws, so it never slows the review hero above it.
+const SectionShelf = lazy(() => import("./SectionDecks").then((m) => ({ default: m.SectionShelf })));
 
 export function CardsShelf({
   snapshot,
@@ -121,6 +125,10 @@ export function CardsShelf({
           <ul className="ct-deck-list">{lessons.map(row)}</ul>
         </section>
       )}
+
+      <Suspense fallback={null}>
+        <SectionShelf />
+      </Suspense>
 
       <ImportCard source={source} onOpenDeck={onOpenDeck} />
     </div>

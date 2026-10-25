@@ -1101,3 +1101,29 @@
     animation: none;
   }
 }
+
+/* Premade section decks (SectionDecks.tsx): one fold per unit. */
+.ct-premade {
+  border: 1px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+}
+.ct-premade__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+.ct-premade__head:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 2px;
+  border-radius: 1rem;
+}
+.ct-premade > .ct-deck-list {
+  padding: 0 0.75rem 0.75rem;
+}
+.ct-deck--link {
+  text-decoration: none;
+}

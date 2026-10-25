@@ -16,6 +16,9 @@
  *                                     mode is flashcards, learn, test, match
  *                                     or write, flashcards when left off
  *   #/app/cards/new                   the composer (cards/ui ComposeScreen)
+ *   #/app/cards/section/<unit>/<key>/<mode>
+ *                                     a premade section deck (SectionDecks.tsx,
+ *                                     cards/sections/sectionRoute.ts)
  * The review run (cards/ui Run.tsx) is an overlay over whichever screen
  * started it, as before.
  *
@@ -29,7 +32,7 @@
  * any route restores the bar.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { Card } from "../../cards/types";
 import { cardsIn } from "../../cards/types";
 import { decks, PERSONAL_DECK_ID } from "../../cards/store";
@@ -48,7 +51,12 @@ import { loadMistakes } from "../trainer/mistakes";
 import { CardsShelf } from "./CardsShelf";
 import { DeckSet } from "./DeckSet";
 import { isStudyMode, type StudyMode } from "./studyModel";
+import { parseSectionRoute } from "../../cards/sections/sectionRoute";
 import "./cardsTab.css";
+
+// React.lazy: the premade section decks' screen is its own file, fetched the
+// first time a student opens one, so the Cards tab's first load is unchanged.
+const SectionDeckScreen = lazy(() => import("./SectionDecks").then((m) => ({ default: m.SectionDeckScreen })));
 
 export interface CardsTabProps {
   /** Told when a full screen session starts and ends, so the shell can hide the bar. */
@@ -85,8 +93,24 @@ export default function CardsTab({ onImmersiveChange }: CardsTabProps) {
     setRun(cards);
   };
 
+  const section = parseSectionRoute(rest);
   let body;
-  if (rest[0] === "new") {
+  if (section !== null) {
+    body = (
+      // Suspense shows nothing for the moment the lazy screen is fetched.
+      <Suspense fallback={null}>
+        <SectionDeckScreen
+          unitId={section.unitId}
+          deckKey={section.key}
+          mode={section.mode}
+          snapshot={snapshot}
+          source={source}
+          reducedMotion={reducedMotion}
+          onLearn={startRun}
+        />
+      </Suspense>
+    );
+  } else if (rest[0] === "new") {
     body = <ComposeScreen snapshot={snapshot} source={source} onBack={() => navigate(hrefForTab("cards"))} />;
   } else if (rest[0] === "deck" && rest[1] !== undefined) {
     const deckId = rest[1];
