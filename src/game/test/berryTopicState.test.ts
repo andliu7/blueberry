@@ -83,6 +83,18 @@ describe("stateForNode", () => {
     expect(stateForNode("constructor")).toBe("neutral");
   });
 
+  it("maps the four late states (owner, 2026-10-25) to real lessons", () => {
+    for (const id of ["u9-pka", "u9-kvt-enolate", "u9-halo-base", "u11-acidity", "u11-phenoxide"]) {
+      expect(pathwayNode(id), id).not.toBeNull();
+      expect(stateForNode(id), id).toBe("deprotonated");
+    }
+    for (const id of ["u6-uv", "u12-22"]) expect(stateForNode(id), id).toBe("excitedState");
+    for (const id of ["u13-fischer", "u14-strecker", "u5-sharpless"]) expect(stateForNode(id), id).toBe("enantiomers");
+    expect(stateForNode("u14-zwitterion")).toBe("solvated");
+    // The acid-side twin of base halogenation stays protonated.
+    expect(stateForNode("u9-halo-acid")).toBe("protonated");
+  });
+
   it("uses each topic state at least once", () => {
     const used = new Set(Object.values(NODE_STATE));
     for (const state of ["protonated", "carbocation", "radical", "resonance", "aromatic"] as const) {

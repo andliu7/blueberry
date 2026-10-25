@@ -33,12 +33,15 @@ import { describe, expect, it } from "vitest";
 import {
   BERRY_STATES,
   CHARRED_RECOVER_MS,
+  STATE_LABEL,
   STATE_SHAPE,
   composeStateAndMood,
   type BerryState,
 } from "../mascot/berryState";
 import { BERRY_MOODS, MOOD_SHAPE, type BerryMood } from "../mascot/berryMood";
 import { BEHAVIOURS, type BerryBehaviour } from "../mascot/berryBehaviour";
+import { LAZY_STATES } from "../mascot/berryStateStyles";
+import { EXCITED_STATE, SOLVATED_ORBIT } from "../mascot/bloomMotion";
 import {
   BERRY_COSTUMES,
   BERRY_SURFACES,
@@ -51,7 +54,7 @@ import {
 /* ------------------------------------------------------------- the shapes -- */
 
 describe("STATE_SHAPE", () => {
-  it("has the eight states docs/MASCOT.md proposes, and no more", () => {
+  it("has the eight states docs/MASCOT.md proposes plus the four BLOOM-STATES-SPEC.md builds, and no more", () => {
     expect(BERRY_STATES).toEqual([
       "neutral",
       "charged",
@@ -61,6 +64,10 @@ describe("STATE_SHAPE", () => {
       "resonance",
       "aromatic",
       "charred",
+      "deprotonated",
+      "excitedState",
+      "enantiomers",
+      "solvated",
     ]);
     expect(Object.keys(STATE_SHAPE).sort()).toEqual([...BERRY_STATES].sort());
   });
@@ -78,7 +85,7 @@ describe("STATE_SHAPE", () => {
       expect(shape.jitterPx, `${state} jitterPx`).toBeGreaterThanOrEqual(0);
       expect(shape.sparkRate, `${state} sparkRate`).toBeGreaterThanOrEqual(0);
       expect(shape.smokeRate, `${state} smokeRate`).toBeGreaterThanOrEqual(0);
-      expect([null, "H+", "+", "•"], `${state} badge`).toContain(shape.badge);
+      expect([null, "H+", "+", "•", ":"], `${state} badge`).toContain(shape.badge);
     }
   });
 
@@ -127,11 +134,12 @@ describe("STATE_SHAPE", () => {
     expect(recovering).toEqual(["charred"]);
   });
 
-  it("leaves the berry solid in every state but resonance", () => {
+  it("draws a second copy only for resonance and enantiomers", () => {
     // "Two translucent copies trading opacity, NEVER one" is the whole lesson
-    // of the resonance state, so it is the only state allowed a second copy.
+    // of the resonance state. Enantiomers is the one other state with a second
+    // copy, and it is solid and mirrored, never translucent: see the T3 block.
     const doubled = BERRY_STATES.filter((state) => STATE_SHAPE[state].ghostCount === 2);
-    expect(doubled).toEqual(["resonance"]);
+    expect(doubled).toEqual(["resonance", "enantiomers"]);
   });
 });
 
@@ -241,17 +249,18 @@ const WANTED: readonly Wanted[] = [
   { wanted: "Streak at risk", group: "progression", state: "neutral", mood: "curious", behaviours: ["leanIn"] },
   { wanted: "Streak saved by a rest day", group: "progression", state: "neutral", mood: "calm", behaviours: ["wave"] },
 
-  // Chemical. Nine rows: five new states, four deferred. "Each needs its state
-  // and nothing else", so each one rides the ambient default face and motion.
+  // Chemical. Nine rows, each a state of its own. "Each needs its state and
+  // nothing else", so each one rides the ambient default face and motion. The
+  // last four were deferred by MASCOT.md and built by BLOOM-STATES-SPEC.md.
   { wanted: "Protonated", group: "chemical", state: "protonated", mood: "curious", behaviours: ["idle"] },
   { wanted: "Carbocation", group: "chemical", state: "carbocation", mood: "curious", behaviours: ["idle"] },
   { wanted: "Radical", group: "chemical", state: "radical", mood: "curious", behaviours: ["idle"] },
   { wanted: "Resonance", group: "chemical", state: "resonance", mood: "curious", behaviours: ["idle"] },
   { wanted: "Aromatic", group: "chemical", state: "aromatic", mood: "curious", behaviours: ["idle"] },
-  { wanted: "Deprotonated", group: "chemical" },
-  { wanted: "Solvated", group: "chemical" },
-  { wanted: "Enantiomers", group: "chemical" },
-  { wanted: "Excited state", group: "chemical" },
+  { wanted: "Deprotonated", group: "chemical", state: "deprotonated", mood: "calm", behaviours: ["idle"] },
+  { wanted: "Solvated", group: "chemical", state: "solvated", mood: "curious", behaviours: ["idle"] },
+  { wanted: "Enantiomers", group: "chemical", state: "enantiomers", mood: "curious", behaviours: ["idle"] },
+  { wanted: "Excited state", group: "chemical", state: "excitedState", mood: "curious", behaviours: ["idle"] },
 ];
 
 describe("the 31 wanted states from docs/MASCOT.md", () => {
@@ -262,17 +271,27 @@ describe("the 31 wanted states from docs/MASCOT.md", () => {
     expect(sizes).toEqual({ ambient: 6, answer: 8, progression: 8, chemical: 9 });
   });
 
-  it("splits 21 free, 6 needing a new state, 4 deferred, as the doc claims", () => {
+  it("splits 21 free and 10 needing a new state, none deferred, as the doc claims", () => {
     const free = WANTED.filter((row) => row.state === "neutral");
     const needsNewState = WANTED.filter((row) => row.state !== undefined && row.state !== "neutral");
     const deferred = WANTED.filter((row) => row.state === undefined);
     expect(free).toHaveLength(21);
-    expect(needsNewState).toHaveLength(6);
-    expect(deferred).toHaveLength(4);
-    // The six are exactly the six non-neutral states, each used once.
-    expect(needsNewState.map((row) => row.state).sort()).toEqual(
-      ["aromatic", "carbocation", "charred", "protonated", "radical", "resonance"],
-    );
+    expect(needsNewState).toHaveLength(10);
+    expect(deferred).toHaveLength(0);
+    // The ten are exactly the non-neutral states bar charged (the Charge
+    // meter, a repo extra), each used once.
+    expect(needsNewState.map((row) => row.state).sort()).toEqual([
+      "aromatic",
+      "carbocation",
+      "charred",
+      "deprotonated",
+      "enantiomers",
+      "excitedState",
+      "protonated",
+      "radical",
+      "resonance",
+      "solvated",
+    ]);
   });
 
   it.each(WANTED.filter((row) => row.state !== undefined))(
@@ -291,16 +310,6 @@ describe("the 31 wanted states from docs/MASCOT.md", () => {
         expect(BEHAVIOURS[behaviour], `${row.wanted} behaviour ${behaviour}`).toBeDefined();
         expect(BEHAVIOURS[behaviour].keyframes.length).toBeGreaterThan(1);
       }
-    },
-  );
-
-  it.each(WANTED.filter((row) => row.state === undefined))(
-    "$wanted is deferred and has no state to render",
-    (row) => {
-      expect(row.state).toBeUndefined();
-      // Nothing named like a deferred row leaked into the union.
-      const slug = row.wanted.toLowerCase().replace(/[^a-z]/g, "");
-      expect(BERRY_STATES.map((state) => state.toLowerCase())).not.toContain(slug);
     },
   );
 
@@ -468,5 +477,90 @@ describe("the state badge meets WCAG AA in both themes", () => {
     expect(literals).toEqual([]);
     expect(stateBlock).toContain("var(--charge-chip)");
     expect(stateBlock).toContain("var(--charge-ink)");
+  });
+});
+
+/* ------------------------------------- the four states the spec builds -- */
+
+const t3Css = readFileSync(new URL("../mascot/bloom-chem-states.css", import.meta.url), "utf8");
+
+describe("the four chemical states from BLOOM-STATES-SPEC.md", () => {
+  const added = ["deprotonated", "excitedState", "enantiomers", "solvated"] as const;
+
+  it("each has a shape and a screen-reader label", () => {
+    for (const state of added) {
+      expect(STATE_SHAPE[state], state).toBeDefined();
+      expect(STATE_LABEL[state], state).toMatch(/^, \S/);
+    }
+  });
+
+  it("gives deprotonated the lone-pair badge and enantiomers two copies", () => {
+    expect(STATE_SHAPE.deprotonated.badge).toBe(":");
+    expect(STATE_SHAPE.enantiomers.ghostCount).toBe(2);
+    expect(STATE_SHAPE.excitedState.haloKind).toBe("glow");
+    expect(STATE_SHAPE.excitedState.jitterPx).toBeGreaterThan(0);
+    // An excited state hums; it never shakes harder than a carbocation.
+    expect(STATE_SHAPE.excitedState.jitterPx).toBeLessThan(STATE_SHAPE.carbocation.jitterPx);
+    expect(STATE_SHAPE.solvated.haloKind).toBe("shell");
+  });
+
+  it("keeps the state name clear of the mood of the same word", () => {
+    // The union says excitedState so a state can never be mistaken for the mood `excited`.
+    expect(BERRY_MOODS).toContain("excited");
+    expect(BERRY_STATES).not.toContain("excited");
+  });
+
+  it("loads all four lazily, and keeps their rules off first paint", () => {
+    // The owner, 2026-10-25: "build them in, unless they cost too much and we
+    // can save by pushing them off". None is needed on first paint.
+    expect([...LAZY_STATES].sort()).toEqual(["deprotonated", "enantiomers", "excitedState", "solvated"]);
+    for (const state of LAZY_STATES) {
+      expect(mascotCss, state).not.toContain(`data-state="${state}"`);
+      expect(t3Css, state).toContain(state === "excitedState" ? 'data-halo="glow"' : state === "solvated" ? 'data-halo="shell"' : `data-state="${state}"`);
+    }
+    expect(mascotCss).not.toContain('data-halo="glow"');
+    expect(mascotCss).not.toContain('data-halo="shell"');
+  });
+
+  it("levels the deprotonated mouth only on the resting faces, never on a reaction", () => {
+    const flat = /\[data-state="deprotonated"\] \.bb-eyes\[data-mood="(\w+)"\] \.bb-smile/g;
+    const moods = [...t3Css.matchAll(flat)].map((m) => m[1]).sort();
+    expect(moods).toEqual(["calm", "curious"]);
+  });
+
+  it("Berry fetches the lazy stylesheet from an effect keyed on the state", () => {
+    const berry = readFileSync(new URL("../mascot/Berry.tsx", import.meta.url), "utf8");
+    expect(berry).toMatch(/useEffect\(\(\) => \{\s*loadStateStyles\(state\);\s*\}, \[state\]\);/);
+    // Reactions keep full speed: only the ambient family reads the pace.
+    expect(berry).toContain('config.family === "ambient" ? (live.pace ?? 1) : 1');
+  });
+
+  it("slows only solvated, and only the idle clock", () => {
+    for (const state of BERRY_STATES) {
+      expect(STATE_SHAPE[state].pace ?? 1, state).toBe(state === "solvated" ? 0.5 : 1);
+    }
+  });
+
+  it("times the lazy CSS from bloomMotion.ts", () => {
+    expect(t3Css).toContain(`${EXCITED_STATE.glowLoopMs}ms`);
+    expect(t3Css).toContain(`${EXCITED_STATE.photonEveryMs}ms`);
+    expect(t3Css).toContain(`${SOLVATED_ORBIT.turnMs}ms`);
+    // The photon rises for photonRiseMs: the keyframe where it lands is that share of its cycle.
+    const risePct = (EXCITED_STATE.photonRiseMs / EXCITED_STATE.photonEveryMs) * 100;
+    const photon = /@keyframes bloom-excited-photon \{([\s\S]*?)\n\}/.exec(t3Css)?.[1] ?? "";
+    expect(photon).toContain(`${risePct}% {`);
+  });
+
+  it("uses tokens and not literal colours in the lazy CSS", () => {
+    expect(t3Css.match(/#[0-9a-fA-F]{3,8}\b/g) ?? []).toEqual([]);
+    expect(t3Css).toContain("var(--charge-chip)");
+    expect(t3Css).toContain("var(--warn-ink-strong)");
+  });
+
+  it("stills the lazy animations under all three reduced-motion hooks", () => {
+    const hooks = ['[data-motion="still"]', 'html[data-motion="reduced"]', "@media (prefers-reduced-motion: reduce)"];
+    for (const hook of hooks) expect(t3Css, hook).toContain(hook);
+    // Two animated layers (glow, shell) plus the photon, each stilled once per hook.
+    expect((t3Css.match(/animation: none;/g) ?? []).length).toBeGreaterThanOrEqual(6);
   });
 });

@@ -89,6 +89,7 @@ import {
   type StateShape,
 } from "./berryState";
 import type { BerryCostume } from "./berryCostume";
+import { loadStateStyles } from "./berryStateStyles";
 import { BlueberryMark } from "./BlueberryMark";
 import { clamp01 } from "@/lib/helpers";
 
@@ -286,8 +287,19 @@ export function Berry({
   const shapeRef = useRef<StateShape>(shape);
 
   useEffect(() => {
+    // A new pace (solvated's slow motion) restarts the idle clock from the
+    // current pose; scaling the old elapsed time would jump it to a new phase.
+    if ((shape.pace ?? 1) !== (shapeRef.current.pace ?? 1) && BEHAVIOURS[currentRef.current].family === "ambient") {
+      fromPoseRef.current = lastPoseRef.current;
+      startedAtRef.current = performance.now();
+    }
     shapeRef.current = shape;
   }, [shape]);
+
+  // The four lazy chemical states fetch their stylesheet on first use (berryStateStyles.ts).
+  useEffect(() => {
+    loadStateStyles(state);
+  }, [state]);
 
   useEffect(() => {
     // Retarget: the pose we are leaving from is wherever we are right now.
@@ -324,6 +336,10 @@ export function Berry({
     let covered = false;
     // Last frame's "glance is free" flag, local to this run of the loop.
     let wasFree = true;
+    // Breathing time, advanced each frame at the state's pace, so a pace
+    // change slows the breath without jumping its phase.
+    let breathMs = 0;
+    let lastNow: number | null = null;
     const onLoader = nodeRef.current?.closest("#boot") != null;
     const tick = (now: number) => {
       const node = nodeRef.current;
@@ -342,7 +358,10 @@ export function Berry({
       drawn = true;
       const name = currentRef.current;
       const config = BEHAVIOURS[name];
-      const elapsed = now - startedAtRef.current;
+      const live = shapeRef.current;
+      // The idle clock runs at the state's pace; a reaction always runs at full speed.
+      const pace = config.family === "ambient" ? (live.pace ?? 1) : 1;
+      const elapsed = (now - startedAtRef.current) * pace;
 
       let progress: number;
       if (config.family === "ambient") {
@@ -357,12 +376,13 @@ export function Berry({
       lastPoseRef.current = pose;
 
       const damped = (MODIFIERS.breathing.dampedBy as readonly string[]).includes(name) ? 0.3 : 1;
+      breathMs += (now - (lastNow ?? now)) * (live.pace ?? 1);
+      lastNow = now;
       const breathe =
-        Math.sin((now / MODIFIERS.breathing.periodMs) * Math.PI * 2) *
+        Math.sin((breathMs / MODIFIERS.breathing.periodMs) * Math.PI * 2) *
         (MODIFIERS.breathing.amplitude / 2) *
         damped;
 
-      const live = shapeRef.current;
       const amplitude = live.jitterPx * (sizePx / 96);
       const noise = amplitude === 0 ? { x: 0, y: 0 } : jitterAt(now);
       node.style.transform = transformFor(

@@ -101,9 +101,12 @@ Zero new work.
 ### Chemical
 
 Each needs its state and nothing else. `protonated`, `carbocation`, `radical`, `resonance`,
-`aromatic`, plus `charred` above. Deprotonated, solvated, enantiomers and excited-state were on
-the wanted list and are deferred: they need particle work rather than a transform, and none of
-them carries a teaching beat the authored copy cannot already carry.
+`aromatic`, plus `charred` above. Deprotonated, solvated, enantiomers and excited-state were
+deferred here on 2026-08-27 because they need particle work rather than a transform. The owner
+lifted the deferral on 2026-10-25 ("build them in, unless they cost too much and we can save by
+pushing them off"), and `BLOOM-STATES-SPEC.md` section 1D builds them as `deprotonated`,
+`excitedState`, `enantiomers` and `solvated`. All four draw from one lazy stylesheet,
+`bloom-chem-states.css`, fetched the first time one renders, so they cost nothing on first paint.
 
 ### Summary
 
@@ -112,12 +115,14 @@ them carries a teaching beat the authored copy cannot already carry.
 | Ambient | 6 | 6 | 0 | 0 |
 | Answer reactions | 8 | 7 | 1 (`charred`) | 0 |
 | Progression | 8 | 8 | 0 | 0 |
-| Chemical | 9 | 0 | 5 | 4 |
-| **Total** | **31** | **21** | **6** | **4** |
+| Chemical | 9 | 0 | 9 | 0 |
+| **Total** | **31** | **21** | **10** | **0** |
 
 Of 31 wanted states, **21 are compositions of code that already exists**. Six need one new
-`berryState` value each. Four are deferred. Nothing needs a new behaviour, a new mood, or a new
-keyframe track.
+`berryState` value each; four more were deferred and are now built too, which makes ten. Nothing
+needs a new behaviour or a new mood. The four late states are the only ones with keyframes of
+their own (the excited state's glow and photon, the solvation shell's orbit), and those live in
+the lazy stylesheet.
 
 ## Costumes
 

@@ -11,10 +11,10 @@
  * reaction, not about what one atom is made of, and a state on every screen
  * would stop meaning anything.
  *
- * Only the states MASCOT.md shipped are used. The spec's `deprotonated` (for
- * the pKa and enolate nodes) is parked with the other three deferred states:
- * berryState.test.ts pins MASCOT.md's deferral, so adding it is the owner's
- * call (spec section 7, question 3). Until then those nodes stay neutral.
+ * The four late states (deprotonated, excitedState, enantiomers, solvated)
+ * were built on the owner's call of 2026-10-25 (spec section 7, Q3) and are
+ * mapped here like the rest. Their CSS loads lazily, so a lesson that uses one
+ * fetches a small stylesheet the first time it shows.
  *
  * Nothing calls this at runtime yet: the lesson-mount and first-resonance
  * triggers belong to the wiring family (spec section 4).
@@ -68,6 +68,31 @@ export const NODE_STATE: Readonly<Record<string, BerryState>> = Object.freeze({
   "u7-acetal": "protonated",
   "u8-fischer": "protonated",
   "u9-halo-acid": "protonated",
+
+  // Deprotonated: the conjugate base is the lesson. The alpha-proton pKa
+  // table, the enolate a base makes, base-promoted halogenation (each step
+  // runs through an enolate), phenol acidity and the phenoxide it gives.
+  "u9-pka": "deprotonated",
+  "u9-kvt-enolate": "deprotonated",
+  "u9-halo-base": "deprotonated",
+  "u11-acidity": "deprotonated",
+  "u11-phenoxide": "deprotonated",
+
+  // Excited state: light promotes an electron. UV-Vis absorption is that
+  // transition, and the [2+2] runs only from the photochemical excited state.
+  "u6-uv": "excitedState",
+  "u12-22": "excitedState",
+
+  // Enantiomers: assigning R and S, a racemic product, and the asymmetric
+  // epoxidation that picks one mirror image.
+  "u13-fischer": "enantiomers",
+  "u14-strecker": "enantiomers",
+  "u5-sharpless": "enantiomers",
+
+  // Solvated: the zwitterion exists because water stabilizes both charges.
+  // The map has no dedicated solvent-effect node; this is the one whose
+  // chemistry turns on solvation.
+  "u14-zwitterion": "solvated",
 });
 
 /** The state for a lesson's node. Unknown or missing ids are neutral. */

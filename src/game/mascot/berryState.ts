@@ -36,7 +36,15 @@ export type BerryState =
   /** Ring halo, sway forced to zero. Aromaticity and Huckel. */
   | "aromatic"
   /** Darkens toward black with smoke. Third consecutive miss, then a recovery beat. */
-  | "charred";
+  | "charred"
+  /** Cool blue, a ":" lone-pair badge, a level mouth at rest. pKa and base attack. */
+  | "deprotonated"
+  /** Glow halo, a small hum, a photon emitted upward as it drops back. Not the mood `excited`. */
+  | "excitedState"
+  /** Two solid copies, the second mirrored, R and S chips. Stereochemistry. */
+  | "enantiomers"
+  /** A shell of six water molecules slowly orbiting, idle motion at half speed. Solvation. */
+  | "solvated";
 
 export const BERRY_STATES: readonly BerryState[] = Object.freeze([
   "neutral",
@@ -47,6 +55,10 @@ export const BERRY_STATES: readonly BerryState[] = Object.freeze([
   "resonance",
   "aromatic",
   "charred",
+  "deprotonated",
+  "excitedState",
+  "enantiomers",
+  "solvated",
 ]);
 
 /**
@@ -65,10 +77,14 @@ export const STATE_LABEL: Readonly<Record<BerryState, string>> = Object.freeze({
   resonance: ", in resonance",
   aromatic: ", aromatic",
   charred: ", charred",
+  deprotonated: ", deprotonated",
+  excitedState: ", in an excited state",
+  enantiomers: ", as a pair of enantiomers",
+  solvated: ", solvated",
 });
 
-export type HaloKind = "none" | "static" | "ring" | "unpaired";
-export type StateBadge = null | "H+" | "+" | "•";
+export type HaloKind = "none" | "static" | "ring" | "unpaired" | "glow" | "shell";
+export type StateBadge = null | "H+" | "+" | "•" | ":";
 
 /**
  * The knobs a renderer reads. Every one is a number or a small enum so the
@@ -97,6 +113,11 @@ export interface StateShape {
   badge: StateBadge;
   /** When not null, replaces the mood's sway outright. Aromatic pins it to 0. */
   swayOverride: number | null;
+  /**
+   * Speed of the idle clock (ambient behaviours and breathing). Absent is 1.
+   * Reactions always run at full speed, so an answer still lands on time.
+   */
+  pace?: number;
   /**
    * How long the state holds before the caller should clear it, ms. null holds
    * until cleared. `charred` recovers in 1000 because docs/MASCOT.md's tone
@@ -151,6 +172,28 @@ export const STATE_SHAPE: Record<BerryState, StateShape> = {
   // Not fully black: 0.75 keeps the face readable so the recovery beat has a
   // face to recover.
   charred: { ...plain, darken: 0.75, smokeRate: 1.5, recoverMs: CHARRED_RECOVER_MS },
+
+  // The four below draw from bloom-chem-states.css, which berryStateStyles.ts
+  // fetches the first time one of them renders, so none is on first paint.
+
+  // The colour and the level mouth are the CSS's job (keyed on data-state);
+  // the data only carries the lone pair, drawn as ":" on the same chip as H+.
+  deprotonated: { ...plain, badge: ":" },
+
+  // Jitter under the carbocation's 1.5px: an excited state hums, it does not
+  // shake. The photon and the glow live on the halo element.
+  excitedState: { ...plain, haloKind: "glow", haloStrength: 1, jitterPx: 0.8 },
+
+  // Two solid copies, unlike resonance's two translucent ones: the CSS mirrors
+  // the second with scaleX(-1) and pins both opaque. Both sit under the one
+  // pose transform, so the mirror image copies the motion for free.
+  enantiomers: { ...plain, ghostCount: 2 },
+
+  // The water shell rides the halo element: six molecules drawn as
+  // box-shadows on one pseudo-element, rotated as one, so it costs one
+  // composited layer. Half pace is the Bible's "moves in slow motion": the
+  // solvent cage drags on it.
+  solvated: { ...plain, haloKind: "shell", haloStrength: 1, pace: 0.5 },
 };
 
 export interface ComposedStateMood {

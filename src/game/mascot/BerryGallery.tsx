@@ -297,7 +297,8 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
           <div className="flex flex-wrap gap-6">
             {BERRY_STATES.map((state) => (
               <figure key={state} className="flex w-[360px] max-w-full flex-col items-center gap-3 rounded-xl border border-bb-border p-3">
-                <div className="flex h-44 w-full items-end justify-center gap-3 overflow-x-auto">
+                {/* h-56 and pb-6, not h-44: the excited state's photon rises a third of a berry above the head and its glow spills below, and this row scrolls sideways, which clips it vertically too. */}
+                <div className="flex h-56 w-full items-end justify-center gap-3 overflow-x-auto pb-6">
                   {SIZES.map((size) => (
                     <Berry
                       key={size}

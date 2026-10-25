@@ -99,7 +99,7 @@ Owner family in brackets: [AMB] ambient, [ANS] answers, [PRO] progression, [CHM]
 | Bible state | Tier | Decision | Composition and build |
 |---|---|---|---|
 | Protonated | T2 | Built; **wire** via topic table [CHM] | State exists. New pure table `stateForNode(nodeId)` maps acid/base and leaving-group nodes to `protonated`. |
-| Deprotonated | T2 | **Parked, owner call** (section 7 Q3); was: new value state `deprotonated` [CHM] | Not built. Planned as: cool blue (a CSS filter keyed on `data-state="deprotonated"`), a ":" lone-pair badge, composed with mood calm (the serene line). Teaches pKa and base attack. Small enough to ship eager. |
+| Deprotonated | T2 | **New value** state `deprotonated`, built 2026-10-25 (Q3) [CHM] | Cool blue (a CSS filter keyed on `data-state="deprotonated"`), a ":" lone-pair badge, and the serene line: the calm and curious faces level their mouth on this state, every reaction mood keeps its own. Lazy CSS with the other three. Nodes: `u9-pka`, `u9-kvt-enolate`, `u9-halo-base`, `u11-acidity`, `u11-phenoxide`. |
 | Carbocation | T2 | Built; wire via topic table [CHM] | SN1 / E1 / rearrangement nodes. Composed with mood stressed for "visibly unstable and knows it" (gallery preset). |
 | Radical | T3 | Built; wire via topic table [CHM] | Radical halogenation nodes. "Chaotic eyes" composes as mood excited. |
 | Resonance | T2 | Built; wire via topic table [CHM] | Delocalization nodes. |
@@ -107,19 +107,16 @@ Owner family in brackets: [AMB] ambient, [ANS] answers, [PRO] progression, [CHM]
 | Mind blown, first resonance reveal (top card) | n/a | Compose [CHM data], trigger [WIR] | resonance + excited + wideEyed, once per learner: the first time a resonance state is shown. Pure `isFirstResonance(seen)` plus a one-key local flag. Hook: the first `resonance` beat in BeatRunner (`BeatRunner.tsx:795`). |
 | Nucleophile | T2 | **Parked** | Needs an arrow-arm drawing and a live electrophile target on the canvas; the trainer's arrow engine owns that canvas and no family touches it in this run. Not in MASCOT.md's decomposition either. |
 | Oxidized / Reduced | T3 | See B | Built through `charred`; Reduced is [ANS]. |
-| Excited state | T3 | **Parked, owner call** (section 7 Q3); was: new value state + new keyframes, lazy CSS [CHM] | Not built. Planned as: glow halo, small jitter, then a photon dot emitted upward and the glow dropping back. Name it `excitedState` in the union so it never collides with the mood `excited`. |
-| Enantiomers | T3 | **Parked, owner call** (section 7 Q3); was: new value state + lazy CSS [CHM] | Not built. Planned as: two copies (`ghostCount: 2`), the second mirrored with `scaleX(-1)`, R and S badges. Mirrors the first copy's motion for free because both copies sit under the same pose transform. |
-| Solvated | T3 | **Parked, owner call** (section 7 Q3); was: new value state + lazy CSS [CHM] | Not built. Planned as: a shell of six small water dots slowly orbiting. "Moves in slow motion" is parked: it would need a time scale on the behaviour clock in the renderer, which is out of scope. |
+| Excited state | T3 | **New value + new keyframes**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Glow halo, 0.8px hum, a photon dot emitted upward every 2400ms as the glow drops back. Named `excitedState` so it never collides with the mood `excited`. Nodes: `u6-uv`, `u12-22`. |
+| Enantiomers | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Two solid copies (`ghostCount: 2`), the second mirrored, a dashed mirror plane, R and S chips on the berry's own box so they read at 40px. Both copies sit under the one pose transform, so the twin copies every hop. Nodes: `u13-fischer`, `u14-strecker`, `u5-sharpless`. |
+| Solvated | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | A shell of six water molecules (O and two H each, box-shadows of one element) turning once per 9000ms, kept inside the berry's box. Slow motion is `pace: 0.5` on the state: Berry.tsx runs the idle clock and breathing at half speed, reactions at full speed. Node: `u14-zwitterion` (the map has no dedicated solvent-effect node). |
 | Charged (repo extra) | n/a | Built and wired | Unchanged. |
 
 MASCOT.md deferred Deprotonated, Excited state, Enantiomers and Solvated because they need
-"particle work rather than a transform". This spec planned to build them anyway (Deprotonated
-eager, the other three as pure CSS in a lazy stylesheet), but `src/game/test/berryState.test.ts`
-pins that deferral: it asserts exactly 4 deferred chemical rows and 6 new states, and that no
-deferred name enters the `BerryState` union. Building them means changing those assertions, which
-is the owner's decision, not a builder's (section 0, never weaken a check). So all four are
-**parked** until the owner answers section 7 Q3. Until then the pKa and enolate nodes stay
-neutral in `NODE_STATE` (`berryTopicState.ts`), since their state does not exist.
+"particle work rather than a transform", and `berryState.test.ts` pinned that deferral. The owner
+lifted it on 2026-10-25 (section 7 Q3), which is what changed those pinned counts. All four ship
+in one lazy stylesheet, `bloom-chem-states.css`, fetched by `berryStateStyles.ts` from an effect
+in `Berry.tsx` the first time one of them renders.
 
 ### E. Costumes
 
@@ -297,7 +294,7 @@ after the foundation commit exists.
 | **[AMB] ambient** | `mascot/Berry.tsx`, `mascot/berryBehaviour.ts`, `mascot/berryMood.ts`, new `mascot/bloomMotion.ts`, new `mascot/bloom-motion.css`, new `mascot/berryGlance.ts`, new `mascot/useIdleInput.ts` (+ its pure `idleStage(msSinceInput, context)`) | everything else | `berryBehaviour.test.ts` (every behaviour finishes or loops, `sigh` and `peek` return to idle, keyframes start and end at rest, `at` ascending); `berryGlance.test.ts` (deterministic for a seed, gaps inside 3000 to 6000, look within `maxLook`); `bloomIdle.test.ts` (15s thinking only mid-item, 20s bored only ambient, input resets) |
 | **[ANS] answers** | `mascot/berryReaction.ts`, `mascot/useBerryReactions.ts`, new `mascot/BloomStage.tsx` (the wrapper with `data-reduced`, combo sparkles and confetti, thought dots, hint ring hookup, Reduced puff), new `mascot/bloom-answers.css` imported by `BloomStage` | `Berry.tsx`, any beat view | extend `berryReaction.test.ts` with **new** cases only: `wrongAgain` (curious + leanIn, no sad hold, `hint: true`), charred still wins at 3 misses, `comboOverlayFor(combo)` returns 3 / 6 / 6 sparkles and confetti only at 8, nothing for a broken combo |
 | **[PRO] progression** | new `mascot/progression/BloomLessonComplete.tsx`, `BloomCatch.tsx`, `BloomXpFlyer.tsx`, `BloomLevelUp.tsx` (includes the easter egg), `bloom-progression.css`, `progression.ts` (pure: `flameScaleFor`, `stageChanged`, `shouldPlayEvolving`); edits `beats/practice/ExamEnd.tsx`, `lesson/StreakScreen.tsx` (+ `lesson/streak.css`), `chest/ChestOpening.tsx`, `app/ui/Hud.tsx` (only the `XpStage` level-change detection and the lazy mount) | `BeatRunner.tsx` (wiring mounts [PRO] components there), `hudModel.ts`, `packages/economy` | `bloomProgression.test.ts`: `flameScaleFor` (1 at day 1, monotonic, capped 1.6), `stageChanged`, `shouldPlayEvolving` once per stage; keep `hudXpMoment.test.ts` and `hudAnatomy.test.ts` green |
-| **[CHM] chemical** | **Shipped (65a54cb):** `mascot/berryTopicState.ts` and its test. **Parked until section 7 Q3:** `mascot/berryState.ts` (new states `deprotonated`, `excitedState`, `enantiomers`, `solvated`; badge union; `STATE_LABEL` entries after step 0), `mascot/mascot.css` (state rules for eager states), new `mascot/bloom-chem-t3.css` (T3 state CSS), new `mascot/berryTopicState.ts` (`stateForNode`, `isFirstResonance`), new `mascot/berryStateStyles.ts` (`loadStateStyles(state)`: dynamic `import("./bloom-chem-t3.css")` for T3 states only) | `Berry.tsx`, content files | extend `berryState.test.ts` with new cases: every new state has a shape and a label, enantiomers has two ghosts, deprotonated badge is ":"; `berryTopicState.test.ts`: real node ids from the pathway (read, never edit, `demo/pathwayMap.ts`) map to the right states, unknown nodes give neutral |
+| **[CHM] chemical** | **Shipped (65a54cb):** `mascot/berryTopicState.ts` and its test. **Built 2026-10-25 after Q3:** `mascot/berryState.ts` (states `deprotonated`, `excitedState`, `enantiomers`, `solvated`; badge union; `STATE_LABEL`; `pace`), new `mascot/bloom-chem-states.css` (all four, lazy), new `mascot/berryStateStyles.ts` (`loadStateStyles(state)`: dynamic `import("./bloom-chem-states.css")` for those four only), the `NODE_STATE` rows, and the `Berry.tsx` effect and pace hook | `Berry.tsx`, content files | extend `berryState.test.ts` with new cases: every new state has a shape and a label, enantiomers has two ghosts, deprotonated badge is ":"; `berryTopicState.test.ts`: real node ids from the pathway (read, never edit, `demo/pathwayMap.ts`) map to the right states, unknown nodes give neutral |
 | **[COS] costumes** | `mascot/berryCostume.ts` (`costumeForNode`), `mascot/BlueberryMark.tsx` (costume art, the wiggle hook), new `mascot/bloom-costumes.css`, `tabs/leaderboards/LeaderboardsTab.tsx` (cape on placement only) | `Berry.tsx`, beat views | `berryCostume.test.ts` (none exists): every surface maps to a costume, nightcap never returned for an in-app surface, `costumeForNode` gives backpack for branch nodes, labcoat for reaction nodes, referee for unit quizzes |
 | **[WIR] wiring + gallery** | `beats/mcq/McqRunner.tsx`, `beats/mcq/McqBeatView.tsx`, `beats/mcq/session.ts` (`currentMissRun`, `missedThisItemBefore`), `beats/AnswerTray.tsx`, `beats/match/MatchBoard.tsx`, `beats/sort/SortBeatView.tsx`, `beats/synthesis/SynthesisGapBeat.tsx`, `beats/PoolItemsStep.tsx`, `beats/BeatRunner.tsx` (see the warning below), `tabs/trainer/engine/TrainerScreen.tsx`, `tabs/pathway/PathMascot.tsx`, `tabs/pathway/PathwayTab.tsx` (unlock reaction only), `tabs/feed/FeedTab.tsx`, `mascot/BerryGallery.tsx`, `admin/AdminViewer.tsx`, `admin/admin.css` | `game/App.tsx`, `admin/slides.ts`, `signoff/**`, content | `mcqBeat.test.ts` or a new `bloomWiring.test.ts` in the pattern of `trainerMascotWiring.test.ts`: McqRunner calls `reactionFor` in the commit handler (same tick as the grade), exactly one Berry in the tray frame, `currentMissRun` counts and resets on a correct; `trainerMascotWiring.test.ts` gains a case that the mood swaps before `afterRise`; a gallery test that every `BERRY_STATES`, `BERRY_MOODS`, behaviour and costume appears |
 
@@ -326,8 +323,8 @@ paint.
 | What | Where it ships | Budget (gz) |
 |---|---|---|
 | `bloomMotion.ts`, `bloom-motion.css`, `sigh` and `peek` data, glance schedule, `lookAt`, `useIdleInput` | Eager, through Berry | 3 KB [AMB] |
-| New state shapes, labels, `deprotonated` CSS in `mascot.css`, `berryStateStyles.ts` (a map plus one dynamic import) | Eager | 1 KB [CHM], parked (Q3): 0 today |
-| T3 state CSS (`excitedState`, `enantiomers`, `solvated`) | **Lazy**, `bloom-chem-t3.css`, loaded the first time such a state renders | 0 eager, parked (Q3) |
+| New state shapes, labels, the pace hook in Berry, `berryStateStyles.ts` (a set plus one dynamic import) | Eager | 1 KB [CHM] |
+| All four late states' CSS (`deprotonated`, `excitedState`, `enantiomers`, `solvated`) | **Lazy**, `bloom-chem-states.css`, loaded the first time such a state renders | 0 eager |
 | `costumeForNode`, wiggle CSS | Eager (costume art already is) | 1 KB [COS] |
 | `XpStage` stage-change check and the `React.lazy` stub | Eager, in Hud | 0.5 KB [PRO] |
 | `BloomLevelUp` and the easter egg | **Lazy**, `React.lazy` from Hud, fetched on the first stage change | 0 eager |
@@ -349,7 +346,10 @@ to shrink. Never touch `validators.lock.json`.
 2. **The wrong face.** Keep sad + squash for 900ms (MASCOT.md, tested), or move to the Duolingo
    read (no sad frame, a tilt toward the problem, only the wrong card shakes)? The second needs the
    pinned test changed by the owner's decision, not by a builder.
-3. **Deprotonated, excited state, enantiomers, solvated: NOT built, parked.** MASCOT.md defers
+3. **DECIDED 2026-10-25: build them.** The owner: "build them in, unless they cost too much and
+   we can save by pushing them off". Built as section D records, all four on a lazy stylesheet,
+   with the pinned counts in `berryState.test.ts` and MASCOT.md's table changed on that answer.
+   The question as it was put: **Deprotonated, excited state, enantiomers, solvated: NOT built, parked.** MASCOT.md defers
    all four and `berryState.test.ts` pins it (4 deferred rows, 6 new states, no deferred name in
    the union). This spec told [CHM] both to build them and to extend that same test, so the spec
    and the pinned test disagree, and only the owner can pick. Choices: (a) keep the deferral and
@@ -364,23 +364,31 @@ to shrink. Never touch `validators.lock.json`.
    would need a decision that does not revive the Return bonus.
 5. **Path lighting on unit complete** and the **Nucleophile arrow-arm** are parked for lack of an
    owner in this run.
-6. **Combo 8 confetti spills past the stage.** Section 1 says the burst "stays inside the stage".
+6. **DECIDED 2026-10-25: keep the spill.** The owner: "keep it". No change. The question as it
+   was put: **Combo 8 confetti spills past the stage.** Section 1 says the burst "stays inside the stage".
    As built ([ANS], `confettiPieces`) it lands up to 0.75 of the stage width from the centre (a
    quarter stage past each edge) and rises up to 0.55 of the stage height above the head. Why: the
    berry fills its stage and the confetti passes behind it, so a burst held inside the box is
    almost all hidden, and one that fell straight down covered the eyes at 40px. Keep the spill, or
    hold it inside the box? [WIR]: a tray header with `overflow: hidden` clips it; give the stage
    room or let it overflow.
-7. **Thought dots shape.** Section 1 asks for three staggered dots and also reads the Bible's
+7. **DECIDED 2026-10-25: a floating lone pair.** The owner: "sure floating lone pair". Thinking
+   draws a ":" lone pair beside the head instead of the rising dots. The question as it was put:
+   **Thought dots shape.** Section 1 asks for three staggered dots and also reads the Bible's
    floating lone pair as a ":" pair. As built it is three dots rising up and to the right, small to
    large, like a thought bubble's tail (`THOUGHT_DOTS` timing). Keep the trail, or draw the lone
    pair as ":" beside the head?
-8. **Trainer reaction timing.** Section 4 asks the trainer to swap Bloom's mood at t=0 and let only
+8. **DECIDED 2026-10-25: change the face on the commit frame.** The owner: "sure". The trainer
+   swaps Bloom's mood the instant an answer is graded, and the pinned hold-until-`RISE_MS`
+   assertion in `trainerMascotWiring.test.ts` changes on that answer. The question as it was put:
+   **Trainer reaction timing.** Section 4 asks the trainer to swap Bloom's mood at t=0 and let only
    the body motion wait for the sheet, because `RISE_MS` (200) plus a render sits on the 200ms
    budget. `trainerMascotWiring.test.ts` pins the opposite ("holds the waiting face until RISE_MS
    has passed"), so [WIR] left `TrainerScreen.tsx` as it was. Keep the deferred face, or change the
    pin and swap the mood on the commit frame? Under reduced motion it already reacts at t=0.
-9. **Hint offer without a hint key.** Section B rings "the tray's existing hint control", but the
+9. **DECIDED 2026-10-25: add a Hint button.** The owner: "add hint". The answer tray gets a real
+   Hint control, and the hint ring goes on it. The question as it was put: **Hint offer without a
+   hint key.** Section B rings "the tray's existing hint control", but the
    answer tray has none. As built the ring goes on the tray's help control: "Why?" when there is
    more to read, else "Why yours isn't it". Most wrong sort ladders carry no authored explanation
    and so no Why?, and there the ring circles the headline, which is the ladder's next step ("Start
