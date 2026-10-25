@@ -4,7 +4,8 @@
  *
  *   Combo 5 and 8    three more sparkles around the head (Berry draws the
  *                    first three on its own sparkleKey); confetti at 8
- *   Thinking         three thought dots rising off the head, looping
+ *   Thinking         a floating lone pair, the two dots of a ':' laid side by
+ *                    side above the head, bobbing slowly while it lasts
  *   Reduced          the puff when a charred berry clears: uniform scale
  *                    1 to 1.08 to 1 plus a brightness flash, 600ms
  *
@@ -40,7 +41,7 @@ export interface BloomStageReactionProps {
 
 export interface BloomStageProps extends Partial<BloomStageReactionProps> {
   readonly reducedMotion: boolean;
-  /** Mid-item and quiet for a while (useIdleInput's "thinking"): draw the thought dots. */
+  /** Mid-item and quiet for a while (useIdleInput's "thinking"): draw the lone pair. */
   readonly thinking?: boolean;
   readonly className?: string;
   /** The one <Berry>. */
@@ -50,7 +51,7 @@ export interface BloomStageProps extends Partial<BloomStageReactionProps> {
 /** Berry draws three sparkles of its own on the same reaction; a stage adds the rest. */
 const BERRY_OWN_SPARKLES = 3;
 const STAR = "M12 0 C12.8 7 17 11.2 24 12 C17 12.8 12.8 17 12 24 C11.2 17 7 12.8 0 12 C7 11.2 11.2 7 12 0 Z";
-const DOTS = [0, 1, 2];
+const PAIR = [0, 1];
 // Built once at module load: the burst is deterministic, so there is nothing to recompute.
 const CONFETTI = confettiPieces(24);
 
@@ -76,9 +77,11 @@ export function BloomStage({
 
       {thinking ? (
         <span className="bloom-thought" aria-hidden>
-          {DOTS.map((i) => (
-            <span key={i} className="bloom-thought-dot" data-i={i} />
-          ))}
+          <span className="bloom-lone-pair">
+            {PAIR.map((i) => (
+              <span key={i} className="bloom-lone-pair-dot" data-i={i} />
+            ))}
+          </span>
         </span>
       ) : null}
 

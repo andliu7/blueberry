@@ -29,7 +29,7 @@ import {
 } from "../mascot/berryReaction";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { COMBO_CONFETTI, HINT_RING, REDUCED_PUFF, THOUGHT_DOTS } from "../mascot/bloomMotion";
+import { COMBO_CONFETTI, HINT_RING, LONE_PAIR, REDUCED_PUFF } from "../mascot/bloomMotion";
 
 const every = (cases: readonly ReturnType<typeof reactionFor>[]) => {
   for (const reaction of cases) {
@@ -206,10 +206,10 @@ describe("bloom-answers.css", () => {
   const css = readFileSync(resolve(__dirname, "../mascot/bloom-answers.css"), "utf8");
 
   it("runs on the shared constants", () => {
-    expect(css).toContain(`bloom-thought ${THOUGHT_DOTS.loopMs}ms`);
-    expect(css).toContain(`animation-delay: ${THOUGHT_DOTS.staggerMs}ms`);
-    expect(css).toContain(`animation-delay: ${THOUGHT_DOTS.staggerMs * 2}ms`);
-    expect(css).toContain(`opacity: ${THOUGHT_DOTS.opacityMin}`);
+    expect(css).toContain(`bloom-thought ${LONE_PAIR.loopMs}ms`);
+    expect(css).toContain(`animation-delay: ${LONE_PAIR.staggerMs}ms`);
+    expect(css).toContain(`opacity: ${LONE_PAIR.opacityMin}`);
+    expect(css).toContain(`translateY(-${LONE_PAIR.bobPct}%)`);
     expect(css).toContain(`bloom-confetti ${COMBO_CONFETTI.durationMs}ms`);
     expect(css).toContain(`bloom-hint-ring ${HINT_RING.durationMs}ms`);
     expect(css).toContain(`opacity: ${HINT_RING.opacityFrom}`);
@@ -226,7 +226,7 @@ describe("bloom-answers.css", () => {
       expect(css).toContain(trigger);
     }
     const media = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
-    for (const sel of [".bloom-stage-body[data-puff]", ".bloom-thought-dot", ".bloom-confetti", ".bloom-hint-ring"]) {
+    for (const sel of [".bloom-stage-body[data-puff]", ".bloom-lone-pair-dot", ".bloom-confetti", ".bloom-hint-ring"]) {
       expect(media).toContain(sel);
     }
   });

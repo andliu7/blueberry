@@ -197,7 +197,7 @@ export function McqBeatView({
 }: McqBeatViewProps) {
   const answered = reveal !== null;
   // 15s with no press on an unanswered question: the bar berry thinks, with
-  // thought dots. The beat id resets the quiet clock for each new question.
+  // a floating lone pair. The beat id resets the quiet clock for each new question.
   const idle = useIdleInput(answered ? "off" : "midItem", beat.id);
   // The char outlives the tray it arrived in (it clears on the next right
   // answer), so the bar berry wears it too; otherwise the topic's state.

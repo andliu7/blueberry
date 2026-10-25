@@ -6,7 +6,7 @@
  * 1. The overlay matches comboOverlayFor: three extra sparkles at 5 and 8
  *    (Berry draws its own three), confetti at 8 only, nothing for 0 or null.
  * 2. Reduced motion is a prop-driven attribute, so the gallery toggle works.
- * 3. Thought dots and the hint ring render only when asked for.
+ * 3. The lone pair (thinking) and the hint ring render only when asked for.
  */
 
 import { createElement } from "react";
@@ -55,8 +55,12 @@ describe("BloomStage", () => {
     expect(stage({ puffKey: 3 })).toContain('data-puff="a"');
   });
 
-  it("draws three thought dots only while thinking", () => {
-    expect(count(stage({ thinking: true }), "bloom-thought-dot")).toBe(3);
+  it("draws a floating lone pair, two dots in one group, only while thinking", () => {
+    // The owner, 25 Oct: "sure floating lone pair". It replaced the three rising thought dots.
+    const html = stage({ thinking: true });
+    expect(count(html, "bloom-lone-pair")).toBe(1);
+    expect(count(html, "bloom-lone-pair-dot")).toBe(2);
+    expect(html).not.toContain("bloom-thought-dot");
     expect(stage({ thinking: false })).not.toContain("bloom-thought");
   });
 

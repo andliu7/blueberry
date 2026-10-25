@@ -1,9 +1,9 @@
 /*
- * The answer overlays around Bloom: combo sparkles and confetti, thought dots,
+ * The answer overlays around Bloom: combo sparkles and confetti, the lone pair,
  * the Reduced puff and the hint ring. Imported by BloomStage.tsx only, so it
  * ships with the lesson chunks that grade answers, never on #/app first paint.
  *
- * Timings are bloomMotion.ts's (THOUGHT_DOTS, COMBO_CONFETTI, HINT_RING,
+ * Timings are bloomMotion.ts's (LONE_PAIR, COMBO_CONFETTI, HINT_RING,
  * REDUCED_PUFF) and the curves are bloom-motion.css's tokens; the test holds
  * the numbers here to the constants. Transform and opacity only, except the
  * puff's brightness, which the spec asks for and which runs once for 600ms.
@@ -80,44 +80,43 @@
   }
 }
 
-/* ------------------------------------------------------ thought dots ---- */
-/* Three dots rising off the head toward its right, small to large, like the
-   trail into a thought bubble. They loop for as long as the student is quiet. */
-.bloom-thought-dot {
+/* --------------------------------------------------------- lone pair ---- */
+/* Thinking is a floating lone pair: the ':' of a lone pair, two dots side by
+   side above the head the way they sit over an O in a structure. Each dot
+   bobs slowly in place, the right one a beat behind, for as long as the
+   student is quiet. No rising trail. The dots are percentages of the stage
+   with a px floor, so the pair still reads on a 40px berry. */
+.bloom-lone-pair {
   position: absolute;
+  left: 50%;
+  top: -9%;
+  display: flex;
+  justify-content: space-between;
+  width: max(14px, 30%);
+  transform: translateX(-50%);
+}
+/* Each dot is 38% of the pair, so the gap between them is about a dot wide. */
+.bloom-lone-pair-dot {
+  display: block;
+  width: max(5px, 38%);
+  aspect-ratio: 1;
   border-radius: 999px;
-  background: var(--bb-muted-foreground);
-  opacity: 0.3;
-  animation: bloom-thought 1200ms var(--bloom-ease-breathe) infinite;
+  background: var(--bb-foreground);
+  opacity: 0.7;
+  animation: bloom-thought 2400ms var(--bloom-ease-breathe) infinite;
 }
-.bloom-thought-dot[data-i="0"] {
-  left: 76%;
-  top: 6%;
-  width: max(3px, 9%);
-  height: max(3px, 9%);
-  animation-delay: 0ms;
-}
-.bloom-thought-dot[data-i="1"] {
-  left: 87%;
-  top: -7%;
-  width: max(4px, 11%);
-  height: max(4px, 11%);
+.bloom-lone-pair-dot[data-i="1"] {
   animation-delay: 160ms;
-}
-.bloom-thought-dot[data-i="2"] {
-  left: 99%;
-  top: -22%;
-  width: max(5px, 14%);
-  height: max(5px, 14%);
-  animation-delay: 320ms;
 }
 @keyframes bloom-thought {
   0%,
   100% {
-    opacity: 0.3;
+    opacity: 0.7;
+    transform: translateY(0);
   }
   50% {
     opacity: 1;
+    transform: translateY(-50%);
   }
 }
 
@@ -254,7 +253,7 @@
 }
 
 /* ------------------------------------------------------ reduced motion ---- */
-/* Still frames. Thought dots hold fully visible. One combo sparkle stands in
+/* Still frames. The lone pair holds still and fully visible. One combo sparkle stands in
    for the sparkles and the confetti, held, then a 150ms fade. The hint ring
    holds at its first frame, then fades the same way. No puff: Berry's flash
    ring already marks the char clearing. */
@@ -280,7 +279,7 @@
 .bloom-stage[data-reduced="true"] .bloom-stage-body[data-puff] {
   animation: none;
 }
-.bloom-stage[data-reduced="true"] .bloom-thought-dot {
+.bloom-stage[data-reduced="true"] .bloom-lone-pair-dot {
   animation: none;
   opacity: 1;
 }
@@ -300,7 +299,7 @@
 html[data-motion="reduced"] .bloom-stage-body[data-puff] {
   animation: none;
 }
-html[data-motion="reduced"] .bloom-thought-dot {
+html[data-motion="reduced"] .bloom-lone-pair-dot {
   animation: none;
   opacity: 1;
 }
@@ -321,7 +320,7 @@ html[data-motion="reduced"] .bloom-hint-ring {
   .bloom-stage-body[data-puff] {
     animation: none;
   }
-  .bloom-thought-dot {
+  .bloom-lone-pair-dot {
     animation: none;
     opacity: 1;
   }

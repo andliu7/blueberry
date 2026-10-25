@@ -71,11 +71,18 @@ export const PEEK = /* @__PURE__ */ Object.freeze({
   overshootAt: 0.7,
 });
 
-export const THOUGHT_DOTS = /* @__PURE__ */ Object.freeze({
-  loopMs: 1200,
+/**
+ * Thinking: a floating lone pair above the head (owner, 25 Oct: "sure floating
+ * lone pair"). One slow bob per loop; the right dot trails the left by
+ * `staggerMs` so the pair rocks a little. The dim end stays at 0.7 so both
+ * dots still read on a 40px berry. `bobPct` is the lift, in dot heights.
+ */
+export const LONE_PAIR = /* @__PURE__ */ Object.freeze({
+  loopMs: 2400,
   staggerMs: 160,
-  opacityMin: 0.3,
+  opacityMin: 0.7,
   opacityMax: 1,
+  bobPct: 50,
 });
 
 /** Sparkles drawn beside the berry per combo tier. Capped at 8. */

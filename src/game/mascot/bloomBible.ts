@@ -54,7 +54,7 @@ export const BIBLE_ROWS: readonly BibleRow[] = Object.freeze([
   row("B. Answer reactions", "Near miss", "Only where a grader yields one: the trainer and LessonPlayer.", { mood: "thinking", behaviour: "leanIn" }),
   row("B. Answer reactions", "Wrong", "Sad for 900ms, then curious and leaning in (spec section 7, Q2).", { mood: "sad", behaviour: "squash" }),
   row("B. Answer reactions", "Wrong again, hint offer", "A second miss on the same item (MCQ recycle, sort Try again): leans in, no sad beat; the tray's Why? (or the sort's headline) gets the hint ring.", { mood: "curious", behaviour: "leanIn" }),
-  row("B. Answer reactions", "Thinking, 15s mid-item", "The MCQ bar berry after 15s without a press, with thought dots.", { mood: "thinking", behaviour: "idle" }),
+  row("B. Answer reactions", "Thinking, 15s mid-item", "The MCQ bar berry after 15s without a press, with a floating lone pair.", { mood: "thinking", behaviour: "idle" }),
   row("B. Answer reactions", "Oxidized, third miss", "Charred and comic, no cough; the next right answer clears it.", { mood: "sad", behaviour: "stressed", state: "charred" }),
   row("B. Answer reactions", "Reduced, after oxidized", "The puff on the stage wrapper when the char clears.", { mood: "happy", behaviour: "squash", chain: ["bounce"] }),
   parked("B. Answer reactions", "Panic, last 10s timed", "Timed mode only, and there is no timed mode."),
