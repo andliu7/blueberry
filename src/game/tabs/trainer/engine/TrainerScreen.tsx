@@ -67,6 +67,9 @@ import { ExitMark } from "../../../beats/chromeIcons";
 import { Berry } from "../../../mascot/Berry";
 import { costumeForSurface } from "../../../mascot/berryCostume";
 import { useBerryReactions } from "../../../mascot/useBerryReactions";
+import { MIND_BLOWN } from "../../../mascot/berryTopicState";
+import type { BerryLook } from "../../../mascot/berryMood";
+import type { BerryState } from "../../../mascot/berryState";
 import { TrainerCanvas, type CanvasMarks } from "./TrainerCanvas";
 import { arrowPresentation, arrowStyleSetting } from "../../../settings/arrowStyle";
 import { ForkChooser } from "./ForkChooser";
@@ -108,7 +111,19 @@ export interface TrainerScreenProps {
   /** Fires once, on CONTINUE from the last step's win, before onExit. */
   readonly onSolved?: () => void;
   readonly reducedMotion?: boolean;
+  /** What the lesson's topic makes the berry (berryTopicState.ts). The char still wins. */
+  readonly berryState?: BerryState;
+  /** The learner's first resonance berry: open on the mind-blown face instead of the peek. */
+  readonly mindBlown?: boolean;
 }
+
+/**
+ * Where Bloom looks once an arrow is down. The berry stands at the canvas's
+ * bottom right, so the drawing is up and to the left of it. The arrows carry
+ * atom ids, not screen points, so this is the canvas's direction rather than
+ * the exact drop.
+ */
+const LOOK_AT_CANVAS: BerryLook = Object.freeze({ x: -0.9, y: -0.5 });
 
 const WIN_TWEEN_MS = 1400;
 /** How long the green arrows hold at full before the bond change starts. */
@@ -116,7 +131,7 @@ const WIN_HOLD_MS = 2500;
 /** Under reduced motion: how long the green arrows hold before the cut to the product. */
 const REDUCED_HOLD_MS = 1000;
 
-export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onSolved, reducedMotion = false }: TrainerScreenProps) {
+export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onSolved, reducedMotion = false, berryState, mindBlown = false }: TrainerScreenProps) {
   const lastIndex = question.steps.length - 1;
   const [stepIndex, setStepIndex] = useState(() => Math.min(Math.max(0, startIndex), lastIndex));
   const current = question.steps[stepIndex];
@@ -289,7 +304,24 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
 
   /* ---------------- the mascot ---------------- */
 
-  const { berry, bump, react } = useBerryReactions(reducedMotion, "leanIn");
+  const reactions = useBerryReactions(reducedMotion, "leanIn");
+  const { bump, react } = reactions;
+  // The verdict's char wins; otherwise the berry is what the lesson's topic
+  // makes it (BeatRunner passes it; the trainer tab passes nothing).
+  const berry = {
+    ...reactions.berry,
+    state: reactions.berry.state === "charred" ? reactions.berry.state : (berryState ?? reactions.berry.state),
+  };
+  // On mount: Bloom peeks up from below its corner, then leans in at the
+  // canvas (BLOOM-STATES-SPEC.md, A), with the focused face the screen has
+  // always rested on (trainerMascotWiring.test.ts pins it). A first resonance
+  // opens on the mind-blown face instead. An empty dependency list runs this
+  // once per mount.
+  useEffect(() => {
+    if (mindBlown) bump(MIND_BLOWN.behaviour, MIND_BLOWN.mood, ["leanIn"]);
+    else bump("peek", "focused", ["leanIn"]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ---------------- the win's bond change ---------------- */
 
@@ -647,6 +679,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               {...berry}
               costume={costumeForSurface("trainer")}
               working={interactive}
+              lookAt={interactive && mechanism.arrows.length > 0 ? LOOK_AT_CANVAS : undefined}
               reducedMotion={reducedMotion}
               sizePx={64}
             />

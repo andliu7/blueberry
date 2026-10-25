@@ -20,6 +20,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { ChipPress } from "./ChipPress";
 import "./beat-chrome.css";
+import "./bloom-tray.css";
 
 export type TrayTone = "right" | "wrong";
 
@@ -42,6 +43,12 @@ export interface AnswerTrayProps {
   readonly combo?: number;
   /** A short chip by the title for anything else worth one glance ("First look, no penalty"). */
   readonly badge?: string;
+  /**
+   * The one Bloom for this verdict, drawn at the right of the title row
+   * (BLOOM-STATES-SPEC.md, section 4). The surface hands over the berry
+   * already reacting; the tray only gives it a place.
+   */
+  readonly mascot?: ReactNode;
 }
 
 /**
@@ -104,7 +111,7 @@ function TrayIcon({ tone }: { readonly tone: TrayTone }) {
   );
 }
 
-export function AnswerTray({ tone, title, children, actionLabel, onAction, actionDisabled, secondary, combo, badge }: AnswerTrayProps) {
+export function AnswerTray({ tone, title, children, actionLabel, onAction, actionDisabled, secondary, combo, badge, mascot }: AnswerTrayProps) {
   const showCombo = tone === "right" && combo !== undefined && combo >= 2;
   const keyRef = useRef<HTMLButtonElement | null>(null);
 
@@ -125,8 +132,18 @@ export function AnswerTray({ tone, title, children, actionLabel, onAction, actio
           <div className="answer-tray__head">
             <TrayIcon tone={tone} />
             <h2 className="answer-tray__title bb-h2">{title}</h2>
-            {showCombo ? <span className="answer-tray__combo">{combo} in a row</span> : null}
+            {/* The chip pops in (0 to 1.15 to 1) on a combo milestone, the beat Bloom bounces on. */}
+            {showCombo ? (
+              <span className="answer-tray__combo" data-milestone={combo === 3 || combo === 5 || combo === 8 ? "" : undefined}>
+                {combo} in a row
+              </span>
+            ) : null}
             {!showCombo && badge !== undefined ? <span className="answer-tray__badge">{badge}</span> : null}
+            {mascot !== undefined ? (
+              <span className="answer-tray__bloom" aria-hidden>
+                {mascot}
+              </span>
+            ) : null}
           </div>
           {children !== undefined ? <div className="answer-tray__body">{children}</div> : null}
         </div>

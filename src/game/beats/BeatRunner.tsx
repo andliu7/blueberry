@@ -71,8 +71,12 @@ import { sortContentById } from "./sort";
 // The authored ladders' card drawings sit in the same generated tables as the pool ladders' (u8's acyl sort).
 import { sortFiguresFor } from "./sortFigures";
 import { synthesisGapsForNode } from "./synthesis";
+import type { Receipt } from "@blueberry/economy";
 import { Berry } from "../mascot/Berry";
-import { pathwayNode } from "../demo/pathwayMap";
+import { BloomLessonComplete } from "../mascot/progression/BloomLessonComplete";
+import { costumeForNode } from "../mascot/berryCostume";
+import { isFirstResonance, markResonanceSeen, readResonanceSeen, stateForNode } from "../mascot/berryTopicState";
+import { isSectionFinal, pathwayNode } from "../demo/pathwayMap";
 import { HUMAN_GATE_MARK } from "../pathway-sheet/nodeSheetModel";
 import { showDraftMarks } from "../app/flags";
 import { ChipPress } from "./ChipPress";
@@ -133,6 +137,10 @@ function matchBoardsForNode(node: string) {
 // A Suspense fallback that is a blank rectangle is banned by the same file, so
 // the fallback below says what it is waiting for.
 const McqRunner = lazy(() => import("./mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
+// Lazy like the rest, and for the reason the header gives for app/progress:
+// StreakScreen reads the progress store, which this file only ever imports
+// dynamically.
+const StreakScreen = lazy(() => import("../lesson/StreakScreen").then((m) => ({ default: m.StreakScreen })));
 const MatchBoard = lazy(() => import("./match/MatchBoard").then((m) => ({ default: m.MatchBoard })));
 const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
 // A Unit 0 chapter's story scene, played after the scene node's guess-first question.
@@ -220,6 +228,15 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
    * sees a different figure in two places.
    */
   const [banked, setBanked] = useState<number | null>(null);
+  /**
+   * What the clear's receipt says beyond the diamonds: the XP for Bloom's
+   * "+N XP" chip, and the receipt itself when today counted for the FIRST
+   * time on this clear, which is when the streak screen follows the reward
+   * (the same rule LessonPlayer uses). Read off the store, never added up here.
+   */
+  const [clearNote, setClearNote] = useState<{ readonly xp: number; readonly streak: Receipt | null } | null>(null);
+  /** The streak screen is up, between the reward and wherever the ending goes. */
+  const [streakOpen, setStreakOpen] = useState(false);
   /** Which node this runner has already banked, so a re-render cannot double pay. */
   const bankedFor = useRef<string | null>(null);
 
@@ -300,6 +317,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     setRecycleDraws(null);
     setSceneAt(null);
     setBanked(null);
+    setClearNote(null);
+    setStreakOpen(false);
     setOffer(null);
     setResume(null);
     mcqSave.current = null;
@@ -392,6 +411,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
     void Promise.all([import("../app/progress"), import("../chest/chestFlow"), import("../upsell/noteLessonClear")]).then(([{ progress }, { earnChestForClear }, { noteLessonClear }]) => {
+      const countedBefore = progress.getSnapshot().economy.streak.todayCounted;
       const diamonds = progress.clearNode(node, "concept", {
         flawless,
         stepsInOneSitting: run.totalBeats,
@@ -405,6 +425,13 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
       earnChestForClear(progress, node);
       // The Pro sheet may ask, on the way back to the path (upsell/upsellRule.ts).
       noteLessonClear(afterClear);
+      const receipt = afterClear.lastReceipt;
+      if (live && receipt !== null) {
+        setClearNote({
+          xp: receipt.xp.reduce((sum, line) => sum + line.amount, 0),
+          streak: !countedBefore && receipt.streak.counted ? receipt : null,
+        });
+      }
       if (live) setBanked(diamonds);
     });
     return () => {
@@ -516,6 +543,16 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // recap first. The X mid-lesson still calls onExit, so leaving early never
   // lands on a recap of a lesson the student did not finish.
   const finish = primed !== null && priming !== null ? () => setRecapOpen(true) : onExit;
+
+  // THE STREAK SCREEN, on the clear that made today count for the first time:
+  // after the reward and before wherever the ending goes. Its Continue goes on.
+  if (streakOpen && clearNote?.streak != null) {
+    return (
+      <Suspense fallback={null}>
+        <StreakScreen receipt={clearNote.streak} reducedMotion={reducedMotion} onContinue={finish} />
+      </Suspense>
+    );
+  }
 
   // A practice or stage-quiz node is a run mode, not a seven-slot lesson: the
   // run owns its own header, its ending and its banking (clear at 3 in a row).
@@ -794,6 +831,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
         {inEngine && step !== null && (step.beat.kind === "mechanism" || step.beat.kind === "resonance") ? (
           <TrainerBeat
             beat={step.beat}
+            node={node}
             level={level}
             reducedMotion={reducedMotion}
             onResult={(result) => {
@@ -860,8 +898,9 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             node={node}
             pace={pace}
             banked={banked}
+            xp={clearNote?.xp ?? null}
             reducedMotion={reducedMotion}
-            onExit={finish}
+            onExit={clearNote?.streak != null ? () => setStreakOpen(true) : finish}
             offerSlot={
               // THE MISTAKE-TO-CARD OFFER, HELD UNTIL THE LESSON ENDS (A2
               // round 4). It used to float up the moment a wrong answer was
@@ -906,6 +945,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
  */
 function TrainerBeat({
   beat,
+  node,
   level,
   reducedMotion,
   onResult,
@@ -913,6 +953,8 @@ function TrainerBeat({
   onExit,
 }: {
   readonly beat: Extract<ResolvedBeat, { kind: "mechanism" | "resonance" }>;
+  /** The lesson's node, for the berry's chemical state. */
+  readonly node: string;
   readonly level: MasteryLevel;
   readonly reducedMotion: boolean;
   readonly onResult: (result: BeatResult) => void;
@@ -922,6 +964,16 @@ function TrainerBeat({
   const question = useMemo(() => questionForBeat(beat), [beat]);
   const startedAt = useRef(performance.now());
   const solved = useRef(false);
+  // What the berry is made of here: a resonance beat is a resonance berry,
+  // a mechanism takes its node's state (berryTopicState.ts).
+  const berryState = beat.kind === "resonance" ? "resonance" : stateForNode(node);
+  // The learner's first resonance berry plays the mind-blown face, once per
+  // device. A lazy useState initializer reads storage once, on mount; the
+  // effect then marks it seen so the next resonance beat is an ordinary one.
+  const [mindBlown] = useState(() => isFirstResonance(berryState, readResonanceSeen(browserStorage())));
+  useEffect(() => {
+    if (mindBlown) markResonanceSeen(browserStorage());
+  }, [mindBlown]);
   if (question === null) {
     return <p role="status">This mechanism is not authored yet. Pick another node and come back.</p>;
   }
@@ -929,6 +981,8 @@ function TrainerBeat({
     <TrainerScreen
       question={question}
       reducedMotion={reducedMotion}
+      berryState={berryState}
+      mindBlown={mindBlown}
       onSolved={() => {
         solved.current = true;
         onResult({
@@ -993,6 +1047,7 @@ function RewardSlot({
   node,
   pace,
   banked,
+  xp,
   reducedMotion,
   onExit,
   offerSlot,
@@ -1003,6 +1058,8 @@ function RewardSlot({
   readonly pace: Pace;
   /** Diamonds the store actually paid, or null while the clear is still landing. */
   readonly banked: number | null;
+  /** XP the receipt paid, or null while the clear is landing. */
+  readonly xp: number | null;
   readonly reducedMotion: boolean;
   readonly onExit: () => void;
   /** The held mistake-to-card offer, laid under the summary card. */
@@ -1012,6 +1069,8 @@ function RewardSlot({
   const played = run.totalBeats;
   const stillRough = run.recycled ? run.recycleTotal - run.recycleCleared : 0;
   const outcome = challengeOutcome(run);
+  const mapNode = pathwayNode(node);
+  const lessonNode = mapNode === null ? null : { ...mapNode, final: isSectionFinal(mapNode) };
   if (outcome !== null) {
     // The Challenge's own ending. Same card, same Continue; what differs is
     // the claim. A fail says what happened and what is still open, never
@@ -1066,35 +1125,32 @@ function RewardSlot({
     <div className="flex min-h-0 w-full flex-1 flex-col">
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-4">
       <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-bb-border bg-bb-card p-6 text-center">
-        <Berry mood="cheer" behaviour="celebrate" sizePx={96} reducedMotion={reducedMotion} />
-        <h2 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Lesson complete</h2>
-        {/* Plain numbers a student reads in one go (A2 round 5; the old line
-            "brought back 0 of the 1 that slipped past" needed a second read). */}
-        <p className="text-scale-base text-bb-foreground">
-          {/* First-try count, so a recycled miss is not counted twice ("3 of 3 right, 1 of 1 fixed"); CHANGED 2026-10-17. */}
-          {run.clearedBeats} of {played} right
-          {run.recycled ? `, ${run.recycleCleared} of ${run.recycleTotal} fixed on the second try.` : "."}
-        </p>
-        {/* THE NUMBER THE STORE PAID, not one this screen worked out. It
-            appears only once the clear has actually landed, which is why it
-            is null-checked rather than defaulted to 0: "+0 diamonds" while a
-            dynamic import is still in flight would be a wrong number shown
-            confidently, and a moment later it would change under the reader.
-            Nothing is claimed here either; the clear is already banked by the
-            time this renders, so this is a receipt and not a button. */}
-        {banked !== null && banked > 0 ? (
-          <p className="lesson-banked">
-            <GemMark />
-            <span>
-              +{plural(banked, "diamond", "diamonds")}
-            </span>
+        {/* BLOOM'S LESSON COMPLETE (BLOOM-STATES-SPEC.md, C): he enters from
+            below into cheer and celebrate, "+N XP" pops off him, the lines
+            below reveal one by one, and once Continue is live a diamond drops
+            onto his head and flies into the "+N" counter beside him.
+
+            THE NUMBERS THE STORE PAID, not ones this screen worked out. Both
+            are null until the clear has actually landed, and a null draws no
+            chip and plays no catch: "+0 diamonds" while a dynamic import is
+            still in flight would be a wrong number shown confidently. The
+            catch is the diamond receipt now, so the old "+N diamonds" line
+            is gone rather than said twice. */}
+        <BloomLessonComplete reducedMotion={reducedMotion} xp={xp} diamonds={banked} costume={costumeForNode(lessonNode)}>
+          <h2 className="bb-title-face text-scale-2xl font-bold text-bb-foreground">Lesson complete</h2>
+          {/* Plain numbers a student reads in one go (A2 round 5; the old line
+              "brought back 0 of the 1 that slipped past" needed a second read). */}
+          <p className="text-scale-base text-bb-foreground">
+            {/* First-try count, so a recycled miss is not counted twice ("3 of 3 right, 1 of 1 fixed"); CHANGED 2026-10-17. */}
+            {run.clearedBeats} of {played} right
+            {run.recycled ? `, ${run.recycleCleared} of ${run.recycleTotal} fixed on the second try.` : "."}
           </p>
-        ) : null}
-        {stillRough > 0 ? (
-          <p className="text-scale-sm text-bb-muted-foreground">
-            {stillRough === 1 ? "One question gets" : `${stillRough} questions get`} another look next time.
-          </p>
-        ) : null}
+          {stillRough > 0 ? (
+            <p className="text-scale-sm text-bb-muted-foreground">
+              {stillRough === 1 ? "One question gets" : `${stillRough} questions get`} another look next time.
+            </p>
+          ) : null}
+        </BloomLessonComplete>
         {/* THE CHECK CHIP, NOT THE CLAIM CHIP. The committed button-types
             sheet reserves green for `review` and `claim` and gives `continue`
             the same periwinkle as `check`, and this control banks nothing:

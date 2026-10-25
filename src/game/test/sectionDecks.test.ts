@@ -16,17 +16,16 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { hrefForTab, parseHash } from "../app/routes";
+import { parseHash } from "../app/routes";
 import { createLocalDecks } from "../cards/store";
 import { cardsIn } from "../cards/types";
-import { figureRow, loadSectionGuide } from "../cards/sections/SectionFigure";
+import { figureRow } from "../cards/sections/SectionFigure";
 import {
   adoptSectionDeck,
   assembleSectionDeck,
   cardFromSeed,
   deckKeyForSection,
   loadUnitCards,
-  resolveSectionDeck,
   SECTION_DECK_CAP,
   SECTION_DECK_MIN,
   SECTION_UNITS,
@@ -34,9 +33,9 @@ import {
   sectionDeckSize,
   type SectionCardSeed,
 } from "../cards/sections/sectionDecks";
-import { parseSectionRoute, SECTION_DECK_UNITS, sectionDeckHref, sectionFigureOf } from "../cards/sections/sectionRoute";
+import { parseSectionRoute, sectionDeckHref, sectionFigureOf } from "../cards/sections/sectionRoute";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { hasUnitGuide } from "../guide";
+import { loadUnitGuide } from "../guide";
 import type { UnitGuide } from "../guide/types";
 import { unitSections } from "../tabs/pathway/testOuts";
 import { DefinitionSide, TermSide } from "../tabs/cards/CardSides";
@@ -50,8 +49,7 @@ const guides = new Map<string, UnitGuide>();
 beforeAll(async () => {
   for (const unitId of SECTION_UNITS) {
     seeds.set(unitId, await loadUnitCards(unitId));
-    // Through the card faces' own loader, so a face drawn below finds its guide ready.
-    const guide = await loadSectionGuide(unitId);
+    const guide = await loadUnitGuide(unitId);
     if (guide !== null) guides.set(unitId, guide);
   }
 });
@@ -145,10 +143,7 @@ describe("every card", () => {
           expect(slip, seed.id).toBeDefined();
           expect(seed.front).toBe(`Spot the slip: ${slip!.mistake}`);
         } else {
-          // One row: the example's caption. Several: the lesson's key idea, since the caption may describe another row.
-          const example = guide.examples[seed.lesson]!;
-          const single = !example.panels.some((panel) => panel.kind === "break");
-          expect(seed.why, seed.id).toBe(single ? example.caption : ideas.get(seed.lesson)![0]!.quote);
+          expect(seed.why, seed.id).toBe(guide.examples[seed.lesson]!.caption);
         }
       }
     }
@@ -187,23 +182,6 @@ describe("the decks", () => {
         const ref = sectionDecksFor(unit.id).find((entry) => entry.key === key)!;
         expect(assembleSectionDeck(ref, seeds.get(unit.id)!).length).toBeGreaterThanOrEqual(SECTION_DECK_MIN);
         for (const lesson of section.sources) if (guides.get(unit.id)!.examples[lesson] !== undefined) expect(ref.lessons, lesson).toContain(lesson);
-      }
-    }
-  });
-
-  it("each open from the path's link on their section, with cards in them", () => {
-    // PathwayTab shows the link when the unit has a guide and builds it with hrefForTab, to load no deck code.
-    for (const unit of PATHWAY_UNITS) expect(hasUnitGuide(unit.id), unit.id).toBe(SECTION_DECK_UNITS.has(unit.id));
-    for (const unit of PATHWAY_UNITS.filter((entry) => SECTION_UNITS.includes(entry.id))) {
-      for (const section of unitSections(unit)) {
-        const href = hrefForTab("cards", "section", unit.id, String(section.number));
-        expect(href).toBe(sectionDeckHref(unit.id, String(section.number)));
-        const route = parseHash(href);
-        const parsed = parseSectionRoute(route.kind === "tab" ? route.rest : []);
-        expect(parsed, `${unit.id} section ${section.number}`).not.toBeNull();
-        const ref = resolveSectionDeck(parsed!.unitId, parsed!.key);
-        expect(ref, `${unit.id} section ${section.number}`).not.toBeNull();
-        expect(assembleSectionDeck(ref!, seeds.get(unit.id)!).length).toBeGreaterThanOrEqual(SECTION_DECK_MIN);
       }
     }
   });

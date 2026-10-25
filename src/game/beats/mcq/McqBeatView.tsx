@@ -87,6 +87,12 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { Berry } from "../../mascot/Berry";
+import { BloomStage } from "../../mascot/BloomStage";
+import { CHARRED_LINE } from "../../mascot/berryReaction";
+import type { BerryReactions } from "../../mascot/useBerryReactions";
+import type { BerryState } from "../../mascot/berryState";
+import type { BerryCostume } from "../../mascot/berryCostume";
+import { useIdleInput } from "../../mascot/useIdleInput";
 import { ChipPress } from "../ChipPress";
 import { type MasteryLevel, type McqBeat } from "../types";
 import { ExitMark, FlagMark } from "../chromeIcons";
@@ -97,6 +103,7 @@ import { mcqOptionTiles, mcqVisualFor } from "./mcqFigures";
 import { StructureFigure } from "../../onboarding/StructureFigure";
 import { type McqReveal } from "./grade";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
+import { BloomVerdictBerry } from "../BloomVerdictBerry";
 import { OptionMark } from "./OptionMark";
 import type { McqProgress } from "./session";
 import "../beat-chrome.css";
@@ -150,6 +157,15 @@ export interface McqBeatViewProps {
    * the counters) with one progress instrument rather than two stacked bars.
    */
   readonly progressSlot?: ReactNode;
+  /**
+   * Bloom's reaction state, owned by McqRunner (useBerryReactions). Absent in
+   * a preview that renders the view alone: the berries then stand still.
+   */
+  readonly bloom?: BerryReactions;
+  /** What the lesson's topic makes the berry (berryTopicState.ts). */
+  readonly topicState?: BerryState;
+  /** What it wears for this lesson (berryCostume.ts costumeForNode). */
+  readonly costume?: BerryCostume;
 }
 
 const HOW_TO_PICKING = "Pick one, then press Check. You can change your mind as many times as you like first.";
@@ -172,8 +188,18 @@ export function McqBeatView({
   reducedMotion = false,
   progressSlot,
   combo,
+  bloom,
+  topicState = "neutral",
+  costume,
 }: McqBeatViewProps) {
   const answered = reveal !== null;
+  // 15s with no press on an unanswered question: the bar berry thinks, with
+  // thought dots. The beat id resets the quiet clock for each new question.
+  const idle = useIdleInput(answered ? "off" : "midItem", beat.id);
+  // The char outlives the tray it arrived in (it clears on the next right
+  // answer), so the bar berry wears it too; otherwise the topic's state.
+  const charred = bloom?.berry.state === "charred";
+  const berryState: BerryState = charred ? "charred" : topicState;
   const howTo = showHowTo ?? level === 0;
   const choose = (optionId: string) => {
     if (answered) return;
@@ -442,7 +468,17 @@ export function McqBeatView({
           actionLabel={primaryLabel}
           onAction={onPrimary}
           actionDisabled={!primaryEnabled}
+          mascot={
+            // ONE BERRY FOR THE VERDICT. The bar berry above unmounts with
+            // the action bar, and this one takes its place in the tray, so
+            // the moment has one Bloom and one reaction. It mounts already
+            // holding the graded face, which is what lands on the first frame.
+            bloom !== undefined ? (
+              <BloomVerdictBerry bloom={bloom} state={topicState} costume={costume} reducedMotion={reducedMotion} />
+            ) : undefined
+          }
         >
+          {charred ? <p className="answer-tray__charred">{CHARRED_LINE}</p> : null}
           {/* A2 round 5: the tray reads in one glance. A wrong answer leads with
               the labelled correct answer in large type, then ONE sentence of why,
               then why the student's own pick misses, open (audit 23 Oct, section
@@ -463,7 +499,16 @@ export function McqBeatView({
               row, bottom right, decoration only (no row reserved, no pointer
               events). Gone once the tray is up, one effect per moment. */}
           <span className="berry-anchor berry-anchor--bar" aria-hidden>
-            <Berry mood="focused" working sizePx={68} reducedMotion={reducedMotion} />
+            <BloomStage reducedMotion={reducedMotion} thinking={idle === "thinking"}>
+              <Berry
+                mood={idle === "thinking" ? "thinking" : "focused"}
+                state={berryState}
+                costume={costume}
+                working
+                sizePx={68}
+                reducedMotion={reducedMotion}
+              />
+            </BloomStage>
           </span>
           <ChipPress className="w-full" disabled={!primaryEnabled} onClick={onPrimary}>
             {primaryLabel}

@@ -7,25 +7,15 @@
  *
  * The guide is fetched the first time a card from its unit is drawn
  * (loadUnitGuide splits each unit's guide into its own file). Until then a
- * quiet box holds the space; the card's words are complete without it. The
- * guide index itself is a dynamic import too, so a card face (and every
- * screen that imports one) does not pull Units 0 and 1's guides in with it.
+ * quiet box holds the space; the card's words are complete without it.
  */
 import { useEffect, useState, type CSSProperties } from "react";
 import type { Card } from "../types";
 import { GuideMol } from "../../guide/GuideMol";
+import { loadUnitGuide, unitGuideFor } from "../../guide";
 import type { GuidePanel, UnitGuide } from "../../guide/types";
 import { sectionFigureOf } from "./sectionRoute";
 import "./sectionFigure.css";
-
-type GuideIndex = typeof import("../../guide");
-let guideIndex: GuideIndex | null = null;
-
-/** Fetches a unit's guide for the card faces (once), then resolves with it. Null for a unit with none. */
-export async function loadSectionGuide(unitId: string): Promise<UnitGuide | null> {
-  guideIndex ??= await import("../../guide");
-  return guideIndex.loadUnitGuide(unitId);
-}
 
 type Mol = Extract<GuidePanel, { kind: "mol" }>;
 type Arrow = Extract<GuidePanel, { kind: "arrow" }>;
@@ -64,14 +54,14 @@ export function SectionFigure({ card, side, size }: { readonly card: Card; reado
   const ref = sectionFigureOf(card);
   const unitId = ref?.unitId ?? null;
   // Read synchronously first: a guide fetched once draws at once from then on.
-  const [guide, setGuide] = useState<UnitGuide | null>(() => (unitId === null ? null : (guideIndex?.unitGuideFor(unitId) ?? null)));
+  const [guide, setGuide] = useState<UnitGuide | null>(() => (unitId === null ? null : unitGuideFor(unitId)));
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (unitId === null || guide !== null) return;
     // `live` stops a fetch that finishes after this card left the screen from setting state.
     let live = true;
-    loadSectionGuide(unitId).then(
+    loadUnitGuide(unitId).then(
       (loaded) => {
         if (!live) return;
         if (loaded === null) setFailed(true);

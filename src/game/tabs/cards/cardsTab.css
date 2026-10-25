@@ -1121,10 +1121,6 @@
   outline-offset: 2px;
   border-radius: 1rem;
 }
-.ct-premade__head > .ct-deck__meta {
-  flex: 0 0 auto;
-  white-space: nowrap;
-}
 .ct-premade > .ct-deck-list {
   padding: 0 0.75rem 0.75rem;
 }

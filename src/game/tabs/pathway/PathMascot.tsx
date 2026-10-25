@@ -13,17 +13,31 @@
  * polite live region, so a screen reader hears the line too.
  *
  * React pattern, "bump a counter to replay": Berry replays an event behaviour
- * whenever `behaviourKey` changes, so each tap adds one to `taps` and the hop
+ * whenever `behaviourKey` changes, so each tap adds one to `beatKey` and the hop
  * plays again even when the behaviour name is the same.
  *
  * React pattern, "render prop": `children` is a function. This component owns
  * the tap and hands back the three behaviour props; PathwayTab still draws the
  * <Berry> itself, so its MASCOT_PX size stays in the one place
  * pathwayRowLanes.test.ts reads it from.
+ *
+ * TWO AMBIENT BEATS, added 2026-10-24 (BLOOM-STATES-SPEC.md, A and C).
+ * Bored: 20s with no press anywhere and he sighs once (sleepy face, the
+ * `sigh` behaviour), then looks out at the student and holds that until they
+ * touch something. It never loops: the idle stage holds until input
+ * (useIdleInput.ts). Unlock: on the row whose chip just opened he hops once
+ * with the unlock FX. The move is the pure `pathMoveFor` below, so a test
+ * reads the four beats without a DOM.
+ *
+ * React pattern, "context": the row tells this component its chip just
+ * unlocked through PathUnlockContext rather than a prop, which reaches it
+ * without changing the <PathMascot> call PathwayTab and its pin test share.
  */
 
-import { useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { BerryBehaviour } from "../../mascot/berryBehaviour";
+import { LOOK_AHEAD, type BerryLook, type BerryMood } from "../../mascot/berryMood";
+import { useIdleInput } from "../../mascot/useIdleInput";
 import "./path-mascot.css";
 
 /** What Bloom says, in turn. Short, plain, friendly. */
@@ -51,11 +65,52 @@ export interface BloomMove {
   readonly behaviour: BerryBehaviour;
   readonly behaviourKey: number;
   readonly chain: readonly BerryBehaviour[];
+  /**
+   * Only while bored (sleepy). Absent otherwise, not undefined, so spreading
+   * the move after the row's own mood="happy" leaves that face alone.
+   */
+  readonly mood?: BerryMood;
+  /** (0, 0) once bored: he looks out at the student. Undefined lets the glance run. */
+  readonly lookAt: BerryLook | undefined;
+}
+
+/** True on the row whose chip just unlocked. Provided by PathwayTab's row. */
+export const PathUnlockContext = createContext(false);
+
+/** The last thing that happened to Bloom on the path. */
+export type PathBeat = "rest" | "tap" | "bored" | "unlock";
+
+/** What each beat plays. Pure; the key that replays it is the component's. */
+export function pathMoveFor(beat: PathBeat): Omit<BloomMove, "behaviourKey"> {
+  switch (beat) {
+    case "tap":
+    case "unlock":
+      return { behaviour: "bounce", chain: AFTER_HOP, lookAt: undefined };
+    case "bored":
+      return { behaviour: "sigh", chain: NO_CHAIN, mood: "sleepy", lookAt: LOOK_AHEAD };
+    case "rest":
+      return { behaviour: "leanIn", chain: NO_CHAIN, lookAt: undefined };
+  }
 }
 
 export function PathMascot({ children }: { readonly children: (move: BloomMove) => ReactNode }) {
   const [taps, setTaps] = useState(0);
   const [line, setLine] = useState<string | null>(null);
+  const unlocked = useContext(PathUnlockContext);
+  // The beat and a counter that replays it (see "bump a counter" above).
+  const [beat, setBeat] = useState<PathBeat>(() => (unlocked ? "unlock" : "rest"));
+  const [beatKey, setBeatKey] = useState(0);
+  const idle = useIdleInput("ambient");
+
+  // Bored starts the sigh; the first press after it brings him back.
+  useEffect(() => {
+    if (idle === "bored") {
+      setBeat("bored");
+      setBeatKey((k) => k + 1);
+    } else {
+      setBeat((b) => (b === "bored" ? "rest" : b));
+    }
+  }, [idle]);
 
   // Hide the line a while after the last tap. A new tap restarts the clock,
   // and the cleanup clears the timer if the row unmounts first.
@@ -75,13 +130,11 @@ export function PathMascot({ children }: { readonly children: (move: BloomMove) 
           const next = taps + 1;
           setTaps(next);
           setLine(bloomLineFor(next));
+          setBeat("tap");
+          setBeatKey((k) => k + 1);
         }}
       >
-        {children({
-          behaviour: taps === 0 ? "leanIn" : "bounce",
-          behaviourKey: taps,
-          chain: taps === 0 ? NO_CHAIN : AFTER_HOP,
-        })}
+        {children({ ...pathMoveFor(beat), behaviourKey: beatKey })}
       </button>
       {/* The live region is always in the DOM, so it exists before it speaks;
           the bubble inside it comes and goes with the line. */}

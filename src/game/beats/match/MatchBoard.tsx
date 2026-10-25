@@ -67,6 +67,10 @@ import type { BeatResult, MasteryLevel, MatchBeat } from "../types";
 import type { Card } from "../../cards/types";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
+import { clearsBeat } from "../types";
+import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { useBerryReactions } from "../../mascot/useBerryReactions";
+import { useReducedMotionPref } from "@/lib/motionPref";
 import { StructureFigure } from "../../onboarding/StructureFigure";
 import {
   buildMatchBoard,
@@ -211,6 +215,10 @@ export function Board({
   const startedAt = useRef(Date.now());
   const completionReported = useRef(false);
   const missesReported = useRef(0);
+  // Bloom answers the finished board once, from the board's own result.
+  const reducedMotion = useReducedMotionPref();
+  const bloom = useBerryReactions(reducedMotion, "leanIn");
+  const bloomReacted = useRef(false);
 
   // Three refs into the DOM, used only to move focus. A ref on a JSX element is
   // React's escape hatch to the real node: it is set after the browser paints
@@ -289,6 +297,16 @@ export function Board({
       }),
     );
   }, [complete, spec, state, onComplete]);
+
+  // The board completes inside a reducer, so the reaction rides an effect on
+  // `complete`: it runs right after the render that finished the board.
+  useEffect(() => {
+    if (!complete || bloomReacted.current) return;
+    bloomReacted.current = true;
+    const result = beatResultFor(spec, state, { elapsedMs: 0, at: new Date().toISOString() });
+    bloom.react(clearsBeat(result) ? "correct" : "wrong");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [complete]);
 
   const selected = state.selected;
   const pending = state.pending;
@@ -381,9 +399,14 @@ export function Board({
           ref={completionRef}
           className="fade-in flex flex-col gap-3 rounded-2xl border border-good bg-good-soft p-4"
         >
-          <p className="text-scale-base font-semibold text-good-ink">
-            {completionLine(total, state.misses.length)}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-scale-base font-semibold text-good-ink">
+              {completionLine(total, state.misses.length)}
+            </p>
+            <span className="shrink-0" aria-hidden>
+              <BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />
+            </span>
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <Press
               variant="secondary"

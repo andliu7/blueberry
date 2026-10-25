@@ -69,6 +69,9 @@ import {
 import { PKA_TABLE, type OrderingState, type PkaSiteId } from "@blueberry/curriculum";
 import { ChipPress } from "../ChipPress";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
+import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { useBerryReactions } from "../../mascot/useBerryReactions";
+import { useReducedMotionPref } from "@/lib/motionPref";
 import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "../types";
 import { playCorrect } from "../../sound/gameSound";
 import {
@@ -190,6 +193,10 @@ export function SortBeatView({
   const rungRefs = useRef<(HTMLLIElement | null)[]>([]);
   const startedAtRef = useRef<number>(Date.now());
   const openingRef = useRef<SortBoard>(board);
+  // Bloom for this ladder, kept across Try again so a second miss knows it is one.
+  const reducedMotion = useReducedMotionPref();
+  const bloom = useBerryReactions(reducedMotion, "leanIn");
+  const missedOnce = useRef(false);
 
   // The first ranking a student ever meets nudges its top card once, so it is
   // obvious the cards move. Lazy useState initializer: read storage once, on mount.
@@ -363,6 +370,11 @@ export function SortBeatView({
       onSubmitOrder({ kind: "ordering", order: boardOrder(board) });
     }
     if (clearsBeat(judgedNow.result)) playCorrect();
+    // Bloom answers in the same update as the verdict. A second wrong ladder
+    // on this same sort is "wrong again": he leans in, no second sad beat.
+    const right = clearsBeat(judgedNow.result);
+    bloom.react(right ? "correct" : missedOnce.current ? "wrongAgain" : "wrong");
+    if (!right) missedOnce.current = true;
     if (onResult !== undefined) onResult(judgedNow.result);
   }
 
@@ -544,6 +556,7 @@ export function SortBeatView({
         <AnswerTray
           tone={cleared ? "right" : "wrong"}
           title={cleared ? "Nice!" : "Not quite"}
+          mascot={<BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />}
           actionLabel={cleared ? "Keep going" : "Try again"}
           onAction={cleared ? onContinue : adjust}
           actionDisabled={cleared && onContinue === undefined}

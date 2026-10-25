@@ -244,6 +244,35 @@ export function currentRun(session: McqSession): number {
   return run;
 }
 
+/** Right in the sense currentRun counts: the authored answer, no distractor matched. */
+function isRight(result: BeatResult): boolean {
+  return (result.kind === "correct" || result.kind === "correct_alternative_route") && result.distractorId === undefined;
+}
+
+/**
+ * The latest committed answer missed, and the same beat was already missed
+ * earlier in this run (a recycled question that got away twice). Bloom's
+ * `wrongAgain` reaction: lean in at the problem, no second sad beat.
+ */
+export function missedThisItemBefore(session: McqSession): boolean {
+  const latest = session.results[session.results.length - 1];
+  if (latest === undefined || isRight(latest)) return false;
+  return session.results.slice(0, -1).some((result) => result.beatId === latest.beatId && !isRight(result));
+}
+
+/**
+ * What Bloom reacts to for the latest committed answer (mascot/berryReaction.ts).
+ * Right means the same as currentRun, so the combo the tray chip shows and the
+ * combo the berry bounces for are one count. A first-meeting miss still clears
+ * the beat but is a miss here, as it is in the run.
+ */
+export function latestOutcome(session: McqSession): "correct" | "wrong" | "wrongAgain" | null {
+  const latest = session.results[session.results.length - 1];
+  if (latest === undefined) return null;
+  if (isRight(latest)) return "correct";
+  return missedThisItemBefore(session) ? "wrongAgain" : "wrong";
+}
+
 export function sessionProgress(session: McqSession): McqProgress {
   const answered = session.results.length;
   const total = session.beats.length;

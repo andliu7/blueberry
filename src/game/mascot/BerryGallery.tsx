@@ -16,10 +16,22 @@
  * notification thumbnail, 96px is the in-lesson companion, 160px is the reward
  * moment. A costume that stops reading at 40px has failed, and the only way to
  * find that out is to render it at 40px next to the other two.
+ *
+ * THE BIBLE PASS, added 2026-10-24 (BLOOM-STATES-SPEC.md, section 5). Every
+ * mood, every behaviour with a replay button, the answer reactions live on
+ * their stage, the progression beats, and one row per Design Bible state with
+ * what this repo decided (bloomBible.ts). A reduced-motion switch at the top
+ * passes `reducedMotion` to every berry and `data-reduced` to every stage, so
+ * the still poses can be judged without changing the OS setting.
  */
 
-import { useEffect, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { Berry } from "./Berry";
+import { BloomHintRing, BloomStage } from "./BloomStage";
+import { useBerryReactions } from "./useBerryReactions";
+import { CHARRED_LINE, type ReactionOutcome } from "./berryReaction";
+import { BIBLE_ROWS, type BibleSection } from "./bloomBible";
+import { BloomLessonComplete, BloomUnitComplete } from "./progression/BloomLessonComplete";
 import { BERRY_STATES, STATE_SHAPE, type BerryState } from "./berryState";
 import {
   BERRY_COSTUMES,
@@ -29,7 +41,10 @@ import {
   type BerryCostume,
 } from "./berryCostume";
 import { BERRY_MOODS, type BerryMood } from "./berryMood";
-import type { BerryBehaviour } from "./berryBehaviour";
+import { BEHAVIOURS, type BerryBehaviour } from "./berryBehaviour";
+
+// Lazy in the app (Hud.tsx), lazy here too: it is the one rare screen.
+const BloomLevelUp = lazy(() => import("./progression/BloomLevelUp"));
 
 // mascot.css is already imported once by theme.css, which is the app's single
 // stylesheet entry. Importing it again here would emit a duplicate CSS chunk.
@@ -39,14 +54,19 @@ const SIZES = [40, 96, 160] as const;
 /** A few moods rather than all thirteen, chosen to span the range of the face. */
 const SAMPLE_MOODS: readonly BerryMood[] = ["curious", "happy", "thinking", "sad", "stressed"];
 
-const SAMPLE_BEHAVIOURS: readonly BerryBehaviour[] = [
-  "idle",
-  "leanIn",
-  "squash",
-  "bounce",
-  "celebrate",
-  "stressed",
+/** Every behaviour, read off the table so a new one shows up here by itself. */
+const ALL_BEHAVIOURS = Object.keys(BEHAVIOURS) as BerryBehaviour[];
+
+const OUTCOMES: readonly { readonly outcome: ReactionOutcome; readonly label: string }[] = [
+  { outcome: "correct", label: "Correct" },
+  { outcome: "wrong", label: "Wrong" },
+  { outcome: "wrongAgain", label: "Wrong again" },
+  { outcome: "nearMiss", label: "Near miss" },
 ];
+
+const SECTIONS: readonly BibleSection[] = ["A. Ambient", "B. Answer reactions", "C. Progression", "D. Chemical", "E. Costumes"];
+
+const BUTTON = "press min-h-11 rounded-xl border border-bb-border bg-bb-card px-4 text-scale-sm font-semibold text-bb-foreground";
 
 function Panel({ title, note, children }: { readonly title: string; readonly note?: string; readonly children: ReactNode }) {
   return (
@@ -67,7 +87,58 @@ function Cell({ label, children }: { readonly label: string; readonly children: 
   );
 }
 
+/**
+ * The answer reactions, live: the same hook and stage a lesson uses, driven by
+ * buttons. Three in a row of Correct is the combo 3; keep going for 5 and 8.
+ * Three misses char the berry and the next Correct clears it with the puff.
+ */
+function ReactionLab({ reduced }: { readonly reduced: boolean }) {
+  const bloom = useBerryReactions(reduced, "leanIn");
+  const [thinking, setThinking] = useState(false);
+  const charred = bloom.berry.state === "charred";
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-3">
+        {OUTCOMES.map(({ outcome, label }) => (
+          <button key={outcome} type="button" className={BUTTON} onClick={() => bloom.react(outcome)}>
+            {label}
+          </button>
+        ))}
+        <label className="flex items-center gap-2 text-scale-sm text-bb-foreground">
+          <input type="checkbox" checked={thinking} onChange={(event) => setThinking(event.target.checked)} />
+          Thinking, 15s quiet
+        </label>
+        <span className="relative inline-flex">
+          <button type="button" className={BUTTON}>
+            Hint
+          </button>
+          <BloomHintRing ringKey={bloom.hintKey} reducedMotion={reduced} />
+        </span>
+      </div>
+      <div className="mt-4 flex flex-wrap items-end gap-10">
+        {[40, 56, 96].map((size) => (
+          <Cell key={size} label={`${size}px, the same reaction`}>
+            <BloomStage {...bloom.stage} reducedMotion={reduced} thinking={thinking}>
+              <Berry {...bloom.berry} sizePx={size} reducedMotion={reduced} />
+            </BloomStage>
+          </Cell>
+        ))}
+      </div>
+      {charred ? <p className="mt-2 text-scale-sm text-bb-muted-foreground">{CHARRED_LINE}</p> : null}
+    </>
+  );
+}
+
 export default function BerryGallery({ reducedMotion }: { readonly reducedMotion: boolean }) {
+  // Starts at the OS setting; the switch overrides it for this page only.
+  const [reduced, setReduced] = useState(reducedMotion);
+  // One replay counter per behaviour, so each button replays only its own berry.
+  const [replays, setReplays] = useState<Readonly<Partial<Record<BerryBehaviour, number>>>>({});
+  // Bumping these keys remounts the celebration, so it plays again from the top.
+  const [lessonKey, setLessonKey] = useState(0);
+  const [unitKey, setUnitKey] = useState(0);
+  const [bibleKey, setBibleKey] = useState(0);
+  const [levelUp, setLevelUp] = useState(false);
   const [charge, setCharge] = useState(1);
   const [mood, setMood] = useState<BerryMood>("curious");
   const [behaviour, setBehaviour] = useState<BerryBehaviour>("idle");
@@ -90,11 +161,135 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
         <p className="mt-2 max-w-3xl text-scale-sm text-bb-muted-foreground">
           Mood is a face, behaviour is a motion, state is what the berry is made of, and a costume is
           what it is wearing. They compose. Development surface, not a tab: see docs/MASCOT.md.
-          {reducedMotion ? " Reduced motion is on, so every state is showing its static frame." : ""}
+          {reduced ? " Reduced motion is on, so every state is showing its static frame." : ""}
         </p>
+        <label className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-bb-border bg-bb-card px-3 text-scale-sm font-semibold text-bb-foreground">
+          <input type="checkbox" checked={reduced} onChange={(event) => setReduced(event.target.checked)} />
+          Reduced motion (the still poses)
+        </label>
       </header>
 
       <div className="mx-auto mt-6 grid max-w-6xl gap-6">
+        <Panel title="Every mood" note="The face alone, at 40px and 96px. 40px is where an answer reaction must still read.">
+          <div className="flex flex-wrap gap-4">
+            {BERRY_MOODS.map((option) => (
+              <figure key={option} className="flex w-36 flex-col items-center gap-2" data-gallery-mood={option}>
+                <div className="flex h-28 items-end gap-2">
+                  <Berry mood={option} sizePx={40} reducedMotion={reduced} className="shrink-0" />
+                  <Berry mood={option} sizePx={96} reducedMotion={reduced} className="shrink-0" />
+                </div>
+                <figcaption className="text-scale-xs text-bb-muted-foreground">{option}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Every behaviour" note="Each with its own replay. Ambient ones loop; the rest play once and settle.">
+          <div className="flex flex-wrap gap-4">
+            {ALL_BEHAVIOURS.map((name) => (
+              <figure key={name} className="flex w-40 flex-col items-center gap-2" data-gallery-behaviour={name}>
+                <div className="flex h-32 items-end gap-2">
+                  <Berry behaviour={name} behaviourKey={replays[name] ?? 0} sizePx={40} reducedMotion={reduced} className="shrink-0" />
+                  <Berry behaviour={name} behaviourKey={replays[name] ?? 0} sizePx={96} reducedMotion={reduced} className="shrink-0" />
+                </div>
+                <figcaption className="text-scale-xs text-bb-muted-foreground">
+                  {name} <span className="opacity-70">({BEHAVIOURS[name].family})</span>
+                </figcaption>
+                <button
+                  type="button"
+                  className={BUTTON}
+                  onClick={() => setReplays((r) => ({ ...r, [name]: (r[name] ?? 0) + 1 }))}
+                >
+                  Replay
+                </button>
+              </figure>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel
+          title="Answer reactions, live"
+          note="The hook and stage every grading surface uses. Correct three, five and eight times for the combos; miss three times to char him."
+        >
+          <ReactionLab reduced={reduced} />
+        </Panel>
+
+        <Panel title="Progression" note="Lesson complete (with the XP chip and the diamond catch), unit complete, and the level up with its hat.">
+          <div className="flex flex-wrap items-start gap-10">
+            <div className="flex flex-col items-center gap-3">
+              <BloomLessonComplete key={lessonKey} reducedMotion={reduced} xp={15} diamonds={3}>
+                <p className="text-scale-lg font-bold text-bb-foreground">Lesson complete</p>
+                <p className="text-scale-sm text-bb-foreground">5 of 6 right.</p>
+              </BloomLessonComplete>
+              <button type="button" className={BUTTON} onClick={() => setLessonKey((k) => k + 1)}>
+                Replay lesson complete
+              </button>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <BloomUnitComplete key={unitKey} reducedMotion={reduced} costume="referee" />
+              <button type="button" className={BUTTON} onClick={() => setUnitKey((k) => k + 1)}>
+                Replay unit complete
+              </button>
+            </div>
+            <div className="flex flex-col items-center gap-3">
+              <button type="button" className={BUTTON} onClick={() => setLevelUp(true)}>
+                Play level up
+              </button>
+              <p className="max-w-56 text-scale-xs text-bb-muted-foreground">
+                The hat joke plays once per stage on this device, as in the app.
+              </p>
+            </div>
+          </div>
+          {levelUp ? (
+            <Suspense fallback={null}>
+              <BloomLevelUp
+                renderBerry={(props) => <Berry {...props} />}
+                toStage={2}
+                fromBadge="Lv 1"
+                toBadge="Lv 2"
+                reducedMotion={reduced}
+                onDone={() => setLevelUp(false)}
+              />
+            </Suspense>
+          ) : null}
+        </Panel>
+
+        <Panel
+          title="The Design Bible, section 01"
+          note="One row per Bible state: built ones drawn as the app composes them, parked ones with the reason."
+        >
+          <button type="button" className={BUTTON} onClick={() => setBibleKey((k) => k + 1)}>
+            Replay every row
+          </button>
+          {SECTIONS.map((section) => (
+            <div key={section} className="mt-4">
+              <h3 className="text-scale-base font-semibold text-bb-foreground">{section}</h3>
+              <ul className="mt-2 grid gap-2 md:grid-cols-2">
+                {BIBLE_ROWS.filter((r) => r.section === section).map((r) => (
+                  <li key={r.name} className="flex items-center gap-3 rounded-xl border border-bb-border p-2" data-bible-row={r.decision}>
+                    <span className="flex w-28 shrink-0 items-end justify-center gap-1">
+                      {r.demo === undefined ? (
+                        <span className="text-scale-xs font-bold uppercase text-bb-muted-foreground">parked</span>
+                      ) : (
+                        <>
+                          <Berry {...r.demo} behaviourKey={bibleKey} sizePx={40} reducedMotion={reduced} />
+                          <Berry {...r.demo} behaviourKey={bibleKey} sizePx={56} reducedMotion={reduced} />
+                        </>
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-scale-sm font-semibold text-bb-foreground">{r.name}</span>
+                      <span className="block text-scale-xs text-bb-muted-foreground">
+                        {r.decision === "parked" ? "Parked. " : ""}
+                        {r.note}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </Panel>
         <Panel
           title="Every state, at the three shipping sizes"
           note="40px is the tab rail and the notification thumbnail, 96px the in-lesson companion, 160px the reward moment."
@@ -111,7 +306,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
                       behaviour={behaviour}
                       behaviourKey={behaviourKey}
                       chargeLevel={charge}
-                      reducedMotion={reducedMotion}
+                      reducedMotion={reduced}
                       sizePx={size}
                       className="shrink-0"
                     />
@@ -154,7 +349,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
                   setBehaviourKey((key) => key + 1);
                 }}
               >
-                {SAMPLE_BEHAVIOURS.map((option) => (
+                {ALL_BEHAVIOURS.map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>
@@ -189,7 +384,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
                   behaviourKey={behaviourKey}
                   state={transient}
                   chargeLevel={charge}
-                  reducedMotion={reducedMotion}
+                  reducedMotion={reduced}
                   sizePx={96}
                   className="shrink-0"
                 />
@@ -212,7 +407,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
                       costume={costume}
                       mood={mood}
                       behaviour="idle"
-                      reducedMotion={reducedMotion}
+                      reducedMotion={reduced}
                       sizePx={size}
                       className="shrink-0"
                     />

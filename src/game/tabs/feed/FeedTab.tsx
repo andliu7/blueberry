@@ -76,6 +76,9 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { isFlagOn } from "../../app/flags";
 import { useProgress } from "../../app/hooks";
+import { useReducedMotionPref } from "@/lib/motionPref";
+import { Berry } from "../../mascot/Berry";
+import type { BerryBehaviour } from "../../mascot/berryBehaviour";
 import { hrefForLesson, hrefForTab } from "../../app/routes";
 import { useDisplayName } from "../../app/useDisplayName";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
@@ -619,13 +622,26 @@ function SignInLink({ children }: { readonly children: string }) {
  * The returning student's card, first on the page with its one filled button
  * (owner, item 11). The button goes to the PATH, where the charge gate and the
  * centring on the current node live; feedModel.ts's welcomeCard says why.
+ *
+ * BLOOM GREETS (BLOOM-STATES-SPEC.md, A, the return greet): he peeks up into
+ * the card, then waves. It is the friendly half of the Bible's "dormant" and
+ * "streak lost" rows with no sad frame, and it rides the condition that
+ * already shows this card, so nothing here counts days away.
  */
+const PEEK_THEN_WAVE: readonly BerryBehaviour[] = Object.freeze(["wave"]);
+
 function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
+  const reducedMotion = useReducedMotionPref();
   return (
     <section className="feed-welcome flex flex-col gap-2" aria-labelledby="feed-welcome-title">
-      <h2 id="feed-welcome-title" className="font-display text-2xl leading-tight font-black text-bb-foreground">
-        {card.heading}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="feed-welcome-title" className="font-display text-2xl leading-tight font-black text-bb-foreground">
+          {card.heading}
+        </h2>
+        <span className="shrink-0" aria-hidden>
+          <Berry mood="happy" behaviour="peek" chain={PEEK_THEN_WAVE} sizePx={56} reducedMotion={reducedMotion} />
+        </span>
+      </div>
       <p className="text-base font-bold text-bb-foreground">{card.line}</p>
       <a href={card.href} className="btn3d btn3d--primary mt-1 w-full">
         {card.button}

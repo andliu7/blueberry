@@ -41,6 +41,8 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
+import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { useBerryReactions } from "../../mascot/useBerryReactions";
 import { clearsBeat, type BeatResult, type MasteryLevel } from "../types";
 import { playCorrect } from "../../sound/gameSound";
 import { offerCardForMistake, shouldOfferCard, type GapCardOffer } from "./cards";
@@ -180,6 +182,8 @@ export function SynthesisGapBeat({
   // Not rendered, so a ref rather than state: see the header.
   const startedAt = useRef(now().getTime());
   const blankRef = useRef<HTMLLIElement | null>(null);
+  // Bloom's reaction state for this gap (mascot/useBerryReactions.ts).
+  const bloom = useBerryReactions(reducedMotion, "leanIn");
 
   // A six step route is wider than a phone, and the blank is the only part
   // worth looking at first. Honouring the reduced motion setting here rather
@@ -222,6 +226,8 @@ export function SynthesisGapBeat({
     });
     setResult(graded);
     if (clearsBeat(graded)) playCorrect();
+    // Bloom's face lands in the same update as the result.
+    bloom.react(clearsBeat(graded) ? "correct" : "wrong");
     onResolved(graded);
     if (shouldOfferCard(graded) && onOfferCard !== undefined) {
       onOfferCard(offerCardForMistake(problem, graded, at));
@@ -372,9 +378,14 @@ export function SynthesisGapBeat({
       ) : (
         <div className="flex flex-col gap-4">
           <div className={`rounded-2xl border p-4 ${TONE_CLASS[explanation.tone]}`}>
-            <p className={`text-scale-base font-semibold ${TONE_INK[explanation.tone]}`}>
-              {explanation.headline}
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <p className={`text-scale-base font-semibold ${TONE_INK[explanation.tone]}`}>
+                {explanation.headline}
+              </p>
+              <span className="shrink-0" aria-hidden>
+                <BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />
+              </span>
+            </div>
             <p className="mt-1 text-scale-sm leading-normal text-bb-foreground">{explanation.body}</p>
             <p className="mt-3 text-scale-sm leading-normal text-bb-muted-foreground">{explanation.why}</p>
             {step.note === undefined || step.note === explanation.why ? null : (

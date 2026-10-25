@@ -50,7 +50,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Acetyl chloride, with CH₃O⁻: what forms?",
     "back": "Tetrahedral intermediate",
-    "why": "Add then eliminate: the leaving group goes, the nucleophile stays, and the carbonyl is back at the end.",
+    "why": "Methoxide adds and the carbon goes tetrahedral, still holding Cl. The C=O reforms and pushes chloride out: add, then eliminate.",
     "fig": 0,
     "reactants": [
       "CC(=O)Cl"
@@ -73,7 +73,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Tetrahedral intermediate, with −Cl⁻: what forms?",
     "back": "Methyl acetate",
-    "why": "Add then eliminate: the leaving group goes, the nucleophile stays, and the carbonyl is back at the end.",
+    "why": "Methoxide adds and the carbon goes tetrahedral, still holding Cl. The C=O reforms and pushes chloride out: add, then eliminate.",
     "fig": 1,
     "reactants": [
       "COC(C)([O-])Cl"
@@ -316,7 +316,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Acetyl chloride, with H₂O: what forms?",
     "back": "Acetic acid",
-    "why": "Acyl chlorides make every lower derivative: acid, ester, amide, anhydride.",
+    "why": "An acyl chloride makes every lower derivative: water gives the acid, an alcohol the ester, ammonia the amide.",
     "fig": 0,
     "reactants": [
       "CC(=O)Cl"
@@ -339,7 +339,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Acetyl chloride, with CH₃CH₂OH: what forms?",
     "back": "Ethyl acetate",
-    "why": "Acyl chlorides make every lower derivative: acid, ester, amide, anhydride.",
+    "why": "An acyl chloride makes every lower derivative: water gives the acid, an alcohol the ester, ammonia the amide.",
     "fig": 1,
     "reactants": [
       "CC(=O)Cl"
@@ -362,7 +362,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Acetyl chloride, with 2 NH₃: what forms?",
     "back": "Acetamide",
-    "why": "Acyl chlorides make every lower derivative: acid, ester, amide, anhydride.",
+    "why": "An acyl chloride makes every lower derivative: water gives the acid, an alcohol the ester, ammonia the amide.",
     "fig": 2,
     "reactants": [
       "CC(=O)Cl"
@@ -568,7 +568,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Bromobutane, with NaCN, SN2: what forms?",
     "back": "Pentanenitrile",
-    "why": "R-X plus cyanide gives a nitrile one carbon longer.",
+    "why": "Cyanide displaces bromide in an SN2, one carbon longer. Heated in acid, the nitrile goes all the way to the carboxylic acid.",
     "fig": 0,
     "reactants": [
       "CCCCBr"
@@ -591,7 +591,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Pentanenitrile, with H₃O⁺, heat: what forms?",
     "back": "Pentanoic acid",
-    "why": "R-X plus cyanide gives a nitrile one carbon longer.",
+    "why": "Cyanide displaces bromide in an SN2, one carbon longer. Heated in acid, the nitrile goes all the way to the carboxylic acid.",
     "fig": 1,
     "reactants": [
       "CCCCC#N"
@@ -769,7 +769,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butanoyl chloride, with (CH₃)₂CuLi: what forms?",
     "back": "Pentan-2-one",
-    "why": "Cuprate for the ketone, Grignard for the alcohol.",
+    "why": "A cuprate adds one methyl and stops at the ketone. Excess Grignard overshoots: it adds again and gives the tertiary alcohol.",
     "fig": 0,
     "reactants": [
       "CCCC(=O)Cl"
@@ -792,7 +792,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butanoyl chloride, with 1. excess CH₃MgBr, 2. H₃O⁺: what forms?",
     "back": "2-Methylpentan-2-ol",
-    "why": "Cuprate for the ketone, Grignard for the alcohol.",
+    "why": "A cuprate adds one methyl and stops at the ketone. Excess Grignard overshoots: it adds again and gives the tertiary alcohol.",
     "fig": 1,
     "reactants": [
       "CCCC(=O)Cl"

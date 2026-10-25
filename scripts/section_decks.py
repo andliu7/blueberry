@@ -211,12 +211,7 @@ def build_unit(unit: str, nodes_of: dict[str, str]) -> tuple[list[dict], list[st
         example = figures.get(node)
         reactions: list[tuple[dict, str]] = []
         if example is not None:
-            drawn = rows(example["panels"])
-            # The caption speaks for the whole example. With two rows it often
-            # describes the other one, so a row card takes the lesson's key
-            # idea (the guide's first idea, a pool quote) instead.
-            why = example["caption"] if len(drawn) == 1 or not lesson["ideas"] else lesson["ideas"][0]["quote"]
-            for index, row in enumerate(drawn):
+            for index, row in enumerate(rows(example["panels"])):
                 rxn = reaction_of(row)
                 if rxn is None:
                     continue
@@ -231,7 +226,7 @@ def build_unit(unit: str, nodes_of: dict[str, str]) -> tuple[list[dict], list[st
                     "kind": "reaction",
                     "front": front,
                     "back": " + ".join(p["name"] for p in rxn["result"]),
-                    "why": why,
+                    "why": example["caption"],
                     "fig": index,
                     "reactants": reactants,
                     "products": products,

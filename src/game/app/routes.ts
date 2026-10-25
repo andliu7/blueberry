@@ -289,6 +289,11 @@ export function hrefForAdmin(node?: string): string {
   return node === undefined ? `#/${BASE}/admin` : `#/${BASE}/admin/${encodeURIComponent(node)}`;
 }
 
+/** A development gallery, "#/app/gallery/berry" for the mascot (mascot/BerryGallery.tsx). */
+export function hrefForGallery(name = "berry"): string {
+  return `#/${BASE}/gallery/${encodeURIComponent(name)}`;
+}
+
 export function tabDefinition(id: TabId): TabDefinition {
   const found = ALL_TABS.find((tab) => tab.id === id);
   if (found === undefined) throw new Error(`no tab ${id}`);

@@ -18,7 +18,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene, with Br₂, FeBr₃: what forms?",
     "back": "Sigma complex",
-    "why": "The arenium (sigma complex) cation spreads its + over three carbons: the two ortho to the sp3 carbon and the one para to it.",
+    "why": "Losing that H⁺ puts its bond pair back into the ring: six pi electrons on six sp² carbons, aromatic again. That is bromobenzene.",
     "fig": 0,
     "reactants": [
       "c1ccccc1"
@@ -41,7 +41,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Sigma complex, with −H⁺: what forms?",
     "back": "Bromobenzene",
-    "why": "The arenium (sigma complex) cation spreads its + over three carbons: the two ortho to the sp3 carbon and the one para to it.",
+    "why": "Losing that H⁺ puts its bond pair back into the ring: six pi electrons on six sp² carbons, aromatic again. That is bromobenzene.",
     "fig": 1,
     "reactants": [
       "BrC1C=CC=C[CH+]1"
@@ -88,7 +88,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Anisole, with Br₂, FeBr₃: what forms?",
     "back": "1-Bromo-2-methoxybenzene + 1-Bromo-4-methoxybenzene",
-    "why": "OH is an o/p director and a strong activator: oxygen's lone pair stabilises the sigma complex.",
+    "why": "When two groups disagree, the stronger activator decides. OMe beats CH₃, so Br goes ortho to the OMe.",
     "fig": 0,
     "reactants": [
       "COc1ccccc1"
@@ -112,7 +112,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Methoxy-4-methylbenzene, with Br₂, FeBr₃: what forms?",
     "back": "2-Bromo-1-methoxy-4-methylbenzene",
-    "why": "OH is an o/p director and a strong activator: oxygen's lone pair stabilises the sigma complex.",
+    "why": "When two groups disagree, the stronger activator decides. OMe beats CH₃, so Br goes ortho to the OMe.",
     "fig": 1,
     "reactants": [
       "COc1ccc(C)cc1"
@@ -143,7 +143,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Anisole, with Na, NH₃(l), EtOH: what forms?",
     "back": "1-Methoxycyclohexa-1,4-diene",
-    "why": "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
+    "why": "OMe is a donor, so its carbon stays on a C=C. COOH is a withdrawer, so its carbon goes sp³ and the C=C bonds sit away from it.",
     "fig": 0,
     "reactants": [
       "COc1ccccc1"
@@ -166,7 +166,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzoic acid, with Na, NH₃(l), EtOH: what forms?",
     "back": "Cyclohexa-2,5-diene-1-carboxylic acid",
-    "why": "Birch reduction adds H to two para carbons and leaves a nonconjugated 1,4-diene.",
+    "why": "OMe is a donor, so its carbon stays on a C=C. COOH is a withdrawer, so its carbon goes sp³ and the C=C bonds sit away from it.",
     "fig": 1,
     "reactants": [
       "O=C(O)c1ccccc1"
@@ -181,7 +181,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Toluene, with Br₂, FeBr₃: what forms?",
     "back": "1-Bromo-2-methylbenzene + 1-Bromo-4-methylbenzene",
-    "why": "Benzene with Br2 and FeBr3 gives bromobenzene: one C-H becomes C-Br and the ring stays aromatic.",
+    "why": "CH₃ directs ortho and para, so both of those form. NO₂ is a meta director.",
     "fig": 0,
     "reactants": [
       "Cc1ccccc1"
@@ -205,7 +205,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Nitrobenzene, with Br₂, FeBr₃: what forms?",
     "back": "1-Bromo-3-nitrobenzene",
-    "why": "Benzene with Br2 and FeBr3 gives bromobenzene: one C-H becomes C-Br and the ring stays aromatic.",
+    "why": "CH₃ directs ortho and para, so both of those form. NO₂ is a meta director.",
     "fig": 1,
     "reactants": [
       "O=[N+]([O-])c1ccccc1"
@@ -259,7 +259,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Methyl benzoate, with HNO₃, H₂SO₄: what forms?",
     "back": "Methyl 3-nitrobenzoate",
-    "why": "The nitronium ion, NO2+, is the electrophile.",
+    "why": "The ester carbonyl is a withdrawer, so nitration goes meta. A second nitro group also goes meta to the first.",
     "fig": 0,
     "reactants": [
       "COC(=O)c1ccccc1"
@@ -282,7 +282,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Nitrobenzene, with HNO₃, H₂SO₄: what forms?",
     "back": "1,3-Dinitrobenzene",
-    "why": "The nitronium ion, NO2+, is the electrophile.",
+    "why": "The ester carbonyl is a withdrawer, so nitration goes meta. A second nitro group also goes meta to the first.",
     "fig": 1,
     "reactants": [
       "O=[N+]([O-])c1ccccc1"
@@ -321,7 +321,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene, with SO₃, H₂SO₄: what forms?",
     "back": "Benzenesulfonic acid",
-    "why": "Sulfonation is reversible.",
+    "why": "Sulfonation puts SO₃H on the ring. Hot dilute acid takes the SO₃H off and puts H back.",
     "fig": 0,
     "reactants": [
       "c1ccccc1"
@@ -344,7 +344,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzenesulfonic acid, with H₃O⁺, heat: what forms?",
     "back": "Benzene",
-    "why": "Sulfonation is reversible.",
+    "why": "Sulfonation puts SO₃H on the ring. Hot dilute acid takes the SO₃H off and puts H back.",
     "fig": 1,
     "reactants": [
       "O=S(=O)(O)c1ccccc1"
@@ -367,7 +367,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene + 1-Chloropropane, with AlCl₃: what forms?",
     "back": "Isopropylbenzene",
-    "why": "The cation from 1-chloropropane ends up secondary (shift: hydride), and the ring bonds to that carbon.",
+    "why": "The primary cation takes a hydride from the next carbon and becomes secondary. With no H next door, a methyl shifts instead.",
     "fig": 0,
     "reactants": [
       "c1ccccc1",
@@ -391,7 +391,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene + 1-Chloro-2,2-dimethylpropane, with AlCl₃: what forms?",
     "back": "(2-Methylbutan-2-yl)benzene",
-    "why": "The cation from 1-chloropropane ends up secondary (shift: hydride), and the ring bonds to that carbon.",
+    "why": "The primary cation takes a hydride from the next carbon and becomes secondary. With no H next door, a methyl shifts instead.",
     "fig": 1,
     "reactants": [
       "c1ccccc1",
@@ -455,7 +455,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Toluene, with SO₃, H₂SO₄: what forms?",
     "back": "4-Methylbenzenesulfonic acid",
-    "why": "A blocking group must come off at the end. Sulfonation is reversible; nitration is not",
+    "why": "With para blocked, CH₃ sends Br ortho; removing SO₃H at the end gives the pure ortho product.",
     "fig": 0,
     "reactants": [
       "Cc1ccccc1"
@@ -478,7 +478,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "4-Methylbenzenesulfonic acid, with Br₂, FeBr₃: what forms?",
     "back": "3-Bromo-4-methylbenzenesulfonic acid",
-    "why": "A blocking group must come off at the end. Sulfonation is reversible; nitration is not",
+    "why": "With para blocked, CH₃ sends Br ortho; removing SO₃H at the end gives the pure ortho product.",
     "fig": 1,
     "reactants": [
       "Cc1ccc(S(=O)(=O)O)cc1"
@@ -501,7 +501,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3-Bromo-4-methylbenzenesulfonic acid, with H₃O⁺, heat: what forms?",
     "back": "1-Bromo-2-methylbenzene",
-    "why": "A blocking group must come off at the end. Sulfonation is reversible; nitration is not",
+    "why": "With para blocked, CH₃ sends Br ortho; removing SO₃H at the end gives the pure ortho product.",
     "fig": 2,
     "reactants": [
       "Cc1ccc(S(=O)(=O)O)cc1Br"
@@ -540,7 +540,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Methyl-3-nitrobenzene, with 1. Sn, HCl, 2. base: what forms?",
     "back": "3-Methylaniline",
-    "why": "Nitro reduction turns each ArNO2 into ArNH2",
+    "why": "Every NO₂ becomes NH₂ and nothing else on the ring changes.",
     "fig": 0,
     "reactants": [
       "Cc1cccc([N+](=O)[O-])c1"
@@ -563,7 +563,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1,3-Dinitrobenzene, with H₂, Pd/C: what forms?",
     "back": "Benzene-1,3-diamine",
-    "why": "Nitro reduction turns each ArNO2 into ArNH2",
+    "why": "Every NO₂ becomes NH₂ and nothing else on the ring changes.",
     "fig": 1,
     "reactants": [
       "O=[N+]([O-])c1cccc([N+](=O)[O-])c1"
@@ -586,7 +586,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Acetophenone, with Zn(Hg), HCl: what forms?",
     "back": "Ethylbenzene",
-    "why": "Acylate then reduce: the acyl group goes on straight and C=O becomes CH2.",
+    "why": "Clemmensen reduction takes the C=O all the way to CH₂. Wolff-Kishner also ends at CH₂.",
     "fig": 0,
     "reactants": [
       "CC(=O)c1ccccc1"
@@ -609,7 +609,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Phenylpropan-1-one, with H₂NNH₂, KOH, heat: what forms?",
     "back": "Propylbenzene",
-    "why": "Acylate then reduce: the acyl group goes on straight and C=O becomes CH2.",
+    "why": "Clemmensen reduction takes the C=O all the way to CH₂. Wolff-Kishner also ends at CH₂.",
     "fig": 1,
     "reactants": [
       "CCC(=O)c1ccccc1"
@@ -679,7 +679,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene, with 1. HNO₃, H₂SO₄, 2. Br₂, FeBr₃: what forms?",
     "back": "1-Bromo-3-nitrobenzene",
-    "why": "Put the group that directs where you need on first.",
+    "why": "Put the group that directs where you need on first: nitrate then brominate for the meta product, brominate then nitrate for the para one.",
     "fig": 0,
     "reactants": [
       "c1ccccc1"
@@ -702,7 +702,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzene, with 1. Br₂, FeBr₃, 2. HNO₃, H₂SO₄: what forms?",
     "back": "1-Bromo-4-nitrobenzene",
-    "why": "Put the group that directs where you need on first.",
+    "why": "Put the group that directs where you need on first: nitrate then brominate for the meta product, brominate then nitrate for the para one.",
     "fig": 1,
     "reactants": [
       "c1ccccc1"

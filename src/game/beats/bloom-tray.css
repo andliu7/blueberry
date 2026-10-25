@@ -1,0 +1,35 @@
+/*
+ * Bloom inside the answer tray (BLOOM-STATES-SPEC.md, section 4): the one
+ * berry for a verdict, the char caption, and the combo chip's pop. Kept out of
+ * beat-chrome.css so the tray's own drawing is untouched.
+ */
+
+/* Right of the title row. The berry is 56px; the row grows to fit it. */
+.answer-tray__bloom {
+  flex: none;
+  margin-left: auto;
+  line-height: 0;
+  pointer-events: none;
+}
+
+.answer-tray__charred {
+  margin: 0 0 0.5rem;
+  font-size: var(--text-scale-sm);
+  color: var(--tray-ink, inherit);
+}
+
+/* The milestone pop: one overshoot, Duolingo's 240ms chip pop. */
+.answer-tray__combo[data-milestone] {
+  display: inline-block;
+  animation: bloom-chip-pop 240ms var(--bloom-ease-pop, cubic-bezier(.35, 1.8, .35, .83)) both;
+}
+@keyframes bloom-chip-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .answer-tray__combo[data-milestone] { animation: none; }
+}
+html[data-motion="reduced"] .answer-tray__combo[data-milestone] { animation: none; }

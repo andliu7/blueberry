@@ -41,6 +41,10 @@ import { clearsBeat, type BeatResult, type MasteryLevel, type McqBeat } from "..
 import { playCorrect } from "../../sound/gameSound";
 import { mcqBeatsForNode } from "./content";
 import { resumeMcqSession } from "../../resume/lessonSave";
+import { useBerryReactions } from "../../mascot/useBerryReactions";
+import { stateForNode } from "../../mascot/berryTopicState";
+import { costumeForNode } from "../../mascot/berryCostume";
+import { isSectionFinal, pathwayNode } from "../../demo/pathwayMap";
 import { McqBeatView } from "./McqBeatView";
 import {
   advance,
@@ -56,6 +60,7 @@ import {
   selectOption,
   sessionProgress,
   currentRun,
+  latestOutcome,
   startMcqSession,
   type McqProgress,
   type McqReport,
@@ -146,6 +151,15 @@ export function McqRunner({
   const beat = currentBeat(session);
   const progress = sessionProgress(session);
 
+  // Bloom's live reaction state for this run (mascot/useBerryReactions.ts).
+  // It starts at the working lean; react() below swaps the face on a grade.
+  const reactions = useBerryReactions(reducedMotion, "leanIn");
+  // What the lesson's topic makes the berry, and what it wears for it. Both
+  // are pure table reads, so they are worked out per render, not stored.
+  const mapNode = pathwayNode(node);
+  const topicState = stateForNode(node);
+  const costume = costumeForNode(mapNode === null ? null : { ...mapNode, final: isSectionFinal(mapNode) });
+
   const primary = () => {
     if (session.reveal !== null) {
       const next = advance(session);
@@ -164,6 +178,12 @@ export function McqRunner({
     // Which option was picked, per question, for the owner's option-split report (lib/analytics).
     trackChoice(`mcq.${committed.reveal.beatId}`, committed.reveal.chosenId, committed.reveal.matchedAnswer);
     if (clearsBeat(committed.reveal.result)) playCorrect();
+    // THE FACE IN THE SAME UPDATE AS THE GRADE. react() sets state alongside
+    // setSession below, and React batches both into one render, so the tray
+    // and Bloom's reaction reach the screen on the same frame (spec: within
+    // 200ms of grading).
+    const outcome = latestOutcome(committed.session);
+    if (outcome !== null) reactions.react(outcome);
     setSession(committed.session);
     if (onProgress !== undefined) onProgress(sessionProgress(committed.session));
     if (onCommit !== undefined) onCommit(committed.session.results, sessionProgress(committed.session));
@@ -218,6 +238,9 @@ export function McqRunner({
       {...(progressSlot !== undefined ? { progressSlot } : {})}
       reducedMotion={reducedMotion}
       combo={currentRun(session)}
+      bloom={reactions}
+      topicState={topicState}
+      costume={costume}
     />
   );
 }

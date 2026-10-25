@@ -16,7 +16,7 @@
  * never downloads this chunk.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { hrefForAdmin, hrefForChallenge, hrefForLesson, hrefForTab } from "../app/routes";
+import { hrefForAdmin, hrefForChallenge, hrefForGallery, hrefForLesson, hrefForTab } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
 import { Press, pressClassName } from "../app/ui/Press";
 import { challengeable } from "../beats/template";
@@ -283,6 +283,10 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
           </svg>
         </button>
         <p className="av-bar__title">{node === "activity" ? "Admin" : "Lesson viewer"}</p>
+        {/* Bloom's every state and reaction, for checking the mascot by eye (BLOOM-STATES-SPEC.md). */}
+        <a className="av-bar__lessons" href={hrefForGallery()}>
+          Bloom
+        </a>
         {node === "activity" ? (
           <a className="av-bar__lessons" href={hrefForAdmin()}>
             Lessons

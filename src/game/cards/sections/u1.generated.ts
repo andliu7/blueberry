@@ -114,7 +114,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butadiene, with HBr, −80 °C: what forms?",
     "back": "1,2 (kinetic)",
-    "why": "It wins when the reaction is warm and reversible",
+    "why": "Cold locks in the faster 1,2 product. Warm and reversible gives the more substituted alkene, 1,4.",
     "fig": 0,
     "reactants": [
       "C=CC=C"
@@ -137,7 +137,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butadiene, with HBr, 40 °C: what forms?",
     "back": "1,4 (thermodynamic)",
-    "why": "It wins when the reaction is warm and reversible",
+    "why": "Cold locks in the faster 1,2 product. Warm and reversible gives the more substituted alkene, 1,4.",
     "fig": 1,
     "reactants": [
       "C=CC=C"

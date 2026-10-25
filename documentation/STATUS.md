@@ -302,19 +302,6 @@ Course (business test 2)
 Discoverability
 - D1 A first-time visitor finds what they came for; the marketing says where things are.
 - D2 Flashcards: premade decks for every unit, one deck per section; iterate on the interaction.
-  - d2-section-decks 25 Oct: 37 premade decks, 8 to 20 cards each: one per path section in Units 1
-    to 10, Unit 0 in two parts, and a "Side quests" deck per unit where those make 8+ cards (Unit 3's
-    two make 5, so none). Units 2 and 6 get one "Unit N lessons" deck (their road holds only side
-    quests). Cards are cut from the unit guidebooks by scripts/section_decks.py: guide reaction rows
-    (RDKit drawings, SMILES re-parsed and stored canonical; front = start + reagents, back = product
-    drawn and named), key ideas as fill-the-gap cards, and common slips, both quoting the pool words
-    the guide quotes. Round robin across a section's lessons, capped at 20. Reach it from "Flashcards
-    for this section" under each section title on the path, or "Flashcards for every section" on the
-    Cards tab (folded by unit). Learn copies the deck into the student's cards as a lesson deck;
-    nothing is added on its own, the starter deck is unchanged. Drafts, like the guides. Payload:
-    #/app first open +0.06 KB gz (the link); each unit's cards 1.9 to 5.5 KB gz, lazy. Units 11 to 15
-    wait on their guides and pool scripts. OWNER STEPS: none; flip through a deck or two, and say if
-    you would rather the deck of the section a student is on be added for them automatically.
 Feed and accounts
 - F1 Brainstorm the feed (show options first), plus a feed view in admin to test with the TA.
   - f1-feed 24 Oct: documentation/FEED-OPTIONS.md lays out three feed directions (A lab notebook,
