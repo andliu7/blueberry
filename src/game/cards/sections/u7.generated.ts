@@ -18,7 +18,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Propanone, with CH₃MgBr: what forms?",
     "back": "2-Methylpropan-2-olate",
-    "why": "CH₃MgBr adds to propanone's carbonyl carbon and stops at the alkoxide. Workup with H₃O⁺ is its own step and gives the alcohol.",
+    "why": "C=O is polar: the carbon is the electrophile, the oxygen the nucleophile.",
     "fig": 0,
     "reactants": [
       "CC(C)=O"
@@ -41,7 +41,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Methylpropan-2-olate, with H₃O⁺, workup: what forms?",
     "back": "2-Methylpropan-2-ol",
-    "why": "CH₃MgBr adds to propanone's carbonyl carbon and stops at the alkoxide. Workup with H₃O⁺ is its own step and gives the alcohol.",
+    "why": "C=O is polar: the carbon is the electrophile, the oxygen the nucleophile.",
     "fig": 1,
     "reactants": [
       "CC(C)(C)[O-]"
@@ -181,7 +181,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Propanal, with CH₃OH, H⁺: what forms?",
     "back": "1-Methoxypropan-1-ol",
-    "why": "One methanol gives the hemiacetal. With excess methanol and the water removed, the OH leaves and a second OCH₃ takes its place: the acetal.",
+    "why": "One alcohol gives a hemiacetal: one OR and one OH on the old carbonyl carbon.",
     "fig": 0,
     "reactants": [
       "CCC=O"
@@ -204,7 +204,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Methoxypropan-1-ol, with CH₃OH, H⁺, water removed: what forms?",
     "back": "1,1-Dimethoxypropane",
-    "why": "One methanol gives the hemiacetal. With excess methanol and the water removed, the OH leaves and a second OCH₃ takes its place: the acetal.",
+    "why": "One alcohol gives a hemiacetal: one OR and one OH on the old carbonyl carbon.",
     "fig": 1,
     "reactants": [
       "CCC(O)OC"
@@ -235,7 +235,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexanone, with HSCH₂CH₂SH, BF₃: what forms?",
     "back": "1,4-Dithiaspiro[4.5]decane",
-    "why": "A dithiol makes a thioacetal just as a diol makes an acetal. Raney nickel then swaps both C-S bonds for C-H.",
+    "why": "Dithiols make thioacetals exactly as diols make acetals.",
     "fig": 0,
     "reactants": [
       "O=C1CCCCC1"
@@ -258,7 +258,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1,4-Dithiaspiro[4.5]decane, with Raney Ni: what forms?",
     "back": "Cyclohexane",
-    "why": "A dithiol makes a thioacetal just as a diol makes an acetal. Raney nickel then swaps both C-S bonds for C-H.",
+    "why": "Dithiols make thioacetals exactly as diols make acetals.",
     "fig": 1,
     "reactants": [
       "C1CCC2(CC1)SCCS2"
@@ -689,7 +689,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohex-2-enone, with 1. CH₃MgBr, 2. H₃O⁺: what forms?",
     "back": "1,2 product",
-    "why": "A Grignard is hard and adds 1,2, straight to the carbonyl carbon. A cuprate is soft and adds 1,4, to the far alkene carbon, and the C=O survives.",
+    "why": "Grignards and organolithiums add 1,2 to enones.",
     "fig": 0,
     "reactants": [
       "O=C1C=CCCC1"
@@ -712,7 +712,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohex-2-enone, with 1. (CH₃)₂CuLi, 2. H₃O⁺: what forms?",
     "back": "1,4 product",
-    "why": "A Grignard is hard and adds 1,2, straight to the carbonyl carbon. A cuprate is soft and adds 1,4, to the far alkene carbon, and the C=O survives.",
+    "why": "Grignards and organolithiums add 1,2 to enones.",
     "fig": 1,
     "reactants": [
       "O=C1C=CCCC1"

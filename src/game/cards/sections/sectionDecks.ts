@@ -149,6 +149,18 @@ export function deckKeyForSection(unitId: string, sectionNumber: number): string
   return ref?.key ?? null;
 }
 
+/**
+ * The deck a Cards tab route opens. The path links every section by its
+ * number (sectionRoute.ts cannot know the deck keys without loading this
+ * file), so a checkpoint unit's one section, "1", opens its "all" deck.
+ */
+export function resolveSectionDeck(unitId: string, key: string): SectionDeckRef | null {
+  const direct = sectionDeckRef(unitId, key);
+  if (direct !== null || !/^\d+$/.test(key)) return direct;
+  const fallback = deckKeyForSection(unitId, Number(key));
+  return fallback === null ? null : sectionDeckRef(unitId, fallback);
+}
+
 /** How many cards the deck holds, from the small index, without loading any cards. */
 export function sectionDeckSize(ref: SectionDeckRef): number {
   const total = ref.lessons.reduce((sum, lesson) => sum + (SECTION_CARD_COUNTS[lesson] ?? 0), 0);
