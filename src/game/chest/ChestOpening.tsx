@@ -19,8 +19,18 @@
  *
  * REDUCED MOTION: one tap opens it, nothing shakes or flies, the counter
  * takes the new balance at once and the result card says what it paid.
+ *
+ * BLOOM, added 24 Oct (BLOOM-STATES-SPEC.md, C, Chest opened): one berry
+ * beside the chest, leaning in and looking at it. Each tap makes it wide eyed
+ * and it leans back in; the lid blowing off makes it hop; while the diamonds
+ * fly it watches them go up to the counter. The diamonds keep the flight
+ * above (owner pick C1) rather than BloomCatch's: Bloom reacts to them, it
+ * does not draw a second set.
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { Berry } from "../mascot/Berry";
+import type { BerryBehaviour } from "../mascot/berryBehaviour";
+import type { BerryLook, BerryMood } from "../mascot/berryMood";
 import { pressClassName } from "../app/ui/Press";
 import { bumpHudDiamonds, holdHudDiamonds, hudDiamondsRect } from "../app/ui/hudTargets";
 import { playGem } from "../sound/gameSound";
@@ -31,6 +41,14 @@ import { GEM_COUNT, TAPS_TO_OPEN, counterSteps, paidHeadline, tapChest, tapHint,
 type Phase = "tapping" | "bursting" | "flying" | "done";
 
 const LIFT_ATTR = "data-chest-lift";
+
+/** Bloom's face and motion for each phase of the opening. */
+const BLOOM_MOOD: Readonly<Record<Phase, BerryMood>> = { tapping: "curious", bursting: "cheer", flying: "cheer", done: "happy" };
+/** At the chest, a little down; then up and right, where the counter is. */
+const LOOK_AT_CHEST: BerryLook = { x: 1, y: 0.3 };
+const LOOK_AT_COUNTER: BerryLook = { x: 1, y: -1 };
+/** After a tap's wide eyes, back into the lean. */
+const LEAN_AGAIN: readonly BerryBehaviour[] = ["leanIn"];
 
 /** Half a diamond's box, so a translate puts its centre on a point. */
 const GEM_HALF_W = 24;
@@ -249,6 +267,8 @@ export default function ChestOpening({
   // How bright the light behind the box is: grows per tap, full at the burst.
   const light = phase === "tapping" ? taps * 0.35 : phase === "bursting" ? 1 : 0.6;
   const swing = phase === "tapping" ? `${taps * 4}deg` : "12deg";
+  const bloomBehaviour: BerryBehaviour =
+    phase === "tapping" ? (shake > 0 ? "wideEyed" : "leanIn") : phase === "bursting" ? "bounce" : "idle";
 
   return (
     <div ref={rootRef} tabIndex={-1} className="chest-open" role="dialog" aria-modal="true" aria-label="Treasure chest" data-chest-phase={phase}>
@@ -258,6 +278,19 @@ export default function ChestOpening({
         </button>
       ) : null}
 
+      <div className="chest-open__seat">
+      <span className="chest-open__bloom" aria-hidden>
+        {/* behaviourKey={shake} replays the wide eyes on every tap, even though the behaviour name stays the same. */}
+        <Berry
+          mood={BLOOM_MOOD[phase]}
+          behaviour={bloomBehaviour}
+          behaviourKey={phase === "tapping" ? shake : 0}
+          chain={phase === "tapping" ? LEAN_AGAIN : undefined}
+          lookAt={phase === "flying" ? LOOK_AT_COUNTER : LOOK_AT_CHEST}
+          sizePx={64}
+          reducedMotion={reducedMotion}
+        />
+      </span>
       <button
         ref={chestRef}
         type="button"
@@ -273,6 +306,7 @@ export default function ChestOpening({
         </span>
         <ChestArt open={open && paid !== null} />
       </button>
+      </div>
 
       <p className="chest-open__hint" aria-live="polite">
         {phase === "tapping" ? tapHint(taps) : ""}

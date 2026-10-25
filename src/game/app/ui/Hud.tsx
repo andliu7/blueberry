@@ -174,11 +174,12 @@
  * button, so a press that slides off opens nothing.
  */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { deriveEconomy, type EconomySnapshot } from "@blueberry/economy";
 import { economyOptions } from "../progress";
 import { useProgress, useReducedMotion } from "../hooks";
 import { Berry } from "../../mascot/Berry";
+import { stageChanged } from "../../mascot/progression/levelChange";
 import { ChargeMark, DiamondMark, FlameMark, XpRing } from "./HudIcons";
 import {
   hudModel,
@@ -418,6 +419,13 @@ function useCountUp(target: number, reducedMotion: boolean): number {
  */
 let xpSeen: StageReadout | null = null;
 
+/**
+ * Bloom's level up and its once-per-stage easter egg (BLOOM-STATES-SPEC.md, C).
+ * React.lazy: the overlay's code downloads only the first time a stage
+ * changes; the first paint carries only this stub and the check below (0.3 KB gz).
+ */
+const BloomLevelUp = lazy(() => import("../../mascot/progression/BloomLevelUp"));
+
 /** The spark angles round the end of the bar, in degrees. */
 const SPARKS = [0, 45, 90, 135, 180, 225, 270, 315];
 
@@ -450,6 +458,8 @@ function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; reado
   const [hop, setHop] = useState(0);
   const [cheer, setCheer] = useState(false);
   const [sparks, setSparks] = useState(0);
+  // The two readings either side of a stage change, while the level up plays.
+  const [levelUp, setLevelUp] = useState<{ readonly from: StageReadout; readonly to: StageReadout } | null>(null);
   const seen = useRef<StageReadout | null>(xpSeen);
   const bloomRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
@@ -471,9 +481,11 @@ function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; reado
     }
     const amount = now.total - before.total;
     setGain(amount);
+    const leveled = stageChanged(before.stage, now.stage);
 
     if (reducedMotion) {
       setShown(now);
+      if (leveled) setLevelUp({ from: before, to: now });
       const id = window.setTimeout(() => setGain(null), 2000);
       return () => window.clearTimeout(id);
     }
@@ -492,6 +504,8 @@ function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; reado
       done = true;
       setShown(now);
       setSparks((n) => n + 1);
+      // The level up plays once the number has landed in the bar that just filled.
+      if (leveled) setLevelUp({ from: before, to: now });
       later(() => setGain(null), 120);
       later(() => setCheer(false), 1400);
     };
@@ -596,6 +610,19 @@ function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; reado
         <span ref={flyerRef} className="hud-xp-flyer" aria-hidden>
           +{gain} XP
         </span>
+      ) : null}
+      {levelUp !== null ? (
+        // Suspense shows nothing while the lazy chunk downloads; the overlay appears when it lands.
+        <Suspense fallback={null}>
+          <BloomLevelUp
+            renderBerry={(props) => <Berry {...props} />}
+            toStage={levelUp.to.stage}
+            fromBadge={levelUp.from.badge}
+            toBadge={levelUp.to.badge}
+            reducedMotion={reducedMotion}
+            onDone={() => setLevelUp(null)}
+          />
+        </Suspense>
       ) : null}
       {/* Said once to a screen reader, since the flight itself is hidden. */}
       <span className="sr-only" aria-live="polite">

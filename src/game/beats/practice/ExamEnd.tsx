@@ -10,6 +10,7 @@
  * to go back to; a row with a miss is a link to that lesson.
  */
 import { Berry } from "../../mascot/Berry";
+import { BloomUnitComplete } from "../../mascot/progression/BloomLessonComplete";
 import { PATHWAY_UNITS, checkpointUnitFor, pathwayNode, unitNumber } from "../../demo/pathwayMap";
 import { hrefForLesson } from "../../app/routes";
 import { unitOpenedAfter } from "../../tabs/pathway/pathwayState";
@@ -71,7 +72,13 @@ export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion, w
   return (
     <div className="exam-end">
       <div className="exam-end__hero">
-        <Berry mood={passed ? "cheer" : "thinking"} behaviour={passed ? "celebrate" : "idle"} sizePx={104} reducedMotion={reducedMotion} />
+        {/* Passed: proud + celebrate with the trophy (BLOOM-STATES-SPEC.md, C, Unit complete). The
+            referee costume on both, the unit quiz's own (MASCOT.md, Costumes); it cheers only here, at the end. */}
+        {passed ? (
+          <BloomUnitComplete costume="referee" sizePx={104} reducedMotion={reducedMotion} />
+        ) : (
+          <Berry mood="thinking" behaviour="idle" costume="referee" sizePx={104} reducedMotion={reducedMotion} />
+        )}
         <h2 className="bb-title-face exam-end__title">{words === undefined ? (passed ? "Checkpoint passed!" : "Not passed yet") : passed ? words.passed : words.failed}</h2>
         <p className="exam-end__said">{words?.said ?? endSaid(state)}</p>
       </div>

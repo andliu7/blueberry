@@ -45,6 +45,19 @@
   outline-offset: 6px;
 }
 
+/* The chest and Bloom beside it. Bloom stands off the chest's lower left
+   corner, outside the tap target, so it never shakes with the box. */
+.chest-open__seat {
+  position: relative;
+}
+.chest-open__bloom {
+  position: absolute;
+  right: calc(100% - 14px);
+  bottom: 0;
+  z-index: 4;
+  line-height: 0;
+  pointer-events: none;
+}
 .chest-open__chest {
   position: relative;
   width: 12rem;

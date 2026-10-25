@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: streak-flame-in 620ms var(--ease-spring) both;
+  /* Its entrance, the Bloom streak-lit ignite, lives in streak-lit.css. */
 }
 .streak-hero-flame svg {
   filter: drop-shadow(0 10px 22px color-mix(in srgb, var(--streak) 42%, transparent));
@@ -52,16 +52,6 @@
 .streak-hero-flame .hud-flame-core {
   transform-origin: 50% 92%;
   animation: streak-lick-core 1900ms ease-in-out infinite;
-}
-@keyframes streak-flame-in {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.72);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 @keyframes streak-lick {
   0%,

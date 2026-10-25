@@ -1,0 +1,107 @@
+/*
+ * Streak lit, Bloom's half of the streak screen (BLOOM-STATES-SPEC.md, C):
+ * the flame igniting behind Bloom and scaled by the streak's length, Bloom
+ * standing at its base, and the day number rolling in.
+ *
+ * Imported by StreakScreen.tsx, not by streak.css: streak.css ships on the
+ * #/app first paint through theme.css, and these rules are only ever drawn on
+ * the streak screen, which loads with the lesson chunk. Timings are
+ * bloomMotion.ts's STREAK_LIT; curves are bloom-motion.css's tokens.
+ */
+
+/* Ignites from 0.4 past 1.25 and settles, then a quick flicker about the base
+   for as long as the screen is up. It replaced a 620ms rise. */
+.streak-hero-flame {
+  transform-origin: 50% 92%;
+  animation:
+    streak-flame-ignite 360ms both,
+    streak-flame-flicker 600ms var(--bloom-ease-breathe) 360ms infinite;
+}
+@keyframes streak-flame-ignite {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+    animation-timing-function: var(--bloom-ease-out);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.25);
+    animation-timing-function: var(--bloom-ease-breathe);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes streak-flame-flicker {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  25% {
+    transform: scaleY(1.04);
+  }
+  75% {
+    transform: scaleY(0.96);
+  }
+}
+
+/* Sized here, not by utility classes, so the streak's length can scale it.
+   --bloom-flame-scale is flameScaleFor(days), 1 to 1.6, set on the seat. */
+.streak-hero-flame-glyph {
+  width: calc(8rem * var(--bloom-flame-scale, 1));
+  height: calc(8rem * var(--bloom-flame-scale, 1));
+}
+@media (min-width: 768px) {
+  .streak-hero-flame-glyph {
+    width: calc(10rem * var(--bloom-flame-scale, 1));
+    height: calc(10rem * var(--bloom-flame-scale, 1));
+  }
+}
+
+/* Bloom stands in front of the flame's base, so the fire reads as lit behind it. */
+.streak-hero-seat {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.streak-hero-bloom {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  z-index: 1;
+  line-height: 0;
+  transform: translateX(-50%);
+}
+
+/* The day roll: the new number rises into place as it lands (STREAK_LIT.dayRollMs). */
+.streak-number[data-roll="true"] {
+  display: inline-block;
+  animation: streak-day-roll 400ms var(--bloom-ease-pop) both;
+}
+@keyframes streak-day-roll {
+  from {
+    opacity: 0;
+    transform: translateY(35%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion, from all three triggers: the stage's prop-driven
+   data-reduced (the app's own setting), the html attribute and the media
+   query. The still frame is the lit flame, Bloom and today's number. */
+.streak-stage[data-reduced="true"] .streak-hero-flame,
+.streak-stage[data-reduced="true"] .streak-number[data-roll="true"],
+html[data-motion="reduced"] .streak-hero-flame,
+html[data-motion="reduced"] .streak-number[data-roll="true"] {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .streak-hero-flame,
+  .streak-number[data-roll="true"] {
+    animation: none;
+  }
+}

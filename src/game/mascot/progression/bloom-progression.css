@@ -1,0 +1,610 @@
+/*
+ * Bloom's progression beats: the lesson and unit celebrations, the diamond
+ * catch, the XP chip and the level up with its easter egg.
+ *
+ * Imported only by the files in this folder, which load with the lesson,
+ * exam and level-up chunks, so none of it is on the #/app first paint.
+ *
+ * NO TIMING LIVES HERE. Every delay and duration is written inline by the
+ * component from bloomMotion.ts, and the curves are bloom-motion.css's tokens,
+ * so these keyframes only say WHERE things go. A part with two beats (the
+ * catch: fall, bob, fly) is nested wrappers with one animation each rather
+ * than one keyframe list with percentages that would drift from the constants.
+ * Transform and opacity only, except the egg's silhouette filter, which is set
+ * once per phase and never animated.
+ *
+ * REDUCED MOTION. Three triggers, the way mascot.css and bloom-answers.css do
+ * it: the prop-driven `data-reduced`, the html attribute and the media query.
+ * The components already draw the final frame under reduced motion (no
+ * confetti, no diamond, counters at their values); the block at the bottom
+ * stops whatever is still drawn from travelling.
+ */
+
+/* ----------------------------------------------------- the berry's box ---- */
+
+.bloom-celebrate {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------- confetti ---- */
+/* As wide as the card, starting at the head. Each flake is a layer-sized
+   wrapper, because a translate percentage is of the element's own box: on
+   the wrapper, 50% means half the layer. The coloured piece is ::before and
+   spins on its own, so the spin does not swing the wrapper. */
+.bloom-pro-confetti {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  z-index: 0;
+  width: min(320px, 86vw);
+  height: 100%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.bloom-pro-flake {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation-name: bloom-pro-flake;
+  animation-fill-mode: both;
+}
+.bloom-pro-flake::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 8px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--confetti, var(--ic-purple));
+  animation: bloom-pro-spin 1200ms linear both;
+  animation-delay: inherit;
+}
+.bloom-pro-flake[data-c="1"] {
+  --confetti: var(--ic-green);
+}
+.bloom-pro-flake[data-c="2"] {
+  --confetti: var(--ic-yellow);
+}
+.bloom-pro-flake[data-c="3"] {
+  --confetti: var(--ic-blue);
+}
+.bloom-pro-flake[data-c="4"] {
+  --confetti: var(--ic-orange);
+}
+/* 0% is invisible so a flake waiting out its delay is not drawn at the head. */
+@keyframes bloom-pro-flake {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0);
+    animation-timing-function: var(--bloom-ease-out);
+  }
+  2% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 1;
+    transform: translate(calc(var(--cx) * 0.6), var(--cpeak));
+    animation-timing-function: var(--bloom-ease-fall);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--cx), var(--cfall));
+  }
+}
+@keyframes bloom-pro-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(var(--cspin));
+  }
+}
+
+/* -------------------------------------------------- lesson complete ---- */
+
+.bloom-lc {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* The entry: up from below with the big overshoot, once. The berry sits above
+   the confetti, so the burst passes behind it. */
+.bloom-lc-enter {
+  position: relative;
+  z-index: 1;
+  display: block;
+  animation-name: bloom-lc-enter;
+  animation-timing-function: var(--bloom-ease-pop);
+  animation-fill-mode: both;
+}
+@keyframes bloom-lc-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(var(--bloom-entry-from, 40%));
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.bloom-lc-line {
+  animation: bloom-lc-line var(--bloom-dur-base) var(--bloom-ease-out) both;
+}
+@keyframes bloom-lc-line {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --------------------------------------------------------- XP chip ---- */
+
+.bloom-xp {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 3;
+  transform: translate(-50%, -100%);
+  line-height: 1;
+  pointer-events: none;
+}
+/* The still frame: the chip stands to the berry's left, level with the
+   diamond counter on its right, rather than over the card's top edge. */
+.bloom-xp[data-reduced="true"] {
+  left: auto;
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.bloom-xp-pop {
+  display: block;
+  animation-name: bloom-xp-pop;
+  animation-timing-function: var(--bloom-ease-out);
+  animation-fill-mode: both;
+}
+.bloom-xp-chip {
+  display: block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: var(--ic-purple);
+  box-shadow: 0 2px 0 var(--ic-purple-lip);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 800;
+  white-space: nowrap;
+  animation-name: bloom-xp-rise;
+  animation-timing-function: var(--bloom-ease-out);
+  animation-fill-mode: both;
+}
+@keyframes bloom-xp-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes bloom-xp-rise {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(var(--bloom-xp-rise, -32px));
+  }
+}
+
+/* --------------------------------------------------- diamond catch ---- */
+/* Nested, one animation each: fly > fall > bob > the diamond. Every wrapper
+   is the berry's box, so percentages are of the berry. */
+.bloom-catch {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.bloom-catch-fly,
+.bloom-catch-fall,
+.bloom-catch-bob {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.bloom-catch-fly {
+  animation-name: bloom-catch-fly;
+  animation-timing-function: var(--bloom-ease-out);
+  animation-fill-mode: both;
+}
+.bloom-catch-fall {
+  animation-name: bloom-catch-show, bloom-catch-fall;
+  animation-timing-function: linear, var(--bloom-ease-fall);
+  animation-fill-mode: both;
+}
+.bloom-catch-bob {
+  animation-name: bloom-catch-bob;
+  animation-timing-function: var(--bloom-ease-settle);
+  animation-fill-mode: both;
+}
+/* Resting on the head: the body's top is 17% down the box. */
+.bloom-catch-gem {
+  position: absolute;
+  left: 50%;
+  top: -12%;
+  width: max(16px, 28%);
+  height: max(16px, 28%);
+  transform: translateX(-50%);
+  filter: drop-shadow(0 2px 0 color-mix(in srgb, var(--diamond) 45%, transparent));
+}
+@keyframes bloom-catch-show {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes bloom-catch-fall {
+  from {
+    transform: translateY(-60%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes bloom-catch-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-8%);
+  }
+}
+/* To the counter's diamond: half the box plus the gap and half the icon
+   across, half the box down. */
+@keyframes bloom-catch-fly {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(calc(50% + 17px), 50%) scale(0.5);
+  }
+}
+.bloom-catch-count {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--diamond);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  animation: bloom-catch-count 300ms var(--bloom-ease-pop) both;
+}
+.bloom-catch-count-gem {
+  width: 18px;
+  height: 18px;
+}
+@keyframes bloom-catch-count {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+/* --------------------------------------------------- unit complete ---- */
+/* The trophy rises behind the berry and stands with its cup above the head. */
+.bloom-trophy {
+  position: absolute;
+  left: 50%;
+  bottom: 56%;
+  z-index: 0;
+  width: 96%;
+  transform: translateX(-50%);
+  animation-name: bloom-trophy-rise;
+  animation-timing-function: var(--bloom-ease-out);
+  animation-fill-mode: both;
+}
+.bloom-trophy-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.bloom-trophy-face {
+  fill: var(--ic-yellow);
+}
+.bloom-trophy-lip {
+  fill: var(--ic-yellow-lip);
+}
+.bloom-trophy-shine {
+  fill: #ffffff;
+  opacity: 0.45;
+}
+@keyframes bloom-trophy-rise {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+.bloom-unit-berry {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+/* -------------------------------------------------------- level up ---- */
+/* Full bleed: the page ground with the XP purple in it, so the Hud's own
+   berry is covered, not doubled. The egg's phases turn the ground dark. */
+.bloom-lvl {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--ic-purple) 12%, var(--bb-background));
+  color: var(--bb-foreground);
+  transition: background-color var(--bloom-dur-base) var(--bloom-ease-out);
+}
+.bloom-lvl:not([data-phase="level"]) {
+  background: #0b0d1c;
+  color: #ffffff;
+}
+.bloom-lvl-card {
+  display: flex;
+  width: 100%;
+  max-width: 22rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+.bloom-lvl-stage {
+  position: relative;
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin-top: 2.5rem;
+  line-height: 0;
+}
+.bloom-lvl-ring {
+  position: absolute;
+  inset: -4%;
+  border: 6px solid var(--ic-purple);
+  border-radius: 50%;
+  animation-name: bloom-lvl-ring;
+  animation-timing-function: var(--bloom-ease-out);
+  animation-fill-mode: both;
+}
+@keyframes bloom-lvl-ring {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+.bloom-lvl-grow {
+  display: block;
+  transform-origin: 50% 100%;
+}
+.bloom-lvl-berry {
+  position: relative;
+  display: block;
+}
+/* The silhouette: the berry and its hat go black with a white glow, the
+   genre's frame. Set once for the phase, never animated. */
+.bloom-lvl-berry[data-silhouette="true"] {
+  filter: brightness(0) drop-shadow(0 0 4px #ffffff) drop-shadow(0 0 12px rgba(255, 255, 255, 0.55));
+}
+.bloom-hat {
+  position: absolute;
+  left: 50%;
+  bottom: 77%;
+  width: 44%;
+  transform: translateX(-50%) rotate(-10deg) scale(1);
+  transform-origin: 50% 100%;
+  line-height: 0;
+}
+.bloom-hat[data-size="big"] {
+  transform: translateX(-50%) rotate(-10deg) scale(1.15);
+}
+.bloom-hat[data-flicker="true"] {
+  animation: bloom-hat-flicker 200ms steps(1) infinite;
+}
+@keyframes bloom-hat-flicker {
+  0% {
+    transform: translateX(-50%) rotate(-10deg) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) rotate(-10deg) scale(1.15);
+  }
+}
+.bloom-hat-art {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.bloom-hat-brim,
+.bloom-hat-crown {
+  fill: #1f2340;
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1;
+}
+.bloom-hat-band {
+  fill: var(--ic-purple);
+}
+.bloom-lvl-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #ffffff;
+  pointer-events: none;
+  animation: bloom-lvl-flash 600ms var(--bloom-ease-out) both;
+}
+@keyframes bloom-lvl-flash {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.bloom-lvl-badge {
+  position: absolute;
+  right: -10px;
+  bottom: -4px;
+  z-index: 2;
+  height: 1.6rem;
+  overflow: hidden;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--ic-purple);
+  box-shadow: 0 2px 0 var(--ic-purple-lip);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.6rem;
+  white-space: nowrap;
+}
+.bloom-lvl-badge-track {
+  display: flex;
+  flex-direction: column;
+  transition-property: transform;
+  transition-timing-function: var(--bloom-ease-pop);
+}
+.bloom-lvl-badge[data-rolled="true"] .bloom-lvl-badge-track {
+  transform: translateY(-50%);
+}
+.bloom-lvl-caption {
+  min-height: 1.5em;
+  font-weight: 700;
+}
+.bloom-lvl[data-phase="level"] .bloom-lvl-caption {
+  color: var(--bb-muted-foreground);
+}
+.bloom-lvl-words {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.bloom-lvl-title {
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+.bloom-lvl-said {
+  margin: 0 0 0.5rem;
+  color: var(--bb-muted-foreground);
+}
+
+/* --------------------------------------------------- reduced motion ---- */
+/* The components already render the final frame; this stops what is drawn
+   from travelling. Only a crossfade is left: none here needs one. */
+[data-reduced="true"] .bloom-lc-enter,
+[data-reduced="true"] .bloom-lc-line,
+[data-reduced="true"] .bloom-xp-pop,
+[data-reduced="true"] .bloom-xp-chip,
+[data-reduced="true"] .bloom-catch-count,
+[data-reduced="true"] .bloom-trophy,
+[data-reduced="true"] .bloom-hat,
+.bloom-lvl[data-reduced="true"] .bloom-lvl-ring,
+.bloom-lvl[data-reduced="true"] .bloom-lvl-flash {
+  animation: none;
+}
+.bloom-lvl[data-reduced="true"],
+.bloom-lvl[data-reduced="true"] .bloom-lvl-badge-track {
+  transition: none;
+}
+
+html[data-motion="reduced"] .bloom-pro-flake,
+html[data-motion="reduced"] .bloom-catch-fly,
+html[data-motion="reduced"] .bloom-lvl-ring,
+html[data-motion="reduced"] .bloom-lvl-flash {
+  display: none;
+}
+html[data-motion="reduced"] .bloom-lc-enter,
+html[data-motion="reduced"] .bloom-lc-line,
+html[data-motion="reduced"] .bloom-xp-pop,
+html[data-motion="reduced"] .bloom-xp-chip,
+html[data-motion="reduced"] .bloom-catch-count,
+html[data-motion="reduced"] .bloom-trophy,
+html[data-motion="reduced"] .bloom-hat {
+  animation: none;
+}
+html[data-motion="reduced"] .bloom-lvl,
+html[data-motion="reduced"] .bloom-lvl-badge-track {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloom-pro-flake,
+  .bloom-catch-fly,
+  .bloom-lvl-ring,
+  .bloom-lvl-flash {
+    display: none;
+  }
+  .bloom-lc-enter,
+  .bloom-lc-line,
+  .bloom-xp-pop,
+  .bloom-xp-chip,
+  .bloom-catch-count,
+  .bloom-trophy,
+  .bloom-hat {
+    animation: none;
+  }
+  .bloom-lvl,
+  .bloom-lvl-badge-track {
+    transition: none;
+  }
+}

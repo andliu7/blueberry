@@ -58,6 +58,9 @@ import { DiamondMark, FlameMark } from "../app/ui/HudIcons";
 import { progress } from "../app/progress";
 import { useProgress } from "../app/hooks";
 import { streakScreenModel, type StreakDayCell, type StreakScreenModel } from "./streakModel";
+import { STREAK_LIT } from "../mascot/bloomMotion";
+import { flameScaleFor } from "../mascot/progression/progression";
+import "./streak-lit.css";
 
 export interface StreakScreenProps {
   /** The receipt for the clear that made today count. The day number comes off it. */
@@ -85,7 +88,8 @@ const BEATS: Beats = Object.freeze({
   tick: 420,
   cardShell: 640,
   cardIn: 700,
-  cellStep: 55,
+  // The Bloom motion sheet's dot stagger (STREAK_LIT, 24 Oct); was 55.
+  cellStep: STREAK_LIT.dotStaggerMs,
   note: 1250,
   milestone: 1700,
   freezes: 1950,
@@ -358,6 +362,8 @@ export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel
       data-streak-milestone={model.milestone === null ? "" : model.milestone.day}
       data-streak-exam={model.exam === null ? "false" : "true"}
       data-streak-freezes={model.freezes.held}
+      // Prop-driven, so the app's own reduced-motion setting stills the Bloom beats too.
+      data-reduced={reducedMotion ? "true" : undefined}
       onPointerDown={() => {
         if (!done) setSkipped(true);
       }}
@@ -386,11 +392,33 @@ export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel
               ))}
             </div>
           )}
-          <span className="streak-hero-flame" aria-hidden>
-            <FlameMark lit className="h-32 w-32 md:h-40 md:w-40" />
+          {/* STREAK LIT (BLOOM-STATES-SPEC.md, C): the flame ignites BEHIND Bloom
+              and is drawn bigger the longer the streak (flameScaleFor, capped so
+              it stays on the card), and Bloom hops, excited, as the day ticks
+              up. On a rest-day save the note below already carries Bloom
+              (calm + wave), so the hero holds the flame alone: one berry per
+              frame. A restarted streak is simply day one here, no loss drawn. */}
+          <span
+            className="streak-hero-seat"
+            style={{ "--bloom-flame-scale": flameScaleFor(model.days).toFixed(3) } as CSSProperties}
+          >
+            <span className="streak-hero-flame" aria-hidden>
+              <FlameMark lit className="streak-hero-flame-glyph" />
+            </span>
+            {model.saved === null ? (
+              <span className="streak-hero-bloom" aria-hidden>
+                <Berry mood="excited" behaviour={ticked ? "bounce" : "idle"} reducedMotion={reducedMotion} sizePx={64} />
+              </span>
+            ) : null}
           </span>
           <div className="streak-number-row flex flex-col items-center" data-landed={ticked ? "true" : "false"}>
-            <span className="streak-number text-streak-ink" aria-hidden>
+            {/* key={shown} remounts the number when it ticks, so the roll-in replays on the new day. */}
+            <span
+              key={shown}
+              className="streak-number text-streak-ink"
+              data-roll={ticked && model.days > 1 ? "true" : undefined}
+              aria-hidden
+            >
               {shown}
             </span>
             <span className={`${reveal(BEATS.unit)} streak-unit mt-2 font-bold text-streak-ink`} aria-hidden>
