@@ -61,6 +61,7 @@ import {
   type McqReport,
 } from "./session";
 import { plural } from "@/lib/helpers";
+import { trackChoice } from "@/lib/analytics";
 
 export interface McqRunnerProps {
   /** The pathway node whose beats to play, for example "u3-directing". */
@@ -160,6 +161,8 @@ export function McqRunner({
       elapsedMs: Date.now() - startedAt.current,
     });
     if (committed === null) return;
+    // Which option was picked, per question, for the owner's option-split report (lib/analytics).
+    trackChoice(`mcq.${committed.reveal.beatId}`, committed.reveal.chosenId, committed.reveal.matchedAnswer);
     if (clearsBeat(committed.reveal.result)) playCorrect();
     setSession(committed.session);
     if (onProgress !== undefined) onProgress(sessionProgress(committed.session));

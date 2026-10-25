@@ -41,6 +41,7 @@ import type { DailyGoalTier } from "@blueberry/economy";
 import { hrefForOnboarding, hrefForTab } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
 import { progress } from "../app/progress";
+import { trackChoice } from "@/lib/analytics";
 import { Action, Ask, Chip, ChipList, Frame, Hero, QuietAction } from "./Frame";
 import { PlacementStep } from "./PlacementStep";
 import {
@@ -223,7 +224,11 @@ export default function Onboarding({
     if (next !== null) go(next);
   };
 
-  const set = (patch: Partial<FlowAnswers>) => setAnswers((current) => ({ ...current, ...patch }));
+  const set = (patch: Partial<FlowAnswers>) => {
+    // Every pick is one analytics choice ("onboarding.hear" = "friend"); nothing is sent without consent.
+    for (const [question, option] of Object.entries(patch)) trackChoice(`onboarding.${question}`, String(option));
+    setAnswers((current) => ({ ...current, ...patch }));
+  };
 
   const percent = progressPercent(step);
   const onBack = prevStep(step) === null ? null : back;

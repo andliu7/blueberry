@@ -30,7 +30,7 @@ export default function AdSlotBody({ placement }: { readonly placement: "path" |
   if (!known || ent.pro) return null;
 
   const proLink = (
-    <a className="bb-ad__pro" href={PRO_HREF}>
+    <a className="bb-ad__pro" href={PRO_HREF} data-track="ads.remove" data-cta>
       Remove ads with Pro
     </a>
   );

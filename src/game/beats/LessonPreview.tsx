@@ -179,7 +179,7 @@ export function LessonPreview({ node, priming, strip, reducedMotion, onStart, on
           </div>
         ) : (
           <div className="mx-auto w-full max-w-xl">
-            <ChipPress ref={startRef} className="w-full" onClick={() => onStart(lockedIn ? picked : null)}>
+            <ChipPress ref={startRef} className="w-full" data-track="lesson.preview_start" data-cta onClick={() => onStart(lockedIn ? picked : null)}>
               Start lesson
             </ChipPress>
           </div>

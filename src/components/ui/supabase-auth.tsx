@@ -160,6 +160,8 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         type="button"
         onClick={() => void google()}
         disabled={busy !== null}
+        data-track="signin.google"
+        data-cta
         className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl border-2 border-[var(--site-border)] bg-white px-4 text-sm font-semibold text-slate-800 transition hover:bg-white/90 disabled:opacity-60"
       >
         {busy === "google" ? (
@@ -257,6 +259,8 @@ export function SupabaseAuth({ signup }: { signup: boolean }) {
         <button
           type="submit"
           disabled={busy !== null}
+          data-track="signin.email"
+          data-cta
           className={cn(
             "flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl",
             "gradient-button px-4 text-sm font-semibold text-white",

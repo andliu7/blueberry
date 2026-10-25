@@ -197,7 +197,7 @@ export default function UpsellSheet({ offer }: { readonly offer: UpsellOffer }) 
           </>
         ) : buyable ? (
           <>
-            <Press block size="lg" onClick={buy} disabled={busy} data-upsell="checkout">
+            <Press block size="lg" onClick={buy} disabled={busy} data-upsell="checkout" data-track="pro.checkout.paywall" data-cta>
               {busy ? "Opening Stripe" : staffTest ? "Try the test checkout" : "Get Pro"}
             </Press>
             {staffTest && <p className="charge-note">Staff only. Stripe test mode: card 4242 4242 4242 4242, any future date, any CVC.</p>}
@@ -206,17 +206,17 @@ export default function UpsellSheet({ offer }: { readonly offer: UpsellOffer }) 
                 {failed}
               </p>
             )}
-            <Press block variant="ghost" onClick={dismiss} data-upsell="not-now">
+            <Press block variant="ghost" onClick={dismiss} data-upsell="not-now" data-track="paywall.not_now">
               Not now
             </Press>
           </>
         ) : (
           <>
             <p className="charge-line">Pro is coming soon. Nothing is on sale yet.</p>
-            <Press block size="lg" onClick={askToHear} disabled={busy} data-upsell="tell-me">
+            <Press block size="lg" onClick={askToHear} disabled={busy} data-upsell="tell-me" data-track="paywall.tell_me" data-cta>
               Tell me when it opens
             </Press>
-            <Press block variant="ghost" onClick={dismiss} data-upsell="not-now">
+            <Press block variant="ghost" onClick={dismiss} data-upsell="not-now" data-track="paywall.not_now">
               Not now
             </Press>
           </>

@@ -278,7 +278,7 @@ function Steps({
             <ChevronLeft aria-hidden className="size-4" />
             Back
           </button>
-          <button type="button" className="sch-btn ml-auto" disabled={busy} onClick={() => onConfirm(picked.id, note)}>
+          <button type="button" className="sch-btn ml-auto" disabled={busy} onClick={() => onConfirm(picked.id, note)} data-track="office_hours.book" data-cta>
             {busy ? "Booking" : state.mode === "move" ? "Move to this time" : "Confirm"}
           </button>
         </div>

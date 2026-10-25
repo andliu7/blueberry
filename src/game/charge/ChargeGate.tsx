@@ -335,6 +335,8 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
             variant={isRestart(model, restartSaved) ? "ghost" : "primary"}
             className={isRestart(model, restartSaved) ? "restart-erase" : ""}
             data-charge-primary
+            data-track="lesson.start"
+            data-cta
             onClick={() => {
               if (model.state === "empty") {
                 navigate(REVIEW_HREF);

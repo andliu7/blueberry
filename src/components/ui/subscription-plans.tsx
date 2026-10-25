@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BookOpen, Check, Loader2, Sparkles, Ticket, User } from "lucide-react";
 import * as PricingCard from "@/components/ui/pricing-card";
 import { useAuth } from "@/lib/AuthContext";
+import { trackChoice } from "@/lib/analytics";
 import {
   CHECKOUT_REFUSALS,
   formatPrice,
@@ -339,7 +340,7 @@ function PlanAction({
 
   if (plan.id === "member") {
     return (
-      <a href="#/signup" onClick={onNavigate} className={filled}>
+      <a href="#/signup" onClick={onNavigate} className={filled} data-track="plans.create_account" data-cta>
         Create an account
       </a>
     );
@@ -349,7 +350,7 @@ function PlanAction({
 
   if (!signedIn) {
     return (
-      <a href="#/signup" onClick={onNavigate} className={filled}>
+      <a href="#/signup" onClick={onNavigate} className={filled} data-track="plans.signin_to_buy" data-cta>
         Sign in to buy
       </a>
     );
@@ -359,6 +360,7 @@ function PlanAction({
     if (!plan.buys || busy) return;
     setBusy(true);
     setFailed(null);
+    trackChoice("plan", plan.buys);
     const result = await startCheckout(plan.buys);
     if (result.ok && result.url) {
       // Stripe hosts the payment page, so this leaves the site on purpose.
@@ -376,7 +378,7 @@ function PlanAction({
 
   return (
     <>
-      <button type="button" onClick={buy} disabled={busy} className={filled}>
+      <button type="button" onClick={buy} disabled={busy} className={filled} data-track={`pro.checkout.${plan.id}`} data-cta>
         {busy ? (
           <span className="inline-flex items-center justify-center gap-1.5">
             <Loader2 className="size-3.5 animate-spin" />

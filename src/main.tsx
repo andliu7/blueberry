@@ -16,6 +16,12 @@ installClickSound()
 // `.gradient-button` on the page, rather than a handler per button.
 installGradientCursor()
 
+// First-party analytics: one delegated click listener for every `data-track`
+// control, plus screen views and visible time. Sends nothing until the visitor
+// says yes to usage stats, and never under Do Not Track; see lib/analytics.
+// A dynamic import, so its 2 KB load beside the first screen instead of in it.
+void import('@/lib/analytics').then((analytics) => analytics.installAnalytics())
+
 // Outside App on purpose. The turning sheet has to survive the route change it
 // is covering, and anything inside App unmounts with the page it belongs to.
 //

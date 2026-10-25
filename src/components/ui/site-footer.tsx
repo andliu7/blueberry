@@ -9,6 +9,7 @@ import { isReducedMotion } from "@/lib/motionPref";
 import { cn } from "@/lib/utils";
 import { adsEnabled } from "@/lib/ads/adsConfig";
 import { clearAdConsent } from "@/lib/ads/consent";
+import { readAnalyticsConsent, setAnalyticsConsent } from "@/lib/analytics";
 
 /**
  * The foot of the page.
@@ -157,6 +158,9 @@ export function SiteFooter({ className }: { className?: string }) {
                 <li>
                   <MotionSwitch />
                 </li>
+                <li>
+                  <UsageStatsSwitch />
+                </li>
                 {/* Only when the build has ads (owner G4): forgets the ad answer, so the next ad slot asks again. */}
                 {adsEnabled && (
                   <li>
@@ -294,6 +298,19 @@ function MotionSwitch() {
     }
   };
   return <Switch label="Reduce motion" on={reduced} onToggle={toggle} />;
+}
+
+/**
+ * Share usage stats on or off (owner, 24 Oct): the opt-in for first-party analytics
+ * (src/lib/analytics.ts). Off until switched on; switching off forgets what the device kept.
+ */
+function UsageStatsSwitch() {
+  const [on, setOn] = useState(() => typeof window !== "undefined" && readAnalyticsConsent() === "granted");
+  const toggle = () => {
+    setAnalyticsConsent(on ? "declined" : "granted");
+    setOn(!on);
+  };
+  return <Switch label="Share usage stats" on={on} onToggle={toggle} />;
 }
 
 export default SiteFooter;

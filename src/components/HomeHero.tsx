@@ -53,6 +53,8 @@ export function HomeHero({ entered }: { entered: boolean }) {
           <a
             href={FIRST_LESSON_URL}
             className="home-btn"
+            data-track="hero.start"
+            data-cta
           >
             <span className="home-btn__face">{HERO.cta}</span>
             {/* The back face that rolls in on hover (motion.md item 3). A copy of the label
@@ -61,7 +63,7 @@ export function HomeHero({ entered }: { entered: boolean }) {
               {HERO.cta}
             </span>
           </a>
-          <a href="#/signin" className="home-link">
+          <a href="#/signin" className="home-link" data-track="hero.signin" data-cta>
             {HERO.haveAccount}
           </a>
         </div>

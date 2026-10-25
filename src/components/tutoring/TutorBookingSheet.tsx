@@ -192,7 +192,7 @@ function Questions({
       <StatusLine message={error ? { ok: false, text: error } : null} />
 
       <div>
-        <button type="submit" className="sch-btn" disabled={!ready || busy}>
+        <button type="submit" className="sch-btn" disabled={!ready || busy} data-track="tutoring.book" data-cta>
           {busy ? "Booking" : "Confirm booking"}
         </button>
       </div>
