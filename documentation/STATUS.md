@@ -990,3 +990,13 @@ publish ads.txt, write the privacy page (G4 steps above); (4) trim the payload, 
 Uncommitted in the tree at this check, not part of the 117: other sessions' work on App.tsx,
 siteNav, useDocumentTitle, vite.config.ts, admin/slides.ts, signoff/, and an analytics wiring
 pass (analytics.ts, main.tsx, ads, upsell, onboarding, booking sheets).
+
+Bloom chemical states (65a54cb, 24 Oct): `berryTopicState.ts` maps 28 pathway nodes to the
+shipped chemical states (protonated, carbocation, radical, resonance, aromatic) plus the
+once-per-learner mind-blown flag, tested. **Not live yet:** nothing imports it until the wiring
+family lands its triggers, so these states are still gallery-only. **Owner question, blocking:**
+Deprotonated, Excited state, Enantiomers and Solvated are parked, not built.
+`berryState.test.ts` pins MASCOT.md's deferral of exactly those four, and the spec told the
+builder to both build them and extend that test. Keep the deferral or lift it: see
+`BLOOM-STATES-SPEC.md` section 7 Q3, which also notes the lazy-CSS hook needs a `Berry.tsx` edit
+owned by the ambient family.

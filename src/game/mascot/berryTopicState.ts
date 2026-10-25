@@ -12,8 +12,12 @@
  * would stop meaning anything.
  *
  * Only the states MASCOT.md shipped are used. The spec's `deprotonated` (for
- * the pKa and enolate nodes) is not in the union yet; see the spec section 7,
- * question 3.
+ * the pKa and enolate nodes) is parked with the other three deferred states:
+ * berryState.test.ts pins MASCOT.md's deferral, so adding it is the owner's
+ * call (spec section 7, question 3). Until then those nodes stay neutral.
+ *
+ * Nothing calls this at runtime yet: the lesson-mount and first-resonance
+ * triggers belong to the wiring family (spec section 4).
  *
  * Same contract as berryState.ts: pure data, no React, no DOM. The one thing
  * remembered (whether the learner has seen a resonance berry) goes through a
