@@ -450,6 +450,29 @@ Sign-in, Pro, paywalls, ads (owner, 23 Oct)
   u6Pools test so the pool and board cannot drift apart again. The u6
   guidebook gains its IR section and a C=O drawing (guide_u6.py); NODE_MOVES u6-ir 1 to 3
   (measured). Not drawn by the Unit 6 exam yet: OWNER, should it be?
+- analytics DONE 24 Oct (owner: track attention, clicks, CTAs, choices, CAC, as graphs). First
+  party, no SDK: src/lib/analytics.ts (1.8 KB gz, loaded by a dynamic import from main.tsx, so
+  not in the first open) batches events and posts them to Supabase with the public key. One
+  delegated click listener records any element with data-track (CTAs also carry data-cta: hero
+  start and sign in, Google and email sign-in, lesson start, every Pro checkout, the paywall
+  buttons, plans, tutoring and office hours booking, Remove ads with Pro); screen views and
+  visible time per screen; choices from onboarding, plan picks and MCQ answer picks. OFF until a
+  visitor turns on "Share usage stats" (site footer, same consent store as ads) and never under
+  Do Not Track, because the Terms page says nothing is sent from the browser. Migration
+  supabase/migrations/20261024140000_analytics.sql (NOT applied): analytics_events insert-only,
+  staff read; marketing_spend staff only; server-only views for daily active, CTA clicks,
+  funnel, choices, attention, CAC per channel per month, and each student's usual study hour
+  from their own lesson activity (the replacement for phone location tracking, not built).
+  supabase/rls-tests/analytics.sql passes locally; 17 tests in src/test/analytics.test.ts. The
+  blueberry-analytics skill (.claude/skills/, gitignored, local only) queries the views and
+  draws charts. OWNER: (1) apply the migration (`npx supabase db push`); (2) write a privacy
+  section saying Blueberry collects anonymous usage stats (pages viewed, buttons clicked, answers
+  picked, time on screen, the ad link that brought you) in its own database, never sold or shared,
+  off under Do Not Track, and switchable in the footer; only then may ON_BY_DEFAULT in
+  analytics.ts become true; (3) put UTM on ad links before the # (?utm_source=instagram) and give
+  the skill each spend to enter. Questions: (a) default on after the privacy text, or stay opt-in?
+  (b) the consent toggle lives only in the site footer, which #/app does not show; add it to the
+  game's settings?
 
 **Progress, 22 Oct (Wave 3 item 12 = evening brief items 1+2: test-outs)**
 - Every section chest of units 1-10 offers a test-out (10 to 15 questions, longer each section);
