@@ -7,8 +7,9 @@
  *
  * berryReaction.test.ts already covers the table: which mood, behaviour and
  * chain each outcome maps to. What nothing covered is that TrainerScreen.tsx
- * actually calls `react` on the graded verdicts, and that the call is deferred
- * to the sheet's rise instead of racing it. That is the same gap
+ * actually calls `react` on the graded verdicts, that its body motion is
+ * deferred to the sheet's rise instead of racing it, and that the face itself
+ * lands with the grade (owner decision Q8, 2026-10-25). That is the same gap
  * pilotScreenWiring.test.ts opens on: "deleting the onUndo dispatch in
  * TrainerScreen.tsx left the whole suite green". Delete the three `react(...)`
  * calls at TrainerScreen.tsx and the mascot goes permanently blank while every
@@ -236,13 +237,13 @@ describe("the mascot's four beats are wired to the trainer's verdicts", () => {
 });
 
 describe("the reaction rides the sheet's existing clock, not a parallel one", () => {
-  it("holds the waiting face until RISE_MS has passed, then reacts", () => {
+  it("swaps the face in the grading update, before the sheet has risen", () => {
     /*
-     * The pin that stops the mascot growing its own animation clock. Under
-     * full motion TrainerScreen defers every sensory part of a verdict by
-     * RISE_MS so the reaction lands as the sheet arrives rather than under it.
-     * If somebody drops `afterRise` and calls `react` inline, the face changes
-     * on the commit frame and the first assertion here goes red.
+     * Owner decision, BLOOM-STATES-SPEC.md section 7 Q8 (2026-10-25): "sure"
+     * to changing the face the instant an answer is graded. This used to pin
+     * the opposite, the waiting face held until RISE_MS, but RISE_MS plus a
+     * render sits on the 200ms reaction budget. So the mood lands in the same
+     * commit as the grade, and the clock cannot move it afterwards.
      *
      * A near miss rather than a win on purpose: the win also starts the bond
      * tween on requestAnimationFrame, and this test owns the timers.
@@ -253,15 +254,34 @@ describe("the reaction rides the sheet's existing clock, not a parallel one", ()
     drag(store, targetCentre({ kind: "lonePair", atomId: "o1" }), targetCentre({ kind: "atom", atomId: "br1" }));
     press(container, "Check");
 
-    // The sheet is up and committed; the face has not moved yet.
+    // The sheet is up and committed, and the face already answers it.
     expect(container.querySelector("[data-answer-sheet]")).not.toBeNull();
-    expect(mood(container)).toBe("focused");
-
-    act(() => void vi.advanceTimersByTime(RISE_MS - 1));
-    expect(mood(container)).toBe("focused");
-
-    act(() => void vi.advanceTimersByTime(1));
     expect(mood(container)).toBe("thinking");
+
+    act(() => void vi.advanceTimersByTime(RISE_MS));
+    expect(mood(container)).toBe("thinking");
+  });
+
+  it("on a win, the face is happy at the grade and the sparkles wait for the sheet", () => {
+    /*
+     * The other half of Q8: only the FACE moved to the grading update. The
+     * body motion and the sparkles a correct answer owns still ride RISE_MS,
+     * so they land as the sheet arrives rather than under it. Advancing
+     * exactly RISE_MS stops short of WIN_HOLD_MS, so the bond tween never
+     * starts inside this test.
+     */
+    vi.useFakeTimers();
+    const { container, store } = mount(false);
+    drawFirstArrow(store);
+    drawSecondArrow(store);
+    press(container, "Check");
+
+    expect(mood(container)).toBe("happy");
+    expect(hasSparkles(container)).toBe(false);
+
+    act(() => void vi.advanceTimersByTime(RISE_MS));
+    expect(mood(container)).toBe("happy");
+    expect(hasSparkles(container)).toBe(true);
   });
 
   it("reacts on the commit frame under reduced motion, deferring nothing", () => {

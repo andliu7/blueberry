@@ -318,7 +318,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   /* ---------------- the mascot ---------------- */
 
   const reactions = useBerryReactions(reducedMotion, "leanIn");
-  const { bump, react } = reactions;
+  const { bump, react, look } = reactions;
   // The verdict's char wins; otherwise the berry is what the lesson's topic
   // makes it (BeatRunner passes it; the trainer tab passes nothing).
   const berry = {
@@ -342,15 +342,14 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // driven once to 1 on the win; under reduced motion it jumps to 1 after a hold (see onCheck).
   const win = useStepProgress(WIN_TWEEN_MS, false);
   // Everything a verdict does that is not the sheet itself waits for the
-  // sheet to land: the mascot, the sound, the buzz, the win tween. The rise
-  // owns those 200 ms, because a verdict commit heavy enough to stall the
-  // main thread is a verdict the student watches arrive late (round four
-  // motion critic: the miss took ~200 ms to change a pixel against the bar's
-  // 45). Cleared if the screen unmounts inside the rise.
-  // OPEN OWNER QUESTION (BLOOM-STATES-SPEC.md section 7, Q8): the spec asks
-  // for the mood at t=0 with only the body motion waiting, because RISE_MS
-  // plus a render sits on the 200ms reaction budget; trainerMascotWiring.test.ts
-  // pins the face unchanged until RISE_MS, so it stays as it is until he decides.
+  // sheet to land: the mascot's body motion, the sound, the buzz, the win
+  // tween. The rise owns those 200 ms, because a verdict commit heavy enough
+  // to stall the main thread is a verdict the student watches arrive late
+  // (round four motion critic: the miss took ~200 ms to change a pixel
+  // against the bar's 45). Cleared if the screen unmounts inside the rise.
+  // Bloom's FACE does not wait: `look` sets the mood in the grade's own
+  // commit, because RISE_MS plus a render sits on the 200ms reaction budget
+  // (BLOOM-STATES-SPEC.md section 7, Q8, decided 2026-10-25).
   const riseTimer = useRef<number | null>(null);
   const afterRise = useCallback(
     (work: () => void) => {
@@ -390,6 +389,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         // Not journaled as an arrow mistake: the arrows were right. The
         // mistake journal has no branch kind yet; when it does, this is
         // where the record goes.
+        look("nearMiss");
         afterRise(() => {
           playWrongSound();
           react("nearMiss");
@@ -413,6 +413,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
         react("correct");
         holdTimer.current = window.setTimeout(() => win.scrub(1), REDUCED_HOLD_MS);
       } else {
+        look("correct");
         afterRise(() => {
           playCorrect();
           react("correct");
@@ -430,6 +431,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
       if (last !== undefined) {
         saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "invalid", causeId: result.cause, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
       }
+      look("wrong");
       afterRise(() => {
         playWrongSound();
         react("wrong");
@@ -439,6 +441,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
       if (last !== undefined) {
         saveMistake({ reactionId: step.id, arrowKey: arrowKey(last), verdict: "not_requested", causeId: null, distractorMatched: matchDistractor(step, last) !== null, at: new Date().toISOString() });
       }
+      look("nearMiss");
       afterRise(() => {
         playWrongSound();
         react("nearMiss");

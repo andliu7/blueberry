@@ -18,7 +18,7 @@
 import { act, createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Berry } from "../mascot/Berry";
 import { BloomHintRing, BloomStage } from "../mascot/BloomStage";
 import { useBerryReactions, type BerryReactions } from "../mascot/useBerryReactions";
@@ -175,5 +175,47 @@ describe("useBerryReactions charred flag", () => {
     });
     expect(h.current.berry.state).toBe("neutral");
     expect(h.current.stage.puffKey).toBe(1);
+  });
+});
+
+describe("useBerryReactions look", () => {
+  it("shows the face the next react will show, and moves nothing else", () => {
+    // TrainerScreen calls look on the grade's own commit and react when the
+    // sheet lands (BLOOM-STATES-SPEC.md section 7, Q8). look must read ahead
+    // without spending the run, or the real react would count the grade twice.
+    const h = mountHook();
+    grade(h, "correct", "correct");
+    const { behaviourKey, sparkleKey } = h.current.berry;
+
+    act(() => h.current.look("correct"));
+    // The third in a row is a milestone, so the face is the combo's, not plain happy.
+    expect(h.current.berry.mood).toBe("excited");
+    expect(h.current.berry.behaviourKey).toBe(behaviourKey);
+    expect(h.current.berry.sparkleKey).toBe(sparkleKey);
+    expect(h.current.stage.combo).toBe(null);
+
+    act(() => h.current.look("correct"));
+    grade(h, "correct");
+    expect(h.current.stage.combo).toBe(3);
+    expect(h.current.berry.mood).toBe("excited");
+  });
+
+  it("cancels a pending settle so it cannot land over the new face", () => {
+    vi.useFakeTimers();
+    try {
+      const box = { current: null as unknown as BerryReactions };
+      function Probe() {
+        box.current = useBerryReactions(false, "idle");
+        return null;
+      }
+      root = createRoot(document.createElement("div"));
+      act(() => root!.render(createElement(Probe)));
+      grade(box, "wrong");
+      act(() => box.current.look("nearMiss"));
+      act(() => void vi.advanceTimersByTime(10_000));
+      expect(box.current.berry.mood).toBe("thinking");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

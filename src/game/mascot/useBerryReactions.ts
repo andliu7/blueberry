@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import type { BerryBehaviour } from "./berryBehaviour";
 import type { BerryMood } from "./berryMood";
 import type { BerryProps } from "./Berry";
-import { reactionFor, SETTLED_AFTER_MISS, type ReactionOutcome } from "./berryReaction";
+import { reactionFor, SETTLED_AFTER_MISS, type AnswerRun, type ReactionOutcome } from "./berryReaction";
 import type { BloomStageReactionProps } from "./BloomStage";
 
 export type BerryReactionProps = Required<Pick<BerryProps, "behaviour" | "behaviourKey" | "chain" | "sparkleKey" | "flashKey" | "state">> &
@@ -33,10 +33,23 @@ export interface BerryReactions {
   readonly bump: (next: BerryBehaviour, mood?: BerryMood, chain?: readonly BerryBehaviour[]) => void;
   /** A graded outcome as a reaction, with the run counters and the settle timer. */
   readonly react: (outcome: ReactionOutcome) => void;
+  /**
+   * Only the face `react(outcome)` is about to show, with no body motion and
+   * no counters moved. For a surface that shows the mood on the grade's own
+   * commit and plays the rest when its sheet lands (TrainerScreen).
+   */
+  readonly look: (outcome: ReactionOutcome) => void;
   /** Spread into <BloomStage>; the surface adds reducedMotion, thinking and the berry. */
   readonly stage: BloomStageReactionProps;
   /** Non-zero only when the latest grade was a wrong-again miss. Pass to <BloomHintRing ringKey> on the hint control. */
   readonly hintKey: number;
+}
+
+/** The run counters after one more grade. Pure, so `look` can read ahead without moving them. */
+function runAfter(run: AnswerRun, outcome: ReactionOutcome): AnswerRun {
+  if (outcome === "correct") return { correctRun: run.correctRun + 1, missRun: 0 };
+  if (outcome === "wrong" || outcome === "wrongAgain") return { correctRun: 0, missRun: run.missRun + 1 };
+  return run;
 }
 
 export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviour): BerryReactions {
@@ -66,7 +79,7 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   // Counts every puff so its parity can flip the keyframe name (see BloomStage).
   const puffCountRef = useRef(0);
   const [hintKey, setHintKey] = useState(0);
-  const runRef = useRef({ correctRun: 0, missRun: 0 });
+  const runRef = useRef<AnswerRun>({ correctRun: 0, missRun: 0 });
   const settleTimerRef = useRef<number | null>(null);
   useEffect(
     () => () => {
@@ -82,19 +95,13 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   };
   const react = (outcome: ReactionOutcome) => {
     if (settleTimerRef.current !== null) window.clearTimeout(settleTimerRef.current);
-    const run = runRef.current;
+    const run = runAfter(runRef.current, outcome);
+    runRef.current = run;
     let cleared = false;
-    if (outcome === "correct") {
-      run.correctRun += 1;
-      run.missRun = 0;
-      if (charredRef.current) {
-        charredRef.current = false;
-        cleared = true;
-        setCharred(false);
-      }
-    } else if (outcome === "wrong" || outcome === "wrongAgain") {
-      run.correctRun = 0;
-      run.missRun += 1;
+    if (outcome === "correct" && charredRef.current) {
+      charredRef.current = false;
+      cleared = true;
+      setCharred(false);
     }
     const reaction = reactionFor(outcome, run);
     if (reaction.state === "charred") {
@@ -122,10 +129,16 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
       );
     }
   };
+  const look = (outcome: ReactionOutcome) => {
+    // A settle left over from the last miss must not land on top of this face.
+    if (settleTimerRef.current !== null) window.clearTimeout(settleTimerRef.current);
+    setMood(reactionFor(outcome, runAfter(runRef.current, outcome)).mood);
+  };
   return {
     berry: { behaviour, behaviourKey, mood, chain, sparkleKey, flashKey, state: charred ? "charred" : "neutral" },
     bump,
     react,
+    look,
     stage,
     hintKey,
   };
