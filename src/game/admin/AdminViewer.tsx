@@ -15,7 +15,7 @@
  * Lazy (App.tsx), and App.tsx only mounts it for a staff role, so a student
  * never downloads this chunk.
  */
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { hrefForAdmin, hrefForChallenge, hrefForLesson, hrefForTab } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
 import { Press, pressClassName } from "../app/ui/Press";
@@ -27,6 +27,10 @@ import { planAccess, type PlanAccess, type PlanView } from "./planView";
 import "./admin.css";
 
 export type ViewMode = "admin" | "student";
+
+// The activity view (#/app/admin/activity) reads Supabase, so it is its own
+// lazy chunk: opening a lesson here never downloads it.
+const AdminActivity = lazy(() => import("./AdminActivity"));
 
 const KIND_LABEL: Readonly<Record<Slide["kind"], string>> = {
   mcq: "Multiple choice",
@@ -278,78 +282,97 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
             <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <p className="av-bar__title">Lesson viewer</p>
-        <button
-          type="button"
-          className="av-bar__lessons"
-          aria-expanded={pickerOpen}
-          onClick={() => setPickerOpen((open) => !open)}
-        >
-          Lessons
-        </button>
+        <p className="av-bar__title">{node === "activity" ? "Admin" : "Lesson viewer"}</p>
+        {node === "activity" ? (
+          <a className="av-bar__lessons" href={hrefForAdmin()}>
+            Lessons
+          </a>
+        ) : (
+          <a className="av-bar__lessons" href={hrefForAdmin("activity")}>
+            Activity
+          </a>
+        )}
+        {node === "activity" ? null : (
+          <button
+            type="button"
+            className="av-bar__lessons"
+            aria-expanded={pickerOpen}
+            onClick={() => setPickerOpen((open) => !open)}
+          >
+            Lessons
+          </button>
+        )}
       </div>
 
-      <p className="av-banner" role="note">
-        Preview. Switching plan changes what this page draws, never your account. Nothing here saves.
-        Play this lesson runs it for real, and like any run it writes this device's journal.
-      </p>
+      {node === "activity" ? (
+        <Suspense fallback={<p className="av-empty">Loading activity...</p>}>
+          <AdminActivity />
+        </Suspense>
+      ) : (
+        <>
+          <p className="av-banner" role="note">
+            Preview. Switching plan changes what this page draws, never your account. Nothing here saves.
+            Play this lesson runs it for real, and like any run it writes this device's journal.
+          </p>
 
-      <div className="av-toggles">
-        <Segmented
-          label="View"
-          value={view}
-          options={[
-            ["admin", "Admin"],
-            ["student", "Student"],
-          ]}
-          onChange={setView}
-        />
-        <Segmented
-          label="Plan"
-          value={plan}
-          options={[
-            ["free", "Member (Free)"],
-            ["pro", "Pro"],
-          ]}
-          onChange={setPlan}
-        />
-      </div>
+          <div className="av-toggles">
+            <Segmented
+              label="View"
+              value={view}
+              options={[
+                ["admin", "Admin"],
+                ["student", "Student"],
+              ]}
+              onChange={setView}
+            />
+            <Segmented
+              label="Plan"
+              value={plan}
+              options={[
+                ["free", "Member (Free)"],
+                ["pro", "Pro"],
+              ]}
+              onChange={setPlan}
+            />
+          </div>
 
-      <div className="av-body">
-        <nav className={`av-picker${pickerOpen ? " is-open" : ""}`} aria-label="Lessons">
-          {units.map((u) => (
-            <div key={u.unitId} className="av-picker__unit">
-              <p className="av-picker__unit-title">{u.title}</p>
-              <ul>
-                {u.lessons.map((l) => (
-                  <li key={l.id}>
-                    <a
-                      className="av-picker__lesson"
-                      href={hrefForAdmin(l.id)}
-                      aria-current={l.id === node ? "page" : undefined}
-                      onClick={() => setPickerOpen(false)}
-                    >
-                      {l.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </nav>
+          <div className="av-body">
+            <nav className={`av-picker${pickerOpen ? " is-open" : ""}`} aria-label="Lessons">
+              {units.map((u) => (
+                <div key={u.unitId} className="av-picker__unit">
+                  <p className="av-picker__unit-title">{u.title}</p>
+                  <ul>
+                    {u.lessons.map((l) => (
+                      <li key={l.id}>
+                        <a
+                          className="av-picker__lesson"
+                          href={hrefForAdmin(l.id)}
+                          aria-current={l.id === node ? "page" : undefined}
+                          onClick={() => setPickerOpen(false)}
+                        >
+                          {l.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
 
-        <main className="av-main">
-          {node === null ? (
-            <p className="av-empty">Pick a lesson to see its slides.</p>
-          ) : lesson === null || unit === null ? (
-            <p className="av-empty">No lesson called {node} is on the map.</p>
-          ) : (
-            // Keyed on the node: a new key makes React mount a fresh Slideshow,
-            // so the slide index starts at 1 on every lesson.
-            <Slideshow key={node} lesson={lesson} unit={unit} slides={slides} view={view} plan={plan} />
-          )}
-        </main>
-      </div>
+            <main className="av-main">
+              {node === null ? (
+                <p className="av-empty">Pick a lesson to see its slides.</p>
+              ) : lesson === null || unit === null ? (
+                <p className="av-empty">No lesson called {node} is on the map.</p>
+              ) : (
+                // Keyed on the node: a new key makes React mount a fresh Slideshow,
+                // so the slide index starts at 1 on every lesson.
+                <Slideshow key={node} lesson={lesson} unit={unit} slides={slides} view={view} plan={plan} />
+              )}
+            </main>
+          </div>
+        </>
+      )}
     </div>
   );
 }

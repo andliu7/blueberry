@@ -56,6 +56,12 @@
   font-weight: 800;
   cursor: pointer;
 }
+/* The Activity and Lessons links share the pill: a link is inline until told otherwise. */
+a.av-bar__lessons {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
 
 /* ------------------------------------------------------ banner, toggles */
 
