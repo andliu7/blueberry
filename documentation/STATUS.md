@@ -256,6 +256,23 @@ Course (business test 2)
     when the student's syllabus covers them; default no. The syllabus import (C1) sets it. Today's
     behaviour already matches the default: test-outs and exams draw from the main line only
     (onLine in src/game/tabs/pathway/testOuts.ts drops branches).
+  - syllabus-import BUILT 25 Oct (commits bfa5145, 4f60752; not pushed): Me, Settings, Syllabus
+    (#/app/me/settings/syllabus) and a "Plan Blueberry from your syllabus" link on the calendar for
+    every visitor. Paste the schedule (or pick a .txt/.md); a deterministic parser in
+    src/game/syllabus/ reads weeks, dates, exams and topics, matches them to units and lessons with a
+    confidence each, and lists low-confidence and unmatched lines first ("Not sure: pick a unit" or
+    "Not covered"). Up/down for units and sections, not covered marks, side quest switches, Save,
+    Clear. The map shows "Week 8 · Before Exam 2, Nov 4", "Catch up: Week 7" or "Not on your
+    syllabus" per unit; START and the guide move to this week's unit (never opens or locks a node).
+    The side quest rule is live: a covered side quest joins its section test, its unit exam and the
+    checkpoint mix, never what a pass lights. Only the derived plan is saved, never the text.
+    First open: about +1.1 KB gz from this lane (0.6 KB store, the rest testOuts and PathwayTab);
+    the week logic loads only once a plan exists. Defaults taken from the plan, change any: map
+    keeps curriculum order; side quests count only on an explicit match; "Ch 18" lines are flagged
+    (no chapter table: which textbook?); paste or .txt only (PDF needs pdfjs, lazy); exam dates do
+    not overwrite the Charge exam date; no staff read policy on the table.
+    OWNER STEP: apply supabase/migrations/20261025120000_user_syllabus.sql (until then the plan
+    stays on the device and the screen says so).
 - C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
   DECIDED 23 Oct: a student's own values only.
   - pka-per-student DONE 24 Oct: Me, Settings, pKa values has a "Paste your sheet" card. A student
