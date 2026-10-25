@@ -1045,3 +1045,37 @@ Deprotonated, Excited state, Enantiomers and Solvated are parked, not built.
 builder to both build them and extend that test. Keep the deferral or lift it: see
 `BLOOM-STATES-SPEC.md` section 7 Q3, which also notes the lazy-CSS hook needs a `Berry.tsx` edit
 owned by the ambient family.
+
+## Bloom states, 24 Oct
+
+Mascot run from the Design Bible's section 01 ("Mascot states and reactions"), with Duolingo as the
+motion reference, CSS and SVG only. Commits 7337446 to 4429b1e (answers, progression, chemical,
+costumes, wiring, fix rounds; ambient landed earlier in b509675 and ba5762b). 32 Bible states built,
+11 parked:
+- A Ambient, 5 built / 2 parked: idle breathe, blink and glance, bored sigh at 20s, peek, return
+  greet. Parked: dormant 7+ days (a guilt trip for leaving; the return greet replaces it), zen focus
+  (nothing is timed)
+- B Answer reactions, 8 / 1: correct, combo 3/5/8, near miss, wrong (sad 900ms, then leans in),
+  wrong again with the hint ring, thinking at 15s, oxidized (charred and comic) and reduced (the
+  puff). Parked: panic (no timed mode)
+- C Progression, 6 / 2: XP pop, diamond catch, lesson complete, unit complete, level up, streak lit.
+  Parked: streak at risk and streak lost (no anxiety loop, no grief beat; a restart is a day-1
+  streak lit)
+- D Chemical, 6 / 5: protonated, carbocation, radical, resonance, mind blown, aromatic, mapped to
+  lessons in berryTopicState.ts. Parked: deprotonated, excited state, enantiomers, solvated (the
+  owner question above, spec Q3), nucleophile (needs an arrow arm on the trainer canvas)
+- E Costumes, 7 / 1: lab coat, tweed, trench, backpack, referee, cape, nightcap (notification art
+  only). Parked: seasonal skins (no shop)
+
+See them at `#/app/gallery/berry` (dev surface, lazy, linked from the admin viewer), with a
+reduced-motion switch at the top for the still poses. The rows live in
+`src/game/mascot/bloomBible.ts`; the design is in `documentation/MASCOT.md` and
+`BLOOM-STATES-SPEC.md`.
+
+Final check, 25 Oct, on 4429b1e: build:packages, tsc -b and vite build clean; vitest 330 of 334
+files green, with sound, loaderGateWaiting and learn red only under full-suite load and green when
+run alone, and bootLoader red on purpose. **Payload over:** `#/app` first open on a clean copy of
+HEAD is 403.7 KB gz (ceiling 400). Weighed per commit: 400.5 before this run; the mascot commits
+added about 1.6 (progression +0.5, costumes +0.2, wiring e4efbbf +1.0); syllabus bfa5145 added
+1.9 and 4f60752 took back 0.5. Trim before pushing: the mascot share alone does not close the gap.
+The working tree, with other sessions' uncommitted syllabus work, weighs 404.5.
