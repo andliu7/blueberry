@@ -87,7 +87,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { Berry } from "../../mascot/Berry";
-import { BloomStage } from "../../mascot/BloomStage";
+import { BloomHintRing, BloomStage } from "../../mascot/BloomStage";
 import { CHARRED_LINE } from "../../mascot/berryReaction";
 import type { BerryReactions } from "../../mascot/useBerryReactions";
 import type { BerryState } from "../../mascot/berryState";
@@ -162,6 +162,8 @@ export interface McqBeatViewProps {
    * a preview that renders the view alone: the berries then stand still.
    */
   readonly bloom?: BerryReactions;
+  /** Non-zero on a wrong-again tray: the Why? control wears the hint ring (BloomHintRing). */
+  readonly hintRingKey?: number;
   /** What the lesson's topic makes the berry (berryTopicState.ts). */
   readonly topicState?: BerryState;
   /** What it wears for this lesson (berryCostume.ts costumeForNode). */
@@ -189,6 +191,7 @@ export function McqBeatView({
   progressSlot,
   combo,
   bloom,
+  hintRingKey = 0,
   topicState = "neutral",
   costume,
 }: McqBeatViewProps) {
@@ -489,7 +492,11 @@ export function McqBeatView({
             <>
               <p className="answer-tray__label">Correct answer:</p>
               <p className="answer-tray__answer answer-tray__answer--big">{reveal.answerText}</p>
-              <TrayWhy lead={reveal.answerWhy} yours={reveal.chosenWhy} />
+              <TrayWhy
+                lead={reveal.answerWhy}
+                yours={reveal.chosenWhy}
+                ring={<BloomHintRing ringKey={hintRingKey} reducedMotion={reducedMotion} />}
+              />
             </>
           )}
         </AnswerTray>

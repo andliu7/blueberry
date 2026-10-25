@@ -13,9 +13,30 @@
 
 import { Berry } from "../mascot/Berry";
 import { BloomStage } from "../mascot/BloomStage";
-import type { BerryCostume } from "../mascot/berryCostume";
+import { costumeForNode, type BerryCostume } from "../mascot/berryCostume";
 import type { BerryState } from "../mascot/berryState";
+import { stateForNode } from "../mascot/berryTopicState";
 import type { BerryReactions } from "../mascot/useBerryReactions";
+import { isSectionFinal, pathwayNode } from "../demo/pathwayMap";
+
+/** What a lesson makes Bloom on every surface it grades on: the topic's state and the lesson's costume. */
+export interface BloomLook {
+  readonly state: BerryState;
+  readonly costume: BerryCostume;
+}
+
+/**
+ * The look for a lesson node (BLOOM-STATES-SPEC.md, section 4, "Lesson surface
+ * has a costume"). Pure table reads, so the MCQ, the sort ladder, the match
+ * board and the synthesis gap all dress the berry the same way.
+ */
+export function bloomLookForNode(node: string): BloomLook {
+  const mapNode = pathwayNode(node);
+  return {
+    state: stateForNode(node),
+    costume: costumeForNode(mapNode === null ? null : { ...mapNode, final: isSectionFinal(mapNode) }),
+  };
+}
 
 export interface BloomVerdictBerryProps {
   readonly bloom: BerryReactions;

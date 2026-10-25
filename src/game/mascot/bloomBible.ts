@@ -49,11 +49,11 @@ export const BIBLE_ROWS: readonly BibleRow[] = Object.freeze([
   parked("A. Ambient", "Dormant, 7+ days", "No days-away signal, and dust reads as a guilt trip for leaving. The return greet is the friendly half."),
   parked("A. Ambient", "Zen focus, timed quiz", "Nothing in the app is timed."),
 
-  row("B. Answer reactions", "Correct", "MCQ tray, sort, match, synthesis, trainer, LessonPlayer.", { mood: "happy", behaviour: "squash", chain: ["bounce"] }),
+  row("B. Answer reactions", "Correct", "MCQ tray, sort, match, synthesis, trainer (after the sheet's 200ms rise, spec Q8), LessonPlayer.", { mood: "happy", behaviour: "squash", chain: ["bounce"] }),
   row("B. Answer reactions", "Combo 3 / 5 / 8", "Bounce x2 / x3 / x4 with sparkles; confetti at 8; capped there.", { mood: "excited", behaviour: "bounce", chain: ["bounce", "bounce"] }),
   row("B. Answer reactions", "Near miss", "Only where a grader yields one: the trainer and LessonPlayer.", { mood: "thinking", behaviour: "leanIn" }),
   row("B. Answer reactions", "Wrong", "Sad for 900ms, then curious and leaning in (spec section 7, Q2).", { mood: "sad", behaviour: "squash" }),
-  row("B. Answer reactions", "Wrong again, hint offer", "A second miss on the same item: leans in, no second sad beat.", { mood: "curious", behaviour: "leanIn" }),
+  row("B. Answer reactions", "Wrong again, hint offer", "A second miss on the same item (MCQ recycle, sort Try again): leans in, no sad beat; the tray's Why? (or the sort's headline) gets the hint ring.", { mood: "curious", behaviour: "leanIn" }),
   row("B. Answer reactions", "Thinking, 15s mid-item", "The MCQ bar berry after 15s without a press, with thought dots.", { mood: "thinking", behaviour: "idle" }),
   row("B. Answer reactions", "Oxidized, third miss", "Charred and comic, no cough; the next right answer clears it.", { mood: "sad", behaviour: "stressed", state: "charred" }),
   row("B. Answer reactions", "Reduced, after oxidized", "The puff on the stage wrapper when the char clears.", { mood: "happy", behaviour: "squash", chain: ["bounce"] }),

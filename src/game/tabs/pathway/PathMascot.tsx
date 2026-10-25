@@ -32,9 +32,11 @@
  * React pattern, "context": the row tells this component its chip just
  * unlocked through PathUnlockContext rather than a prop, which reaches it
  * without changing the <PathMascot> call PathwayTab and its pin test share.
+ * Read on mount (the initial beat) and on every later change (an effect), so
+ * an unlock that arrives after mount hops too.
  */
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { BerryBehaviour } from "../../mascot/berryBehaviour";
 import { LOOK_AHEAD, type BerryLook, type BerryMood } from "../../mascot/berryMood";
 import { useIdleInput } from "../../mascot/useIdleInput";
@@ -101,6 +103,18 @@ export function PathMascot({ children }: { readonly children: (move: BloomMove) 
   const [beat, setBeat] = useState<PathBeat>(() => (unlocked ? "unlock" : "rest"));
   const [beatKey, setBeatKey] = useState(0);
   const idle = useIdleInput("ambient");
+
+  // An unlock that lands after this row's Bloom has mounted (the celebration
+  // is read on the path's mount, so it can arrive a render later) still hops.
+  // The ref remembers the last value, so only a false-to-true change plays.
+  const wasUnlocked = useRef(unlocked);
+  useEffect(() => {
+    if (unlocked && !wasUnlocked.current) {
+      setBeat("unlock");
+      setBeatKey((k) => k + 1);
+    }
+    wasUnlocked.current = unlocked;
+  }, [unlocked]);
 
   // Bored starts the sigh; the first press after it brings him back.
   useEffect(() => {

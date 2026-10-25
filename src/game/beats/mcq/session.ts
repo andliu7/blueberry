@@ -251,12 +251,17 @@ function isRight(result: BeatResult): boolean {
 
 /**
  * The latest committed answer missed, and the same beat was already missed
- * earlier in this run (a recycled question that got away twice). Bloom's
- * `wrongAgain` reaction: lean in at the problem, no second sad beat.
+ * earlier in this run or before it (a recycled question that got away twice).
+ * Bloom's `wrongAgain` reaction: lean in at the problem, no second sad beat.
+ *
+ * `missedBefore` is the beat ids the lesson already saw missed in an earlier
+ * step. The recycle slot is a fresh McqRunner whose own results start empty,
+ * so without it a recycled question's second miss read as a first one.
  */
-export function missedThisItemBefore(session: McqSession): boolean {
+export function missedThisItemBefore(session: McqSession, missedBefore: readonly string[] = []): boolean {
   const latest = session.results[session.results.length - 1];
   if (latest === undefined || isRight(latest)) return false;
+  if (missedBefore.includes(latest.beatId)) return true;
   return session.results.slice(0, -1).some((result) => result.beatId === latest.beatId && !isRight(result));
 }
 
@@ -266,11 +271,11 @@ export function missedThisItemBefore(session: McqSession): boolean {
  * combo the berry bounces for are one count. A first-meeting miss still clears
  * the beat but is a miss here, as it is in the run.
  */
-export function latestOutcome(session: McqSession): "correct" | "wrong" | "wrongAgain" | null {
+export function latestOutcome(session: McqSession, missedBefore: readonly string[] = []): "correct" | "wrong" | "wrongAgain" | null {
   const latest = session.results[session.results.length - 1];
   if (latest === undefined) return null;
   if (isRight(latest)) return "correct";
-  return missedThisItemBefore(session) ? "wrongAgain" : "wrong";
+  return missedThisItemBefore(session, missedBefore) ? "wrongAgain" : "wrong";
 }
 
 export function sessionProgress(session: McqSession): McqProgress {

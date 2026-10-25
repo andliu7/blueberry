@@ -67,7 +67,7 @@ import { lessonNodeId, progress, type ProgressSnapshot } from "../../app/progres
 import { ChargeGate } from "../../charge/ChargeGate";
 import type { ChargeGateNode } from "../../charge/chargeGateModel";
 import { Berry } from "../../mascot/Berry";
-import { PathMascot } from "./PathMascot";
+import { PathMascot, PathUnlockContext } from "./PathMascot";
 import { COURSE_LABEL, problemCountForTopic } from "../courses/courseCopy";
 import { closedCourseTag, isCourseOpen } from "../../app/courses";
 import "./pathway.css";
@@ -843,9 +843,12 @@ function TrackSlab({
           {/* 20 Oct: no longer only decoration. Bloom is a button now and
               answers a tap with a hop and a line (PathMascot.tsx). */}
           {state === "current" ? (
+            // The provider tells Bloom this chip just unlocked, so he hops with the FX (PathMascot.tsx).
+            <PathUnlockContext.Provider value={unlock}>
             <PathMascot>
               {(move) => <Berry mood="happy" {...move} reducedMotion={reducedMotion} sizePx={MASCOT_PX} />}
             </PathMascot>
+            </PathUnlockContext.Provider>
           ) : null}
           {aside}
           {/* A lesson left half done wears its saved bar as a ring (resume/SavedRing.tsx). */}

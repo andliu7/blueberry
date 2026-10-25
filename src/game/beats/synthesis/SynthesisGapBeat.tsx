@@ -41,7 +41,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
-import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { BloomVerdictBerry, type BloomLook } from "../BloomVerdictBerry";
 import { useBerryReactions } from "../../mascot/useBerryReactions";
 import { clearsBeat, type BeatResult, type MasteryLevel } from "../types";
 import { playCorrect } from "../../sound/gameSound";
@@ -65,6 +65,8 @@ export interface SynthesisGapBeatProps {
   readonly speech?: SpeechSeam;
   /** Injected so a test can pin the clock. Defaults to the real one. */
   readonly now?: () => Date;
+  /** The lesson's topic state and costume for the verdict berry (BloomVerdictBerry.tsx). */
+  readonly bloomLook?: BloomLook;
 }
 
 const TONE_CLASS = {
@@ -171,6 +173,7 @@ export function SynthesisGapBeat({
   onContinue,
   speech,
   now = () => new Date(),
+  bloomLook,
 }: SynthesisGapBeatProps) {
   const playedLevel = levelToPlay(problem, level);
   const banked = playedLevel < 3;
@@ -383,7 +386,7 @@ export function SynthesisGapBeat({
                 {explanation.headline}
               </p>
               <span className="shrink-0" aria-hidden>
-                <BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />
+                <BloomVerdictBerry bloom={bloom} {...bloomLook} reducedMotion={reducedMotion} />
               </span>
             </div>
             <p className="mt-1 text-scale-sm leading-normal text-bb-foreground">{explanation.body}</p>

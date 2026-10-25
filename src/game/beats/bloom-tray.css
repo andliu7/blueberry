@@ -18,6 +18,51 @@
   color: var(--tray-ink, inherit);
 }
 
+/* The hint ring (BloomHintRing) sits inside a Why? summary and takes its shape. */
+.answer-tray__more > summary,
+.answer-tray__answer {
+  position: relative;
+}
+/* The tray body scrolls (overflow: auto), so a ring that swells to 1.5 like
+   bloomMotion's HINT_RING is cut at its edges (measured in a 390px frame). In
+   the tray it stays inside the body: on a Why? summary, which starts 0.75rem
+   left of the body, it starts at the body edge and swells to the right; on a
+   full-width headline it does not swell at all, it fades. Same 1000ms and the
+   same 0.6 to 0 fade. Reduced motion keeps bloom-answers.css's still frame. */
+.answer-tray__more > summary > .bloom-hint-ring {
+  left: 0.75rem;
+  transform-origin: 0 50%;
+}
+.answer-tray__answer > .bloom-hint-ring {
+  border-radius: 0.5rem;
+}
+.answer-tray__more > summary > .bloom-hint-ring:not([data-reduced="true"]) {
+  animation-name: bloom-hint-ring-tray;
+}
+.answer-tray__answer > .bloom-hint-ring:not([data-reduced="true"]) {
+  animation-name: bloom-hint-ring-flash;
+}
+@keyframes bloom-hint-ring-tray {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.12); }
+}
+@keyframes bloom-hint-ring-flash {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .answer-tray__more > summary > .bloom-hint-ring:not([data-reduced="true"]),
+  .answer-tray__answer > .bloom-hint-ring:not([data-reduced="true"]) {
+    transform: none;
+    animation-name: bloom-ring-still-then-fade;
+  }
+}
+html[data-motion="reduced"] .answer-tray__more > summary > .bloom-hint-ring:not([data-reduced="true"]),
+html[data-motion="reduced"] .answer-tray__answer > .bloom-hint-ring:not([data-reduced="true"]) {
+  transform: none;
+  animation-name: bloom-ring-still-then-fade;
+}
+
 /* The milestone pop: one overshoot, Duolingo's 240ms chip pop. */
 .answer-tray__combo[data-milestone] {
   display: inline-block;

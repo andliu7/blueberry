@@ -79,6 +79,7 @@ import { useProgress } from "../../app/hooks";
 import { useReducedMotionPref } from "@/lib/motionPref";
 import { Berry } from "../../mascot/Berry";
 import type { BerryBehaviour } from "../../mascot/berryBehaviour";
+import type { BerryMood } from "../../mascot/berryMood";
 import { hrefForLesson, hrefForTab } from "../../app/routes";
 import { useDisplayName } from "../../app/useDisplayName";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
@@ -628,7 +629,12 @@ function SignInLink({ children }: { readonly children: string }) {
  * "streak lost" rows with no sad frame, and it rides the condition that
  * already shows this card, so nothing here counts days away.
  */
-const PEEK_THEN_WAVE: readonly BerryBehaviour[] = Object.freeze(["wave"]);
+/** The greet's whole move: happy, peek, then wave. Exported so a test pins it has no sad frame. */
+export const RETURN_GREET: { readonly mood: BerryMood; readonly behaviour: BerryBehaviour; readonly chain: readonly BerryBehaviour[] } = Object.freeze({
+  mood: "happy",
+  behaviour: "peek",
+  chain: Object.freeze(["wave"]) as readonly BerryBehaviour[],
+});
 
 function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
   const reducedMotion = useReducedMotionPref();
@@ -639,7 +645,7 @@ function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
           {card.heading}
         </h2>
         <span className="shrink-0" aria-hidden>
-          <Berry mood="happy" behaviour="peek" chain={PEEK_THEN_WAVE} sizePx={56} reducedMotion={reducedMotion} />
+          <Berry {...RETURN_GREET} sizePx={56} reducedMotion={reducedMotion} />
         </span>
       </div>
       <p className="text-base font-bold text-bb-foreground">{card.line}</p>

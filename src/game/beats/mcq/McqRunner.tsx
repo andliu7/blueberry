@@ -42,9 +42,7 @@ import { playCorrect } from "../../sound/gameSound";
 import { mcqBeatsForNode } from "./content";
 import { resumeMcqSession } from "../../resume/lessonSave";
 import { useBerryReactions } from "../../mascot/useBerryReactions";
-import { stateForNode } from "../../mascot/berryTopicState";
-import { costumeForNode } from "../../mascot/berryCostume";
-import { isSectionFinal, pathwayNode } from "../../demo/pathwayMap";
+import { bloomLookForNode } from "../BloomVerdictBerry";
 import { McqBeatView } from "./McqBeatView";
 import {
   advance,
@@ -67,6 +65,8 @@ import {
 } from "./session";
 import { plural } from "@/lib/helpers";
 import { trackChoice } from "@/lib/analytics";
+
+const NONE_MISSED: readonly string[] = Object.freeze([]);
 
 export interface McqRunnerProps {
   /** The pathway node whose beats to play, for example "u3-directing". */
@@ -113,6 +113,12 @@ export interface McqRunnerProps {
   readonly resumeResults?: readonly BeatResult[];
   /** Fired after every committed answer with all answers so far, so the parent can save them. */
   readonly onCommit?: (results: readonly BeatResult[], progress: McqProgress) => void;
+  /**
+   * Beat ids already missed earlier in the lesson (the recycle slot passes
+   * them). A miss on one of these is Bloom's "wrong again": he leans in and
+   * the tray's Why? control gets the hint ring (session.ts latestOutcome).
+   */
+  readonly missedBefore?: readonly string[];
 }
 
 export function McqRunner({
@@ -130,6 +136,7 @@ export function McqRunner({
   onProgress,
   resumeResults,
   onCommit,
+  missedBefore = NONE_MISSED,
 }: McqRunnerProps) {
   const source = beats ?? mcqBeatsForNode(node);
   const runKey = `${node}:${level}:${source.length}`;
@@ -156,9 +163,11 @@ export function McqRunner({
   const reactions = useBerryReactions(reducedMotion, "leanIn");
   // What the lesson's topic makes the berry, and what it wears for it. Both
   // are pure table reads, so they are worked out per render, not stored.
-  const mapNode = pathwayNode(node);
-  const topicState = stateForNode(node);
-  const costume = costumeForNode(mapNode === null ? null : { ...mapNode, final: isSectionFinal(mapNode) });
+  const { state: topicState, costume } = bloomLookForNode(node);
+  // The hint ring belongs to the tray of the wrong-again grade only: every
+  // later tray mounts fresh, and a ring keyed on the standing count would
+  // replay on each of them.
+  const hintRingKey = session.reveal !== null && latestOutcome(session, missedBefore) === "wrongAgain" ? reactions.hintKey : 0;
 
   const primary = () => {
     if (session.reveal !== null) {
@@ -182,7 +191,7 @@ export function McqRunner({
     // setSession below, and React batches both into one render, so the tray
     // and Bloom's reaction reach the screen on the same frame (spec: within
     // 200ms of grading).
-    const outcome = latestOutcome(committed.session);
+    const outcome = latestOutcome(committed.session, missedBefore);
     if (outcome !== null) reactions.react(outcome);
     setSession(committed.session);
     if (onProgress !== undefined) onProgress(sessionProgress(committed.session));
@@ -239,6 +248,7 @@ export function McqRunner({
       reducedMotion={reducedMotion}
       combo={currentRun(session)}
       bloom={reactions}
+      hintRingKey={hintRingKey}
       topicState={topicState}
       costume={costume}
     />

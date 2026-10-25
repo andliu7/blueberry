@@ -68,7 +68,8 @@ import { Berry } from "../../../mascot/Berry";
 import { costumeForSurface } from "../../../mascot/berryCostume";
 import { useBerryReactions } from "../../../mascot/useBerryReactions";
 import { MIND_BLOWN } from "../../../mascot/berryTopicState";
-import type { BerryLook } from "../../../mascot/berryMood";
+import type { BerryLook, BerryMood } from "../../../mascot/berryMood";
+import type { BerryBehaviour } from "../../../mascot/berryBehaviour";
 import type { BerryState } from "../../../mascot/berryState";
 import { TrainerCanvas, type CanvasMarks } from "./TrainerCanvas";
 import { arrowPresentation, arrowStyleSetting } from "../../../settings/arrowStyle";
@@ -124,6 +125,18 @@ export interface TrainerScreenProps {
  * the exact drop.
  */
 const LOOK_AT_CANVAS: BerryLook = Object.freeze({ x: -0.9, y: -0.5 });
+
+/** Bloom's opening move on the screen: the peek, or the mind-blown face on a first resonance. Pure, so a test reads it. */
+export function trainerOpening(mindBlown: boolean): { readonly behaviour: BerryBehaviour; readonly mood: BerryMood; readonly chain: readonly BerryBehaviour[] } {
+  return mindBlown
+    ? { behaviour: MIND_BLOWN.behaviour, mood: MIND_BLOWN.mood, chain: ["leanIn"] }
+    : { behaviour: "peek", mood: "focused", chain: ["leanIn"] };
+}
+
+/** Where Bloom looks: at the canvas once an arrow is down while drawing, else his own glance (undefined). */
+export function trainerLook(interactive: boolean, arrowCount: number): BerryLook | undefined {
+  return interactive && arrowCount > 0 ? LOOK_AT_CANVAS : undefined;
+}
 
 const WIN_TWEEN_MS = 1400;
 /** How long the green arrows hold at full before the bond change starts. */
@@ -318,8 +331,8 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // opens on the mind-blown face instead. An empty dependency list runs this
   // once per mount.
   useEffect(() => {
-    if (mindBlown) bump(MIND_BLOWN.behaviour, MIND_BLOWN.mood, ["leanIn"]);
-    else bump("peek", "focused", ["leanIn"]);
+    const opening = trainerOpening(mindBlown);
+    bump(opening.behaviour, opening.mood, opening.chain);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -334,6 +347,10 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
   // main thread is a verdict the student watches arrive late (round four
   // motion critic: the miss took ~200 ms to change a pixel against the bar's
   // 45). Cleared if the screen unmounts inside the rise.
+  // OPEN OWNER QUESTION (BLOOM-STATES-SPEC.md section 7, Q8): the spec asks
+  // for the mood at t=0 with only the body motion waiting, because RISE_MS
+  // plus a render sits on the 200ms reaction budget; trainerMascotWiring.test.ts
+  // pins the face unchanged until RISE_MS, so it stays as it is until he decides.
   const riseTimer = useRef<number | null>(null);
   const afterRise = useCallback(
     (work: () => void) => {
@@ -679,7 +696,7 @@ export function TrainerScreen({ question, stepIndex: startIndex = 0, onExit, onS
               {...berry}
               costume={costumeForSurface("trainer")}
               working={interactive}
-              lookAt={interactive && mechanism.arrows.length > 0 ? LOOK_AT_CANVAS : undefined}
+              lookAt={trainerLook(interactive, mechanism.arrows.length)}
               reducedMotion={reducedMotion}
               sizePx={64}
             />

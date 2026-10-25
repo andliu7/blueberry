@@ -68,7 +68,7 @@ import type { Card } from "../../cards/types";
 import { Press } from "../../app/ui/Press";
 import { ChipPress } from "../ChipPress";
 import { clearsBeat } from "../types";
-import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { BloomVerdictBerry, type BloomLook } from "../BloomVerdictBerry";
 import { useBerryReactions } from "../../mascot/useBerryReactions";
 import { useReducedMotionPref } from "@/lib/motionPref";
 import { StructureFigure } from "../../onboarding/StructureFigure";
@@ -145,6 +145,8 @@ export interface MatchBoardProps {
    */
   readonly onMistakeCard?: (card: Card) => void;
   readonly onContinue?: () => void;
+  /** The lesson's topic state and costume for the verdict berry (BloomVerdictBerry.tsx). */
+  readonly bloomLook?: BloomLook;
 }
 
 export function MatchBoard({
@@ -153,6 +155,7 @@ export function MatchBoard({
   onComplete,
   onMistakeCard,
   onContinue,
+  bloomLook,
 }: MatchBoardProps) {
   // Built once per beat and level. buildMatchBoard validates as it goes, so the
   // problems list is checked first and a bad board never reaches the renderer.
@@ -185,6 +188,7 @@ export function MatchBoard({
         {...(onComplete === undefined ? {} : { onComplete })}
         {...(onMistakeCard === undefined ? {} : { onMistakeCard })}
         {...(onContinue === undefined ? {} : { onContinue })}
+        {...(bloomLook === undefined ? {} : { bloomLook })}
       />
     </>
   );
@@ -195,11 +199,13 @@ export function Board({
   onComplete,
   onMistakeCard,
   onContinue,
+  bloomLook,
 }: {
   readonly spec: MatchBoardSpec;
   readonly onComplete?: (result: BeatResult) => void;
   readonly onMistakeCard?: (card: Card) => void;
   readonly onContinue?: () => void;
+  readonly bloomLook?: BloomLook;
 }) {
   const [state, dispatch] = useReducer(
     (current: BoardState, action: Parameters<typeof reduceBoard>[2]) =>
@@ -404,7 +410,7 @@ export function Board({
               {completionLine(total, state.misses.length)}
             </p>
             <span className="shrink-0" aria-hidden>
-              <BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />
+              <BloomVerdictBerry bloom={bloom} {...bloomLook} reducedMotion={reducedMotion} />
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">

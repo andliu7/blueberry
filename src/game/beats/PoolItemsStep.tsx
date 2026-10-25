@@ -21,6 +21,7 @@ import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "./types
 import type { PoolEntry } from "../content/u1/types";
 import type { PoolResume } from "../resume/lessonSave";
 import { sortFiguresFor } from "./sortFigures";
+import type { BloomLook } from "./BloomVerdictBerry";
 
 const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
 const MatchBoardFromSpec = lazy(() => import("./match/MatchBoard").then((m) => ({ default: m.Board })));
@@ -42,9 +43,11 @@ export interface PoolItemsStepProps {
   readonly resume?: PoolResume | null;
   /** When an item but the last is first judged: the ids finished so far and the tally, so the lesson can save them. */
   readonly onCommit?: (done: readonly string[], cleared: number, missedDrawIds: readonly string[]) => void;
+  /** The lesson's topic state and costume for each ladder's and board's verdict berry. */
+  readonly bloomLook?: BloomLook;
 }
 
-export function PoolItemsStep({ entries, onDone, resume = null, onCommit }: PoolItemsStepProps) {
+export function PoolItemsStep({ entries, onDone, resume = null, onCommit, bloomLook }: PoolItemsStepProps) {
   const [index, setIndex] = useState(resume?.index ?? 0);
   const first = useRef<BeatResult | null>(null);
   const cleared = useRef(resume?.cleared ?? 0);
@@ -82,10 +85,11 @@ export function PoolItemsStep({ entries, onDone, resume = null, onCommit }: Pool
           figures={sortFiguresFor(entry.id)}
           onResult={keep}
           onContinue={next}
+          bloomLook={bloomLook}
         />
       ) : null}
       {item.kind === "match" ? (
-        <MatchBoardFromSpec key={entry.id} spec={item.board} onComplete={keep} onContinue={next} />
+        <MatchBoardFromSpec key={entry.id} spec={item.board} onComplete={keep} onContinue={next} bloomLook={bloomLook} />
       ) : null}
       {item.kind === "draw" ? (
         <DrawBeatView key={entry.id} beat={item.beat} level={poolItemLevel(item.beat.levels)} onResult={keep} onContinue={next} />

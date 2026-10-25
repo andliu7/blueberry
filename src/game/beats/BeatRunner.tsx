@@ -73,6 +73,7 @@ import { sortFiguresFor } from "./sortFigures";
 import { synthesisGapsForNode } from "./synthesis";
 import type { Receipt } from "@blueberry/economy";
 import { Berry } from "../mascot/Berry";
+import { bloomLookForNode } from "./BloomVerdictBerry";
 import { BloomLessonComplete } from "../mascot/progression/BloomLessonComplete";
 import { costumeForNode } from "../mascot/berryCostume";
 import { isFirstResonance, markResonanceSeen, readResonanceSeen, stateForNode } from "../mascot/berryTopicState";
@@ -653,6 +654,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   const sceneChapter = step?.beat.kind === "meet" ? sceneChapterFor(step.beat.node) : null;
   const sceneShowing = sceneChapter !== null && sceneAt === stepKey;
   const inMcq = (step?.beat.kind === "meet" && !sceneShowing) || step?.beat.kind === "mcq" || (run.phase === "recycle" && !recyclingDraws);
+  // The lesson's topic state and costume, for the verdict berry on the sort, match, synthesis and pool steps (McqRunner reads its own).
+  const bloomLook = bloomLookForNode(node);
   // The trainer engine is a fixed full-viewport screen with its own exit, so
   // while it plays the lesson chrome underneath is covered but still in the
   // accessibility tree. inert takes the tool rail out of the tab order and
@@ -778,6 +781,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
               stepResult.current = result;
             }}
             onContinue={advanceSingle}
+            bloomLook={bloomLook}
           />
         ) : null}
         {step?.beat.kind === "sort" ? (
@@ -789,6 +793,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
               stepResult.current = result;
             }}
             onContinue={advanceSingle}
+            bloomLook={bloomLook}
           />
         ) : null}
         {step?.beat.kind === "synthesis" ? (
@@ -801,6 +806,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             }}
             onOfferCard={(gapOffer) => handleOfferCard(gapOffer.card, gapOffer.reco)}
             onContinue={advanceSingle}
+            bloomLook={bloomLook}
           />
         ) : null}
 
@@ -811,6 +817,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             entries={itemEntries}
             {...poolSaving("items", itemEntries.map((one) => one.id))}
             onDone={(cleared, total, missedDraws) => advanceStep(cleared, total, undefined, missedDraws)}
+            bloomLook={bloomLook}
           />
         ) : null}
 
@@ -867,6 +874,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             node={node}
             level="declared"
             beats={recycleBeatsFor(run.plan, run.missedMcqIds)}
+            missedBefore={run.missedMcqIds}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={strip}

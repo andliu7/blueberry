@@ -375,6 +375,20 @@ to shrink. Never touch `validators.lock.json`.
    floating lone pair as a ":" pair. As built it is three dots rising up and to the right, small to
    large, like a thought bubble's tail (`THOUGHT_DOTS` timing). Keep the trail, or draw the lone
    pair as ":" beside the head?
+8. **Trainer reaction timing.** Section 4 asks the trainer to swap Bloom's mood at t=0 and let only
+   the body motion wait for the sheet, because `RISE_MS` (200) plus a render sits on the 200ms
+   budget. `trainerMascotWiring.test.ts` pins the opposite ("holds the waiting face until RISE_MS
+   has passed"), so [WIR] left `TrainerScreen.tsx` as it was. Keep the deferred face, or change the
+   pin and swap the mood on the commit frame? Under reduced motion it already reacts at t=0.
+9. **Hint offer without a hint key.** Section B rings "the tray's existing hint control", but the
+   answer tray has none. As built the ring goes on the tray's help control: "Why?" when there is
+   more to read, else "Why yours isn't it". Most wrong sort ladders carry no authored explanation
+   and so no Why?, and there the ring circles the headline, which is the ladder's next step ("Start
+   from the ends"). In the MCQ it fires only in the recycle slot (the one place the same question
+   comes back), in the sort on a wrong ladder after Try again. The tray body scrolls, so a ring
+   swelling to 1.5 was cut at its edges: in the tray it swells to 1.12 from the body edge on a
+   Why?, and only fades on a headline (bloom-tray.css). Keep that, or add a real Hint key to the
+   tray?
 
 ## 8. Commit rules for builders
 

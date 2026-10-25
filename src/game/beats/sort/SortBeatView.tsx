@@ -69,7 +69,8 @@ import {
 import { PKA_TABLE, type OrderingState, type PkaSiteId } from "@blueberry/curriculum";
 import { ChipPress } from "../ChipPress";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
-import { BloomVerdictBerry } from "../BloomVerdictBerry";
+import { BloomVerdictBerry, type BloomLook } from "../BloomVerdictBerry";
+import { BloomHintRing } from "../../mascot/BloomStage";
 import { useBerryReactions } from "../../mascot/useBerryReactions";
 import { useReducedMotionPref } from "@/lib/motionPref";
 import { canFail, clearsBeat, type BeatResult, type MasteryLevel } from "../types";
@@ -159,6 +160,18 @@ export interface SortBeatViewProps {
    * rule: draw structures, never formulas). A card without one shows its label alone.
    */
   readonly figures?: Readonly<Record<string, NamedFigure>>;
+  /** The lesson's topic state and costume for the verdict berry (BloomVerdictBerry.tsx). */
+  readonly bloomLook?: BloomLook;
+}
+
+/**
+ * What Bloom answers a judged ladder with. A wrong ladder after Try again on
+ * the same sort is "wrong again": he leans in, the tray's Why? gets the hint
+ * ring, and there is no second sad beat. Pure, so a test reads it.
+ */
+export function sortReactionOutcome(right: boolean, missedBefore: boolean): "correct" | "wrong" | "wrongAgain" {
+  if (right) return "correct";
+  return missedBefore ? "wrongAgain" : "wrong";
 }
 
 export function SortBeatView({
@@ -170,6 +183,7 @@ export function SortBeatView({
   onSubmitOrder,
   onContinue,
   figures,
+  bloomLook,
 }: SortBeatViewProps) {
   // useSyncExternalStore is React's supported way to read a store that lives
   // outside React (subscribe plus getSnapshot). It is what app/progress.ts and
@@ -197,6 +211,8 @@ export function SortBeatView({
   const reducedMotion = useReducedMotionPref();
   const bloom = useBerryReactions(reducedMotion, "leanIn");
   const missedOnce = useRef(false);
+  // True while the tray on screen answers a wrong-again ladder, so only that tray rings.
+  const [hintOffer, setHintOffer] = useState(false);
 
   // The first ranking a student ever meets nudges its top card once, so it is
   // obvious the cards move. Lazy useState initializer: read storage once, on mount.
@@ -373,7 +389,9 @@ export function SortBeatView({
     // Bloom answers in the same update as the verdict. A second wrong ladder
     // on this same sort is "wrong again": he leans in, no second sad beat.
     const right = clearsBeat(judgedNow.result);
-    bloom.react(right ? "correct" : missedOnce.current ? "wrongAgain" : "wrong");
+    const outcome = sortReactionOutcome(right, missedOnce.current);
+    bloom.react(outcome);
+    setHintOffer(outcome === "wrongAgain");
     if (!right) missedOnce.current = true;
     if (onResult !== undefined) onResult(judgedNow.result);
   }
@@ -479,6 +497,7 @@ export function SortBeatView({
   }
 
   const draggedItem = drag === null ? undefined : itemById.get(drag.card);
+  const hintRing = <BloomHintRing ringKey={hintOffer ? bloom.hintKey : 0} reducedMotion={reducedMotion} />;
 
   return (
     <section className="sort-beat">
@@ -556,12 +575,18 @@ export function SortBeatView({
         <AnswerTray
           tone={cleared ? "right" : "wrong"}
           title={cleared ? "Nice!" : "Not quite"}
-          mascot={<BloomVerdictBerry bloom={bloom} reducedMotion={reducedMotion} />}
+          mascot={<BloomVerdictBerry bloom={bloom} {...bloomLook} reducedMotion={reducedMotion} />}
           actionLabel={cleared ? "Keep going" : "Try again"}
           onAction={cleared ? onContinue : adjust}
           actionDisabled={cleared && onContinue === undefined}
         >
-          <p className="answer-tray__answer">{judgement.headline}</p>
+          <p className="answer-tray__answer">
+            {judgement.headline}
+            {/* Most wrong ladders carry no authored explanation, so no Why?
+                control: the hint ring then circles the headline, which is the
+                ladder's own next step ("Start from the ends"). */}
+            {!cleared && judgement.explanation === null ? hintRing : null}
+          </p>
           {judgement.explanation === null ? null : (
             <>
               {/* The tray stays short: the headline, one line on show, and the
@@ -579,6 +604,7 @@ export function SortBeatView({
                 <TrayWhy
                   lead={judgement.explanation.lookAt}
                   more={[judgement.explanation.why, judgement.explanation.whatHappened]}
+                  ring={hintRing}
                 />
               )}
             </>

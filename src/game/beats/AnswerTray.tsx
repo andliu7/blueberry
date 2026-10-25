@@ -71,8 +71,12 @@ export function firstSentence(text: string): { readonly first: string; readonly 
  * it was folded under "Why?" and a first-timer never found it, so it now shows
  * by default under "Why yours isn't it" (a <details> rendered open: the
  * student can still fold it, and React only sets `open` on the first render).
+ *
+ * `ring` is Bloom's hint offer on a wrong-again miss (BLOOM-STATES-SPEC.md, B):
+ * the tray has no separate hint key, so the ring goes on its help control,
+ * "Why?" when there is more to read, else "Why yours isn't it".
  */
-export function TrayWhy({ lead, more = [], yours }: { readonly lead: string; readonly more?: readonly string[]; readonly yours?: string }) {
+export function TrayWhy({ lead, more = [], yours, ring }: { readonly lead: string; readonly more?: readonly string[]; readonly yours?: string; readonly ring?: ReactNode }) {
   const { first, rest } = firstSentence(lead);
   const ownWhy = yours !== undefined && yours.length > 0 && yours !== lead ? yours : null;
   const extra = [rest, ...more.filter((part) => part !== lead && part !== ownWhy)].filter((part) => part.length > 0);
@@ -81,13 +85,19 @@ export function TrayWhy({ lead, more = [], yours }: { readonly lead: string; rea
       <p>{first}</p>
       {ownWhy !== null ? (
         <details className="answer-tray__more" open>
-          <summary>Why yours isn&rsquo;t it</summary>
+          <summary>
+            Why yours isn&rsquo;t it
+            {extra.length === 0 ? ring : null}
+          </summary>
           <p>{ownWhy}</p>
         </details>
       ) : null}
       {extra.length > 0 ? (
         <details className="answer-tray__more">
-          <summary>Why?</summary>
+          <summary>
+            Why?
+            {ring}
+          </summary>
           {extra.map((part) => (
             <p key={part}>{part}</p>
           ))}
