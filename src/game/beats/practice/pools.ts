@@ -25,6 +25,8 @@ import { U0_EXAM_CHAPTERS, U0_EXAM_IDS, U0_POOLS } from "../../content/u0";
 import { lessonTrainerFor } from "../../content/u1/lessonTrainers";
 import { mcqCardId } from "../mcq/card";
 import type { PoolEntry, UnitPools } from "../../content/u1/types";
+import { coveredSideQuests } from "../../syllabus/syllabusPlan";
+import { sideQuestProblems, sideQuestsFor, withSideQuests } from "../../syllabus/syllabusQuizzes";
 
 /**
  * The unit exam, played as an in-a-row run on the unit's checkpoint. Owner
@@ -102,9 +104,15 @@ function isRunNode(nodeId: string): boolean {
   return node.playable === undefined || node.playable.kind === "beat";
 }
 
-export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS): readonly PoolEntry[] {
-  if (EXAM_SOURCES[nodeId] !== undefined) return examPool(nodeId, pools);
-  return isRunNode(nodeId) ? (pools[nodeId] ?? []) : [];
+/**
+ * `covered` is the side quests the student's syllabus covers (owner rule,
+ * STATUS C1): each lends a few problems to its unit's checkpoint and to the
+ * stage quiz after it, and the run keeps its length (syllabus/syllabusQuizzes.ts).
+ * Empty, the default with no syllabus, is the pool exactly as authored.
+ */
+export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS, covered: ReadonlySet<string> = coveredSideQuests()): readonly PoolEntry[] {
+  const own = EXAM_SOURCES[nodeId] !== undefined ? examPool(nodeId, pools) : isRunNode(nodeId) ? (pools[nodeId] ?? []) : [];
+  return withSideQuests(own, sideQuestsFor(nodeId, covered).map((id) => sideQuestProblems(id, pools)), interleave);
 }
 
 /**
@@ -138,7 +146,8 @@ export function poolHomeOf(entryId: string, pools: UnitPools = ALL_POOLS): strin
 export function challengePool(nodeId: string, pools: UnitPools = ALL_POOLS): readonly PoolEntry[] {
   const own = practicePool(nodeId, pools);
   if (own.length === 0) return [];
-  return interleave(own, ...(CHALLENGE_EXTRAS[nodeId] ?? []).map((source) => pools[source] ?? []));
+  // A side quest the syllabus covers may already be in `own` (practicePool), so it is not asked twice.
+  return interleave(own, ...(CHALLENGE_EXTRAS[nodeId] ?? []).map((source) => (pools[source] ?? []).filter((entry) => !own.includes(entry))));
 }
 
 /**

@@ -264,8 +264,17 @@ Course (business test 2)
     "Not covered"). Up/down for units and sections, not covered marks, side quest switches, Save,
     Clear. The map shows "Week 8 · Before Exam 2, Nov 4", "Catch up: Week 7" or "Not on your
     syllabus" per unit; START and the guide move to this week's unit (never opens or locks a node).
-    The side quest rule is live: a covered side quest joins its section test, its unit exam and the
-    checkpoint mix, never what a pass lights. Only the derived plan is saved, never the text.
+    The side quest rule is live on test-outs: a covered side quest joins its section test and its
+    unit exam, never what a pass lights. CORRECTED 25 Oct (critic): it did NOT reach the checkpoint
+    or the quizzes. The derived checkpoint mix took a covered side quest in Unit 4 only, and the
+    pool-played checkpoints (Units 0, 1, 2, 4, 6), Unit 1's stage quizzes and the review concept
+    check never took one. Pool half now wired (syllabus/syllabusQuizzes.ts): a covered side quest
+    lends up to 3 graded problems to its unit's pool-played checkpoint and to the first stage quiz
+    or review stop after it, same run length, nothing covered is byte-identical. Units 2 to 10 have
+    no stage quiz or review stop, so there it counts on the checkpoint and the tests only. The
+    derived-mix checkpoints (Units 3, 5, 7 to 10, e.g. Stork, Hofmann elimination) are fixed only
+    in the uncommitted fix round below (checkpointPlan in beats/template.ts), not on HEAD.
+    Only the derived plan is saved, never the text.
     First open: about +1.1 KB gz from this lane (0.6 KB store, the rest testOuts and PathwayTab);
     the week logic loads only once a plan exists. Defaults taken from the plan, change any: map
     keeps curriculum order; side quests count only on an explicit match; "Ch 18" lines are flagged

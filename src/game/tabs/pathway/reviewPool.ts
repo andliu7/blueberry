@@ -30,6 +30,8 @@ import { interleave } from "../../beats/practice/pools";
 import { U1_POOLS } from "../../content/u1";
 import type { PoolEntry, UnitPools } from "../../content/u1/types";
 import type { ReviewCheckpoint } from "./reviewCheckpoints";
+import { coveredSideQuests } from "../../syllabus/syllabusPlan";
+import { sideQuestProblems, sideQuestsFor } from "../../syllabus/syllabusQuizzes";
 
 /** How many problems each reviewed lesson lends the review. Four lessons give a run of twelve. */
 export const PER_LESSON = 3;
@@ -55,7 +57,18 @@ export function windowOf<T>(pool: readonly T[], attempt: number): readonly T[] {
   return Array.from({ length: count }, (_, i) => pool[(start + i) % pool.length]!);
 }
 
-export function reviewPool(review: ReviewCheckpoint, pools: UnitPools = U1_POOLS, attempt = 0): readonly ReviewEntry[] {
+/**
+ * A side quest the student's syllabus covers whose concept check this is
+ * (owner rule, STATUS C1; syllabus/syllabusQuizzes.ts) takes a turn LAST in
+ * every round, after the reviewed lessons, and the pool keeps its length. Last,
+ * so any run of clearTargetFor's length from the start still samples every
+ * reviewed lesson; it is asked as soon as a run goes past one round. Nothing
+ * covered, the pool is exactly as before.
+ */
+export function reviewPool(review: ReviewCheckpoint, pools: UnitPools = U1_POOLS, attempt = 0, covered: ReadonlySet<string> = coveredSideQuests()): readonly ReviewEntry[] {
   const newestFirst = [...review.reviews].reverse();
-  return interleave(...newestFirst.map((source) => windowOf(pools[source] ?? [], attempt).map((entry) => ({ entry, source }))));
+  const own = newestFirst.map((source) => windowOf(pools[source] ?? [], attempt).map((entry) => ({ entry, source })));
+  const lent = sideQuestsFor(review.id, covered).map((source) => sideQuestProblems(source, pools).map((entry) => ({ entry, source })));
+  const base = interleave(...own);
+  return lent.length === 0 ? base : interleave(...own, ...lent).slice(0, base.length);
 }
