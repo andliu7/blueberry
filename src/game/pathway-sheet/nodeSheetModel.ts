@@ -22,6 +22,7 @@
  */
 
 import { plural } from "@/lib/helpers";
+import { coveredSideQuests } from "../syllabus/syllabusPlan";
 
 /** The same vocabulary the pathway derives; see MapNodeState in pathwayState.ts. */
 export type SheetNodeState = "done" | "current" | "open" | "review" | "locked";
@@ -253,7 +254,15 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     // A side quest says it is optional ON the sheet, not only in its
     // accessible name (g11 critic). "Not on the checkpoint" is checkpointPlan's
     // own rule (beats/template.ts skips branches), so it is a true statement.
-    practiceDetail: stakes !== null ? stakes.detail : node.kind === "branch" ? "Optional side quest. It is not on the unit checkpoint." : null,
+    // A side quest the student's syllabus covers is on it (STATUS C1), and says so.
+    practiceDetail:
+      stakes !== null
+        ? stakes.detail
+        : node.kind === "branch"
+          ? coveredSideQuests().has(node.id)
+            ? "Counts on quizzes and exams: it is on your syllabus."
+            : "Optional side quest. It is not on the unit checkpoint."
+          : null,
     kindLabel: KIND_LABEL[node.kind],
     cleared,
     pips:

@@ -1,0 +1,17 @@
+Course Calendar (all dates approximate)
+
+Week 1:
+  • Review of resonance; conjugation
+  • Kinetic vs. thermodynamic control, 1,2- vs 1,4-addition
+Week 2:
+  • Diels–Alder reaction (endo rule)
+Wk 3
+  - Aromaticity: Hückel's rule, 4n+2, annulenes
+  - Heterocycles (pyridine, pyrrole)
+Wk 4
+  - EAS: halogenation, nitration, sulfonation
+  - Friedel-Crafts alkylation & acylation
+W5 Exam 1 (Weeks 1-4)
+W6 SNAr and benzyne
+Week 7: NMR spectroscopy, IR, mass spec
+Week 8: Grignard reagents, Wittig reaction

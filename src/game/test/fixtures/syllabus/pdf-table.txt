@@ -1,0 +1,19 @@
+CHEM 2420 Organic Chemistry II - Tentative Schedule
+Week	Date	Topic	Reading
+1	8/26	Conjugated dienes, allylic cations	Ch 14
+2	9/2	Diels-Alder reaction, MO theory	Ch 14
+3	9/9	Aromaticity, Huckel rule	Ch 15
+4	9/16	Electrophilic aromatic substitution	Ch 16
+5	9/23	Friedel-Crafts, directing effects	Ch 16
+6	9/30	Exam 1: Ch 14-16	
+7	10/7	Nucleophilic aromatic substitution, benzyne	Ch 16
+8	10/14	Fall break - no class	
+9	10/21	Alcohols and ethers, epoxides	Ch 17-18
+10	10/28	Aldehydes and ketones	Ch 19
+Week	Date	Topic	Reading
+11	11/4	Exam 2: Ch 17-19	
+12	11/11	Carboxylic acids and derivatives	Ch 20-21
+13	11/18	Enolates, aldol, Claisen	Ch 22-23
+14	11/25	Thanksgiving	
+15	12/2	Amines, Hofmann elimination	Ch 24
+	Dec 14	Final Exam (cumulative) 8:00-10:00 AM	

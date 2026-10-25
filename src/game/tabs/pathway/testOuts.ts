@@ -24,6 +24,8 @@ import { PATHWAY_UNITS, checkpointNodeId, unitNumber, type PathwayNode, type Pat
 import { reviewsAfter } from "./reviewCheckpoints";
 import { chestIdFor, splitSections } from "./pathwaySections";
 import { roadOf, unitShape } from "./unitShape";
+import { prerequisitesOf } from "./pathwayState";
+import { coveredSideQuests } from "../../syllabus/syllabusPlan";
 
 /** Units whose lessons have question pools to draw a test from (content/u1 to u10). */
 export const TEST_OUT_UNITS: ReadonlySet<string> = new Set(["u1", "u2", "u3", "u4", "u5", "u6", "u7", "u8", "u9", "u10"]);
@@ -78,6 +80,28 @@ function onLine(node: PathwayNode): boolean {
   return node.kind !== "branch" && node.playable !== undefined;
 }
 
+/** A side quest the student's syllabus covers, with content to ask from (syllabus/syllabusPlan.ts). */
+function onSyllabus(node: PathwayNode, covered: ReadonlySet<string>): boolean {
+  return node.kind === "branch" && node.playable !== undefined && node.mentionOnly !== true && covered.has(node.id);
+}
+
+/**
+ * The section a side quest belongs to: the latest section holding one of its
+ * prerequisites (a prerequisite that is itself a side quest is followed back
+ * to the main line). The last section when nothing places it.
+ */
+export function branchSection(unit: PathwayUnit, node: PathwayNode, seen: ReadonlySet<string> = new Set()): number {
+  const sections = unitSections(unit);
+  let found = 0;
+  for (const id of prerequisitesOf(unit, node)) {
+    const holder = sections.find((section) => section.sources.includes(id) || section.lights.includes(id));
+    const before = unit.nodes.find((entry) => entry.id === id);
+    const at = holder !== undefined ? holder.number : before !== undefined && before.kind === "branch" && !seen.has(id) ? branchSection(unit, before, new Set([...seen, node.id])) : 0;
+    found = Math.max(found, at);
+  }
+  return found === 0 ? (sections[sections.length - 1]?.number ?? 1) : found;
+}
+
 const sectionCache = new Map<string, readonly UnitSection[]>();
 
 /**
@@ -126,8 +150,14 @@ function unitLights(unit: PathwayUnit): readonly string[] {
   return [...line, ...reviews, checkpointNodeId(unit.id)];
 }
 
-/** The test-out with this id, or null for any other id. */
-export function testOutFor(id: string, units: readonly PathwayUnit[] = PATHWAY_UNITS): TestOut | null {
+/**
+ * The test-out with this id, or null for any other id. `covered` is the side
+ * quests the student's syllabus covers (owner rule, STATUS C1): each joins the
+ * unit exam's sources and its own section's, never what a pass lights, so a
+ * side quest stays optional and the unlock rule is untouched. Empty, the
+ * default with no syllabus, is the main line only.
+ */
+export function testOutFor(id: string, units: readonly PathwayUnit[] = PATHWAY_UNITS, covered: ReadonlySet<string> = coveredSideQuests()): TestOut | null {
   for (const [at, unit] of units.entries()) {
     if (!TEST_OUT_UNITS.has(unit.id)) continue;
     if (id === unitExamId(unit.id)) {
@@ -138,7 +168,7 @@ export function testOutFor(id: string, units: readonly PathwayUnit[] = PATHWAY_U
         section: null,
         title: `${unitNumber(unit.title)} exam`,
         size: UNIT_EXAM_SIZE,
-        sources: unit.nodes.filter(onLine).map((node) => node.id),
+        sources: unit.nodes.filter((node) => onLine(node) || onSyllabus(node, covered)).map((node) => node.id),
         lights: units.slice(0, at + 1).flatMap(unitLights),
         chestId: null,
       };
@@ -153,7 +183,7 @@ export function testOutFor(id: string, units: readonly PathwayUnit[] = PATHWAY_U
       section,
       title: `Section ${section.number} test-out`,
       size: sectionTestSize(section.number, sections.length),
-      sources: section.sources,
+      sources: [...section.sources, ...unit.nodes.filter((node) => onSyllabus(node, covered) && branchSection(unit, node) === section.number).map((node) => node.id)],
       lights: sections.filter((entry) => entry.number <= section.number).flatMap((entry) => entry.lights),
       chestId: section.chestId,
     };

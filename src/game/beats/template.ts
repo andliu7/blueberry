@@ -47,6 +47,7 @@ import { synthesisGapsForNode } from "./synthesis";
 import { checkpointUnitFor, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
 import { lessonPool, practicePool } from "./practice/pools";
 import { lessonTrainerFor } from "../content/u1/lessonTrainers";
+import { coveredSideQuests } from "../syllabus/syllabusPlan";
 import type { McqBeat } from "./types";
 import type { TrainerRef } from "./types";
 import type { PoolEntry } from "../content/u1/types";
@@ -306,14 +307,17 @@ export function recyclePoolEntriesFor(plan: LessonPlan, missedIds: readonly stri
  * A unit with nothing authored gets null, which is the same honest answer any
  * unauthored node gets: the chip renders queued and declines.
  */
-function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
+// Exported for test/syllabusSideQuests.test.ts, which runs it on a unit with a covered side quest first.
+export function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
   const steps: PlanStep[] = [];
   const taken = new Set<ContentSlot>();
+  const covered = coveredSideQuests();
   for (const entry of unit.nodes) {
     // Enrichment stays off the check, for the same reason it stays off the
     // exam-weighted spine: a checkpoint that asked an optional side quest would
     // be grading a student on work the track told them they could skip.
-    if (entry.kind === "branch") continue;
+    // Unless the student's syllabus covers it (STATUS C1): then it is on their exams too.
+    if (entry.kind === "branch" && !covered.has(entry.id)) continue;
     for (const step of planLesson(entry.id)?.steps ?? []) {
       // A whole in-a-row run is a lesson of its own, not one question of a mix.
       if (step.beat.kind === "practice") continue;

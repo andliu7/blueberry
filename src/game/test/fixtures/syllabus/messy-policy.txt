@@ -1,0 +1,19 @@
+CHEM 241 ORGANIC CHEMISTRY II
+Instructor: Dr. Example   Email: instructor@example.edu
+Office Hours: Tue/Thu 2-3 pm, Chemistry Building Room 1201
+Grading: Exams 60%, Quizzes 20%, Final 20%
+Late work policy: no late homework accepted.
+Academic integrity is expected of all students.
+
+Week | Date | Topic
+Week | Date | Topic
+1 | Sept 2 | Conjugation and resonance
+2 | Sept 9 | Aromaticity and benzene
+3 | Sept 16 | Electrophilic aromatic substitution (EAS)
+4 | Sept 23 | Quiz 1; Wolff-Kishner and Clemmensen
+5 | Sept 30 | Exam 1 - Ch 15-17
+6 | Oct 7 | Ch 18
+7 | Oct 14-16 | Phenols, Claisen rearrangement
+8 | Oct 21 | Gabriel synthesis, Hofmann rearrangement, reductive amination
+9 | Oct 28 | Photosynthesis in plants
+10 | Nov 4 | Exam 2: Oct 14 material onward

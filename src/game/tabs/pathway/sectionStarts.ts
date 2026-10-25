@@ -32,6 +32,8 @@ import { checkpointNodeId, type PathwayNode, type PathwayUnit } from "../../demo
 import { deriveMapPathway, prerequisitesOf, type MapNodeStatus, type MapUnitStatus } from "./pathwayState";
 import { withReviewGates, type GatedPathway, type ReviewCheckpoint } from "./reviewCheckpoints";
 import { unitSections } from "./testOuts";
+import { withSyllabusStart } from "../../syllabus/syllabusStart";
+import type { SyllabusPlan } from "../../syllabus/syllabusPlan";
 
 /**
  * The stops a main-line node waits for inside its own section, in road order
@@ -108,7 +110,17 @@ export function clearedIdsOf(journal: readonly EconomyEvent[]): ReadonlySet<stri
  * The status the student sees, every layer in order: the map's own rule, the
  * review stops, then the section starts. PathwayTab and the unlock
  * celebration both read this one function, so they cannot disagree.
+ *
+ * With a syllabus plan (STATUS C1) one more layer moves START to this week's
+ * syllabus lesson; it never opens or locks a node (syllabus/syllabusStart.ts).
  */
-export function pathStatus(units: readonly PathwayUnit[], journal: readonly EconomyEvent[], cleared: ReadonlySet<string> = clearedIdsOf(journal)): GatedPathway {
-  return withSectionStarts(units, withReviewGates(units, deriveMapPathway(units, journal), cleared), cleared);
+export function pathStatus(
+  units: readonly PathwayUnit[],
+  journal: readonly EconomyEvent[],
+  cleared: ReadonlySet<string> = clearedIdsOf(journal),
+  plan: SyllabusPlan | null = null,
+  today?: string,
+): GatedPathway {
+  const gated = withSectionStarts(units, withReviewGates(units, deriveMapPathway(units, journal), cleared), cleared);
+  return plan === null ? gated : withSyllabusStart(units, gated, plan, cleared, today);
 }

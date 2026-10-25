@@ -1,0 +1,14 @@
+LECTURE SCHEDULE
+Lecture   Date      Topic
+1   Mon 1/12   Course intro; conjugated dienes
+2   Wed 1/14   Allylic halogenation (NBS)
+3   Fri 1/16   Diels-Alder
+    Mon 1/19   No class - MLK Day
+4   Wed 1/21   Aromaticity
+5   Fri 1/23   Aromatic heterocycles
+6   Mon 1/26   EAS mechanism
+7   Wed 1/28   Directing groups
+8   Fri 1/30   Friedel-Crafts acylation
+9   Mon 2/2    Hour Exam 1
+10  Wed 2/4    Alcohols: oxidation (PCC, Jones)
+11  Fri 2/6    Epoxide ring opening
