@@ -1001,15 +1001,31 @@ running.
 
 ## Ready to push, 24 Oct
 
-Final check on branch `ui/cta-and-background`, 117 commits ahead of `origin/main` (ef9888b to
-ba5762b). Nothing pushed. Checks: `build:packages` and `tsc -b` clean; `vite build` passes; full
-vitest 301 of 314 files green under load, and every red file passes when rerun alone
-(timeouts plus one mid-edit read of the mascot files), except `bootLoader.test.ts`, red on
-purpose. **Payload is NOT ready:** `#/app` first open on a clean copy of HEAD is 400.3 KB gz,
-over the 400 KB ceiling. b509675 (Bloom ambient states) took it from 399.4 to 400.8 KB and
-ba5762b got back to 400.3; trim about 0.3 KB in the mascot's eager code before pushing.
+Final check, re-run 25 Oct, on branch `ui/cta-and-background`, 141 commits ahead of `origin/main`
+(1ad0ff9 to e3c6104). Nothing pushed. Checks: `build:packages` and `tsc -b` clean; `vite build`
+passes; full vitest 329 of 337 files green under load (5,562 of 5,570 tests), and every red file
+(guideU1, guideU4, guideU5, sound, loaderGateWaiting, phonePage, supabaseClient: timeouts under
+load) passes when rerun alone, except `bootLoader.test.ts`, red on purpose. **Payload ready:**
+`#/app` first open on a clean copy of HEAD (e3c6104) is 368.9 KB gz, 56 files, under the 400 KB
+ceiling. 22522bf weighed 403.7; 265a25d (account menu and site search as their own chunks) and
+e3c6104 brought it under.
 
-Commits by feature:
+Commits since the 24 Oct check (7176c72), 23, by feature:
+- Analytics: ee53a68 first-party event client, CTA tags, usage stats opt-in; 6594232 owner steps
+- Mascot, Bloom states: 7337446 answer reactions, 8650c97 answers fix round, 6b4d3a2 progression
+  beats, 65a54cb chemical states and mind blown, 398f70d parked four as an owner call, 7527ba7
+  costumes, e4efbbf wired onto path, trainer and gallery, 4429b1e wiring fix round, e3c6104 critic
+  fixes, 22522bf STATUS
+- Flashcards: 2acce18 premade decks per section, ad8e0c6 flashcards link on every path section,
+  fb67db2 restore the D2 section-deck changes a parallel commit reverted
+- Staff and feed: f770696 feed options and staff read on progress_events, 1f7362f lesson activity
+  view at #/app/admin/activity, 3032053 do not apply the staff read policy before the sync fix is live
+- Sync: be27030 pull only the signed-in account's progress rows
+- Syllabus import (C1): bfa5145 pasted syllabus into a plan, 4f60752 syllabus screen, week chips,
+  calendar link, dd41dcf STATUS
+- Payload: 265a25d account menu and site search load as their own chunks
+
+The 117 before that, by feature:
 - Economy and HUD (20 to 22 Oct): blanks, top bar A3, daily quests, chests, gates, drives
 - Payload and tidy: 400 KB cut, unused deps, lazy supabase-js and footer, shared clamp, plural, shuffle
 - Contrast, glossary, guidebooks (Units 3 to 6), pathway sections, admin lesson viewer, press and hold, scratch paper
@@ -1019,22 +1035,29 @@ Commits by feature:
 - Mascot: Bloom states spec, ambient states, fix round
 - STATUS and docs commits
 
-Migrations not applied on the live project (kwoqzfvssoxxuvlzzhrp, checked 24 Oct; live stops at
-20260819120000), apply in order: 20260907120000_billing, 20261007120000_office_hours,
-20261023120000_progress_events, 20261023130000_user_pka_settings, 20261023180000_pro_interest,
-20261024120000_tutoring, 20261024130000_user_pka_sheet_values, 20261024140000_analytics.
+Migrations not applied on the live project (kwoqzfvssoxxuvlzzhrp, checked 25 Oct with the
+Supabase MCP, read only; live stops at 20260819120000_user_cards_and_decks), apply in order:
+20260907120000_billing, 20261007120000_office_hours, 20261023120000_progress_events,
+20261023130000_user_pka_settings, 20261023180000_pro_interest, 20261024120000_tutoring,
+20261024130000_user_pka_sheet_values, 20261024140000_analytics, 20261025120000_user_syllabus.
+Then, only once a build with be27030 is live: 20261024163000_progress_events_staff_read (staff
+SELECT on every row; before be27030 the client would pull other accounts' rows).
 Never run supabase/seed.sql live.
 
-Edge Functions changed since origin: stripe-checkout, stripe-prices, new _shared/checkoutGate.ts.
-None of the four Stripe functions (checkout, prices, portal, webhook) is deployed live; only chat is.
+Edge Functions: none changed since 7176c72. Changed since origin: stripe-checkout, stripe-prices,
+new _shared/checkoutGate.ts. None of the four Stripe functions (checkout, prices, portal, webhook)
+is deployed live; only chat is (checked 25 Oct).
 
-Owner steps: (1) apply the migrations above; (2) set Stripe secrets (see G2 OWNER STEPS above),
-then deploy stripe-checkout, stripe-prices (--no-verify-jwt), stripe-portal, stripe-webhook and
-set STRIPE_WEBHOOK_SECRET; (3) AdSense: set repo secrets VITE_ADSENSE_CLIENT and VITE_ADSENSE_SLOT,
-publish ads.txt, write the privacy page (G4 steps above); (4) trim the payload, then push.
-Uncommitted in the tree at this check, not part of the 117: other sessions' work on App.tsx,
-siteNav, useDocumentTitle, vite.config.ts, admin/slides.ts, signoff/, and an analytics wiring
-pass (analytics.ts, main.tsx, ads, upsell, onboarding, booking sheets).
+Owner steps: (1) push; (2) apply the migrations above in order, the staff read one last and only
+after the push is live; (3) set Stripe secrets (see G2 OWNER STEPS above), then deploy
+stripe-checkout, stripe-prices (--no-verify-jwt), stripe-portal, stripe-webhook and set
+STRIPE_WEBHOOK_SECRET; (4) AdSense: set repo secrets VITE_ADSENSE_CLIENT and VITE_ADSENSE_SLOT,
+publish ads.txt, write the privacy page (G4 steps above); (5) answer the open owner questions:
+Bloom's four parked chemical states (spec section 7 Q3) and whether authored stage quizzes take
+covered side quests.
+Uncommitted in the tree at this check, not part of the 141: other sessions' work on App.tsx,
+siteNav, useDocumentTitle, vite.config.ts, admin/slides.ts, signoff/, a syllabus fix round
+(syllabus/*, pathway, test-outs, node sheet, useStudyState, their tests) and its 19 STATUS lines.
 
 Bloom chemical states (65a54cb, 24 Oct): `berryTopicState.ts` maps 28 pathway nodes to the
 shipped chemical states (protonated, carbocation, radical, resonance, aromatic) plus the
