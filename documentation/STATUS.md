@@ -304,6 +304,14 @@ Discoverability
 - D2 Flashcards: premade decks for every unit, one deck per section; iterate on the interaction.
 Feed and accounts
 - F1 Brainstorm the feed (show options first), plus a feed view in admin to test with the TA.
+  - f1-feed 24 Oct: documentation/FEED-OPTIONS.md lays out three feed directions (A lab notebook,
+    B class pulse, C lab mates), WAITING ON THE OWNER'S PICK (it recommends A; nothing built from it).
+    The admin activity view is live at #/app/admin/activity ("Activity" in the lesson viewer's bar):
+    staff only, lazy (0.0 KB on #/app first open), pick accounts, lesson runs from progress_events in
+    the last 48 h with cleared / in progress / left, first-try accuracy and time, refreshed every 15 s.
+    OWNER STEPS: apply supabase/migrations/20261023120000_progress_events.sql (if not yet) and
+    20261024163000_progress_events_staff_read.sql (staff SELECT policy + index) in the SQL editor,
+    and give the TA the admin role in the roster (is_staff() is admin/owner only).
 - A1 Lessons tracked on the account (server-side progress, table + RLS; today progress lives in
   localStorage only) and a reminder to sign in to save progress.
   - account-progress DONE 23 Oct: every journal event now carries an id (old caches get stable
