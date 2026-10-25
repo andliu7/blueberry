@@ -14,6 +14,13 @@
 -- already grants select to authenticated, and RLS decides which rows. Nothing
 -- for anon. The table stays append only.
 --
+-- STAFF'S OWN SYNC. Staff accounts play lessons too, and progressSync.ts
+-- pulls their journal from this table. Before be27030 that pull had no
+-- user_id filter and leaned on RLS being own-rows-only, so with this policy
+-- a staff account would have merged every student's events into its own
+-- journal. be27030 adds .eq('user_id', userId). DO NOT APPLY this file until
+-- the live site is deployed from a build that includes be27030.
+--
 -- NOT APPLIED by the agent that wrote it. Run it in the SQL editor after
 -- 20261023120000_progress_events.sql.
 -- ============================================================

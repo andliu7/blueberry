@@ -312,6 +312,13 @@ Feed and accounts
     OWNER STEPS: apply supabase/migrations/20261023120000_progress_events.sql (if not yet) and
     20261024163000_progress_events_staff_read.sql (staff SELECT policy + index) in the SQL editor,
     and give the TA the admin role in the roster (is_staff() is admin/owner only).
+  - f1-feed fix 25 Oct: WARNING, do not apply 20261024163000 until the LIVE site is deployed from a
+    build that includes be27030. The staff policy lets staff read every row, and before be27030 the
+    game's sync pulled progress_events with no user_id filter, so a staff account (owner, admins,
+    the TA) would have merged every student's events into its own journal and corrupted its
+    balances, clears and streak. be27030 filters the pull on user_id (new progressSync test). Order:
+    deploy, then apply 20261024163000, then give the TA admin. Note admin is full staff (is_staff()),
+    so the TA can also read profiles and attempts, not just Activity.
 - A1 Lessons tracked on the account (server-side progress, table + RLS; today progress lives in
   localStorage only) and a reminder to sign in to save progress.
   - account-progress DONE 23 Oct: every journal event now carries an id (old caches get stable
