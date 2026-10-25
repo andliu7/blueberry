@@ -23,6 +23,7 @@
 import { PATHWAY_UNITS, checkpointNodeId, type PathwayNode, type PathwayUnit } from "../demo/pathwayMap";
 import { REVIEW_CHECKPOINTS, type ReviewCheckpoint } from "../tabs/pathway/reviewCheckpoints";
 import type { PoolEntry, UnitPools } from "../content/u1/types";
+import { mcqBeatsForNode } from "../beats/mcq/content";
 
 /** How many problems one covered side quest lends a quiz: reviewPool's PER_LESSON, so it weighs like a reviewed lesson. */
 export const SIDE_QUEST_SHARE = 3;
@@ -97,12 +98,32 @@ export function sideQuestsFor(quizId: string, covered: ReadonlySet<string>, unit
 }
 
 /**
+ * A side quest's authored graded MCQs (beats/mcq/content.ts) as pool entries,
+ * for a side quest with no pool of its own: u1-ied's one question lives there,
+ * so without this it had nothing to lend and counted nowhere. The explanation
+ * is the correct option's own `why`. Empty for a side quest with a pool.
+ */
+export function authoredProblems(id: string, pools: UnitPools): readonly PoolEntry[] {
+  if ((pools[id] ?? []).length > 0) return [];
+  return mcqBeatsForNode(id)
+    .filter((beat) => beat.levels.some((level) => level > 0))
+    .map((beat) => ({
+      id: beat.id,
+      item: { kind: "mcq", beat },
+      explanation: beat.options.find((option) => option.id === beat.correctOptionId)?.why ?? beat.brief ?? beat.prompt,
+      provenance: "Authored in beats/mcq/content.ts; its sources are in the comment above the beat.",
+      placeholder: true,
+    }));
+}
+
+/**
  * The problems a side quest can lend a quiz: its graded pool entries (a
- * first-meeting MCQ cannot fail, so it stays in its lesson), at most
- * SIDE_QUEST_SHARE.
+ * first-meeting MCQ cannot fail, so it stays in its lesson), or its authored
+ * graded MCQs when it has no pool, at most SIDE_QUEST_SHARE.
  */
 export function sideQuestProblems(id: string, pools: UnitPools): readonly PoolEntry[] {
-  return (pools[id] ?? []).filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0)).slice(0, SIDE_QUEST_SHARE);
+  const pooled = (pools[id] ?? []).filter((entry) => entry.item.kind !== "mcq" || entry.item.beat.levels.some((level) => level > 0));
+  return (pooled.length > 0 ? pooled : authoredProblems(id, pools)).slice(0, SIDE_QUEST_SHARE);
 }
 
 /**

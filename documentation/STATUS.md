@@ -271,9 +271,16 @@ Course (business test 2)
     check never took one. Pool half now wired (syllabus/syllabusQuizzes.ts): a covered side quest
     lends up to 3 graded problems to its unit's pool-played checkpoint and to the first stage quiz
     or review stop after it, same run length, nothing covered is byte-identical. Units 2 to 10 have
-    no stage quiz or review stop, so there it counts on the checkpoint and the tests only. The
-    derived-mix checkpoints (Units 3, 5, 7 to 10, e.g. Stork, Hofmann elimination) are fixed only
-    in the uncommitted fix round below (checkpointPlan in beats/template.ts), not on HEAD.
+    no stage quiz or review stop, so there it counts on the checkpoint and the tests only (OWNER
+    QUESTION: author stage quizzes or review stops for Units 2 to 10?). Derived-mix checkpoints
+    (Units 3, 5, 7 to 10, e.g. Stork, Hofmann elimination) fixed 25 Oct: each covered side quest
+    lends its first graded question to the mix's quick-question step (`lend` on the mcq beat,
+    checkpointPlan and stepRecogniseBeats in beats/template.ts). Same steps; same question count
+    while fewer side quests are covered than the step asks, past that it keeps one of its own and
+    grows by the rest, so every playable side quest is asked, alone or all at once
+    (test/syllabusCheckpoint.test.ts, real map). u1-ied has no pool, so it lends its authored
+    question to the Unit 1 exam, its concept check and its tests. Nothing covered: identical to
+    804b049 on every plan, pool and review run (687 compared, one-off probe).
     Only the derived plan is saved, never the text.
     First open: about +1.1 KB gz from this lane (0.6 KB store, the rest testOuts and PathwayTab);
     the week logic loads only once a plan exists. Defaults taken from the plan, change any: map

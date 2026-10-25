@@ -260,7 +260,7 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
         ? stakes.detail
         : node.kind === "branch"
           ? coveredSideQuests().has(node.id)
-            ? "Counts on quizzes and exams: it is on your syllabus."
+            ? "On your syllabus, so it counts on the unit checkpoint, its section test and the unit exam."
             : "Optional side quest. It is not on the unit checkpoint."
           : null,
     kindLabel: KIND_LABEL[node.kind],

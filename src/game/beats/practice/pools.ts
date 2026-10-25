@@ -24,6 +24,7 @@ import { U10_POOLS } from "../../content/u10";
 import { U0_EXAM_CHAPTERS, U0_EXAM_IDS, U0_POOLS } from "../../content/u0";
 import { lessonTrainerFor } from "../../content/u1/lessonTrainers";
 import { mcqCardId } from "../mcq/card";
+import { mcqBeatById } from "../mcq/content";
 import type { PoolEntry, UnitPools } from "../../content/u1/types";
 import { coveredSideQuests } from "../../syllabus/syllabusPlan";
 import { sideQuestProblems, sideQuestsFor, withSideQuests } from "../../syllabus/syllabusQuizzes";
@@ -136,10 +137,13 @@ export function isExamRun(nodeId: string): boolean {
   return EXAM_RUNS.has(nodeId);
 }
 
-/** The node whose pool an entry was written for, so an exam can report per topic. Null for an unknown id. */
+/**
+ * The node whose pool an entry was written for, so an exam can report per topic. Null for an unknown id.
+ * An authored MCQ a side quest with no pool lends (authoredProblems, syllabus/syllabusQuizzes.ts) reports its node.
+ */
 export function poolHomeOf(entryId: string, pools: UnitPools = ALL_POOLS): string | null {
   for (const [node, entries] of Object.entries(pools)) if (entries.some((entry) => entry.id === entryId)) return node;
-  return null;
+  return mcqBeatById(entryId)?.node ?? null;
 }
 
 /** A run node's Challenge set: its own pool, with any Challenge-only problems taken in turn. */

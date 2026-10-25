@@ -97,7 +97,8 @@ import {
   lessonHasDraft,
   lessonMeetBeats,
   lessonPoolItems,
-  lessonRecogniseBeats,
+  stepHasDraft,
+  stepRecogniseBeats,
   missedMcqIdsFrom,
   missedPoolIdsOf,
   planLesson,
@@ -751,11 +752,11 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           <McqRunner
             node={step.beat.node}
             level="declared"
-            beats={lessonRecogniseBeats(step.beat.node, step.beat.pace)}
+            beats={stepRecogniseBeats(step.beat)}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={
-              lessonHasDraft(step.beat.node) && showDraftMarks() ? (
+              stepHasDraft(step.beat) && showDraftMarks() ? (
                 <div className="flex min-w-0 flex-col gap-0.5">
                   {strip}
                   <p className="text-scale-xs text-bb-muted-foreground">{HUMAN_GATE_MARK}</p>

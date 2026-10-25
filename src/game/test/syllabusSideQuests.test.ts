@@ -99,6 +99,6 @@ describe("the node sheet's side quest line", () => {
   it("says optional with no syllabus, and on your syllabus when covered", () => {
     expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("Optional side quest. It is not on the unit checkpoint.");
     syllabusStore.replace(plan(["u10-gabriel"]));
-    expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("Counts on quizzes and exams: it is on your syllabus.");
+    expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("On your syllabus, so it counts on the unit checkpoint, its section test and the unit exam.");
   });
 });

@@ -21,6 +21,8 @@
  */
 import { interleave, lessonPool, practicePool, testOnlyPool } from "../../beats/practice/pools";
 import type { PoolEntry } from "../../content/u1/types";
+import { pathwayNode } from "../../demo/pathwayMap";
+import { authoredProblems } from "../../syllabus/syllabusQuizzes";
 import type { TestOut } from "./testOuts";
 
 export interface TestOutEntry {
@@ -51,7 +53,10 @@ function rungOf(entry: PoolEntry): number {
  */
 export function candidatesOf(node: string): readonly TestOutEntry[] {
   if (node.includes("nomen")) return [];
-  return [...testOnlyPool(node), ...lessonPool(node), ...practicePool(node)]
+  const pooled = [...testOnlyPool(node), ...lessonPool(node), ...practicePool(node)];
+  // A side quest is a source only when the syllabus covers it (syllabusTestOutFor); one with no pool asks its authored questions.
+  const asked = pooled.length === 0 && pathwayNode(node)?.kind === "branch" ? authoredProblems(node, {}) : pooled;
+  return asked
     .filter((entry) => entry.item.kind !== "draw" && !asksForName(entry))
     .map((entry, at) => ({ entry, at }))
     .sort((a, b) => rungOf(b.entry) - rungOf(a.entry) || a.at - b.at)

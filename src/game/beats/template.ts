@@ -45,7 +45,7 @@ import { MATCH_BOARDS } from "./match";
 import { sortContentById } from "./sort";
 import { synthesisGapsForNode } from "./synthesis";
 import { checkpointUnitFor, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
-import { lessonPool, practicePool } from "./practice/pools";
+import { interleave, lessonPool, practicePool } from "./practice/pools";
 import { lessonTrainerFor } from "../content/u1/lessonTrainers";
 import { coveredSideQuests } from "../syllabus/syllabusPlan";
 import type { McqBeat } from "./types";
@@ -132,7 +132,12 @@ export type ResolvedBeat =
   /** The node's first-meeting (L0) questions, played at level 0 before anything is graded. */
   | { readonly kind: "meet"; readonly node: string }
   /** The graded quick questions, each at its own rung. `pace` is set only when it is not 0 (lessonRecogniseBeats). */
-  | { readonly kind: "mcq"; readonly node: string; readonly pace?: Pace }
+  /**
+   * `lend` is set only on a unit checkpoint's mix, and only when the student's
+   * syllabus covers side quests of the unit (checkpointPlan): one graded
+   * question from each joins the step (stepRecogniseBeats).
+   */
+  | { readonly kind: "mcq"; readonly node: string; readonly pace?: Pace; readonly lend?: readonly string[] }
   | { readonly kind: "match"; readonly node: string }
   | { readonly kind: "sort"; readonly ladderId: string }
   | { readonly kind: "synthesis"; readonly node: string }
@@ -238,6 +243,27 @@ export function lessonRecogniseBeats(node: string, pace: Pace = 0): readonly Mcq
   return ordered;
 }
 
+/**
+ * WHAT AN MCQ STEP ASKS: its node's recognise questions, plus, on a unit
+ * checkpoint whose syllabus covers side quests (`lend`, checkpointPlan), the
+ * first graded question of each, taken in turn with the node's own. The step
+ * keeps its length while there are fewer side quests than questions: the
+ * side quests' questions replace the tail of the node's own list. With more
+ * covered side quests than that, it keeps one question of its own and grows
+ * by the rest, so no covered side quest is ever left off.
+ */
+export function stepRecogniseBeats(beat: { readonly node: string; readonly pace?: Pace; readonly lend?: readonly string[] }): readonly McqBeat[] {
+  const own = lessonRecogniseBeats(beat.node, beat.pace);
+  const lent = (beat.lend ?? []).flatMap((id) => lessonRecogniseBeats(id).slice(0, 1));
+  if (lent.length === 0) return own;
+  return interleave(own.slice(0, Math.max(own.length - lent.length, 1)), lent);
+}
+
+/** Whether an MCQ step plays any draft pool question (its node's, or one a side quest lends), for the human-gate mark. */
+export function stepHasDraft(beat: { readonly node: string; readonly lend?: readonly string[] }): boolean {
+  return [beat.node, ...(beat.lend ?? [])].some(lessonHasDraft);
+}
+
 /** Whether the node has the two questions above L1 that pace +1 needs (section 4's fallback rule). */
 export function hasHardRecognise(node: string): boolean {
   return lessonRecogniseBeats(node).filter((beat) => declaredLevel(beat.levels) >= 2).length >= 2;
@@ -307,17 +333,26 @@ export function recyclePoolEntriesFor(plan: LessonPlan, missedIds: readonly stri
  * A unit with nothing authored gets null, which is the same honest answer any
  * unauthored node gets: the chip renders queued and declines.
  */
-// Exported for test/syllabusSideQuests.test.ts, which runs it on a unit with a covered side quest first.
-export function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | null {
+/**
+ * SIDE QUESTS THE SYLLABUS COVERS (owner rule, STATUS C1) never take a slot:
+ * the main line fills the slots first, so a side quest walked after it never
+ * got one, and one walked before it would push a main-line kind of question
+ * off the check. Each covered side quest LENDS one graded quick question to
+ * the mix's recognise step instead (`lend` on the mcq beat, played by
+ * stepRecogniseBeats below), so every covered side quest is asked, however
+ * many the syllabus covers. With nothing covered no beat carries `lend` and
+ * the plan is exactly the main-line mix.
+ */
+// Exported for test/syllabusCheckpoint.test.ts, which runs it on the real map with side quests covered.
+export function checkpointPlan(unit: PathwayUnit, node: string, covered: ReadonlySet<string> = coveredSideQuests()): LessonPlan | null {
   const steps: PlanStep[] = [];
   const taken = new Set<ContentSlot>();
-  const covered = coveredSideQuests();
   for (const entry of unit.nodes) {
     // Enrichment stays off the check, for the same reason it stays off the
     // exam-weighted spine: a checkpoint that asked an optional side quest would
     // be grading a student on work the track told them they could skip.
-    // Unless the student's syllabus covers it (STATUS C1): then it is on their exams too.
-    if (entry.kind === "branch" && !covered.has(entry.id)) continue;
+    // A covered side quest is asked through `lend` below.
+    if (entry.kind === "branch") continue;
     for (const step of planLesson(entry.id)?.steps ?? []) {
       // A whole in-a-row run is a lesson of its own, not one question of a mix.
       if (step.beat.kind === "practice") continue;
@@ -328,6 +363,12 @@ export function checkpointPlan(unit: PathwayUnit, node: string): LessonPlan | nu
       steps.push(step);
     }
   }
+  const lend = unit.nodes
+    .filter((entry) => entry.kind === "branch" && entry.playable !== undefined && entry.mentionOnly !== true && covered.has(entry.id))
+    .filter((entry) => lessonRecogniseBeats(entry.id).length > 0)
+    .map((entry) => entry.id);
+  const recognise = steps.findIndex((step) => step.beat.kind === "mcq");
+  if (lend.length > 0 && recognise !== -1) steps[recognise] = { ...steps[recognise]!, beat: { ...(steps[recognise]!.beat as { kind: "mcq"; node: string }), lend } };
   if (steps.length === 0) return null;
   // Template order, not the order the units happened to yield them in.
   return { node, steps: [...steps].sort((a, b) => LESSON_SLOTS.indexOf(a.slot) - LESSON_SLOTS.indexOf(b.slot)) };
@@ -634,7 +675,8 @@ export function missedMcqIdsFrom(results: readonly BeatResult[]): readonly strin
  * here yet" after the last step, with no way to finish the check.
  */
 export function recycleBeatsFor(plan: LessonPlan, missedIds: readonly string[]) {
-  const sources = [...new Set(plan.steps.flatMap((step) => (step.beat.kind === "mcq" ? [step.beat.node] : [])))];
+  // A side quest a checkpoint's step lends from (`lend`) is a source too.
+  const sources = [...new Set(plan.steps.flatMap((step) => (step.beat.kind === "mcq" ? [step.beat.node, ...(step.beat.lend ?? [])] : [])))];
   return sources.flatMap((source) => lessonMcqBeats(source)).filter((beat) => missedIds.includes(beat.id));
 }
 
