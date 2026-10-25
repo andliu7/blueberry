@@ -83,7 +83,7 @@ describe("stateForNode", () => {
     expect(stateForNode("constructor")).toBe("neutral");
   });
 
-  it("maps the four late states (owner, 2026-10-25) to real lessons", () => {
+  it("maps the four late states (owner, 2026-10-25) to real pathway nodes", () => {
     for (const id of ["u9-pka", "u9-kvt-enolate", "u9-halo-base", "u11-acidity", "u11-phenoxide"]) {
       expect(pathwayNode(id), id).not.toBeNull();
       expect(stateForNode(id), id).toBe("deprotonated");
@@ -100,6 +100,19 @@ describe("stateForNode", () => {
     for (const state of ["protonated", "carbocation", "radical", "resonance", "aromatic"] as const) {
       expect([...used], state).toContain(state);
     }
+  });
+
+  // Only beat lessons read NODE_STATE (BeatRunner, McqRunner); a node with no
+  // playable, or a reaction one, never shows its state. This pins which mapped
+  // states are gallery-only today, so a new lesson that reaches one fails here
+  // and the "not reachable yet" notes (berryTopicState.ts, spec section D) get updated.
+  it("names the mapped states no beat lesson reaches yet", () => {
+    const reached = new Set<string>();
+    for (const [id, state] of Object.entries(NODE_STATE)) {
+      if (pathwayNode(id)?.playable?.kind === "beat") reached.add(state);
+    }
+    const galleryOnly = [...new Set(Object.values(NODE_STATE))].filter((s) => !reached.has(s)).sort();
+    expect(galleryOnly).toEqual(["enantiomers", "solvated"]);
   });
 });
 

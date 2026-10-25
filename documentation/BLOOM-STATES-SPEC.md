@@ -99,7 +99,7 @@ Owner family in brackets: [AMB] ambient, [ANS] answers, [PRO] progression, [CHM]
 | Bible state | Tier | Decision | Composition and build |
 |---|---|---|---|
 | Protonated | T2 | Built; **wire** via topic table [CHM] | State exists. New pure table `stateForNode(nodeId)` maps acid/base and leaving-group nodes to `protonated`. |
-| Deprotonated | T2 | **New value** state `deprotonated`, built 2026-10-25 (Q3) [CHM] | Cool blue (a CSS filter keyed on `data-state="deprotonated"`), a ":" lone-pair badge, and the serene line: the calm and curious faces level their mouth on this state, every reaction mood keeps its own. Lazy CSS with the other three. Nodes: `u9-pka`, `u9-kvt-enolate`, `u9-halo-base`, `u11-acidity`, `u11-phenoxide`. |
+| Deprotonated | T2 | **New value** state `deprotonated`, built 2026-10-25 (Q3) [CHM] | Cool blue (a CSS filter keyed on `data-state="deprotonated"`), a ":" lone-pair badge, and the serene line: the calm and curious faces level their mouth on this state, every reaction mood keeps its own. Lazy CSS with the other three. Nodes: `u9-pka`, `u9-kvt-enolate`, `u11-acidity` (live beat lessons); `u9-halo-base`, `u11-phenoxide` mapped but unseen (reaction lessons do not read the table). |
 | Carbocation | T2 | Built; wire via topic table [CHM] | SN1 / E1 / rearrangement nodes. Composed with mood stressed for "visibly unstable and knows it" (gallery preset). |
 | Radical | T3 | Built; wire via topic table [CHM] | Radical halogenation nodes. "Chaotic eyes" composes as mood excited. |
 | Resonance | T2 | Built; wire via topic table [CHM] | Delocalization nodes. |
@@ -107,9 +107,9 @@ Owner family in brackets: [AMB] ambient, [ANS] answers, [PRO] progression, [CHM]
 | Mind blown, first resonance reveal (top card) | n/a | Compose [CHM data], trigger [WIR] | resonance + excited + wideEyed, once per learner: the first time a resonance state is shown. Pure `isFirstResonance(seen)` plus a one-key local flag. Hook: the first `resonance` beat in BeatRunner (`BeatRunner.tsx:795`). |
 | Nucleophile | T2 | **Parked** | Needs an arrow-arm drawing and a live electrophile target on the canvas; the trainer's arrow engine owns that canvas and no family touches it in this run. Not in MASCOT.md's decomposition either. |
 | Oxidized / Reduced | T3 | See B | Built through `charred`; Reduced is [ANS]. |
-| Excited state | T3 | **New value + new keyframes**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Glow halo, 0.8px hum, a photon dot emitted upward every 2400ms as the glow drops back. Named `excitedState` so it never collides with the mood `excited`. Nodes: `u6-uv`, `u12-22`. |
-| Enantiomers | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Two solid copies (`ghostCount: 2`), the second mirrored, a dashed mirror plane, R and S chips on the berry's own box so they read at 40px. Both copies sit under the one pose transform, so the twin copies every hop. Nodes: `u13-fischer`, `u14-strecker`, `u5-sharpless`. |
-| Solvated | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | A shell of six water molecules (O and two H each, box-shadows of one element) turning once per 9000ms, kept inside the berry's box. Slow motion is `pace: 0.5` on the state: Berry.tsx runs the idle clock and breathing at half speed, reactions at full speed. Node: `u14-zwitterion` (the map has no dedicated solvent-effect node). |
+| Excited state | T3 | **New value + new keyframes**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Glow halo, 0.8px hum, a photon dot emitted upward every 2400ms as the glow drops back. Named `excitedState` so it never collides with the mood `excited`. Nodes: `u6-uv` (live); `u12-22` mapped, no lesson yet. |
+| Enantiomers | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | Two solid copies (`ghostCount: 2`), the second mirrored, a dashed mirror plane, R and S chips on the berry's own box so they read at 40px. Both copies sit under the one pose transform, so the twin copies every hop. Nodes: `u13-fischer`, `u14-strecker`, `u5-sharpless`, none of which has a lesson, so **gallery-only today**. |
+| Solvated | T3 | **New value**, lazy CSS, built 2026-10-25 (Q3) [CHM] | A shell of six water molecules (O and two H each, box-shadows of one element) turning once per 9000ms, kept inside the berry's box. Slow motion is `pace: 0.5` on the state: Berry.tsx runs the idle clock and breathing at half speed, reactions at full speed. Node: `u14-zwitterion` (the map has no dedicated solvent-effect node), which has no lesson, so **gallery-only today**. |
 | Charged (repo extra) | n/a | Built and wired | Unchanged. |
 
 MASCOT.md deferred Deprotonated, Excited state, Enantiomers and Solvated because they need
@@ -117,6 +117,15 @@ MASCOT.md deferred Deprotonated, Excited state, Enantiomers and Solvated because
 lifted it on 2026-10-25 (section 7 Q3), which is what changed those pinned counts. All four ship
 in one lazy stylesheet, `bloom-chem-states.css`, fetched by `berryStateStyles.ts` from an effect
 in `Berry.tsx` the first time one of them renders.
+
+**What a learner sees today.** Only beat lessons read `NODE_STATE` (`stateForNode` in
+`BeatRunner.tsx`, `bloomLookForNode` in `BeatRunner.tsx` and `McqRunner.tsx`). A node with no
+`playable` in `demo/pathwayMap.ts`, or a `reaction` one, has the mapping and nothing to mount it
+on. So **enantiomers and solvated are gallery-only**: the map has no playable stereochemistry or
+solvent-effect node, and every node they are mapped to is lesson-less. Excited state shows only on
+`u6-uv`; deprotonated only on `u9-pka`, `u9-kvt-enolate` and `u11-acidity`. The mapping stays,
+so each state turns on by itself when its lesson lands. `berryTopicState.test.ts` pins the
+gallery-only list, so that day fails a test and this paragraph gets updated.
 
 ### E. Costumes
 

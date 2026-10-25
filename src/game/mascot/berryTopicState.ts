@@ -16,8 +16,13 @@
  * mapped here like the rest. Their CSS loads lazily, so a lesson that uses one
  * fetches a small stylesheet the first time it shows.
  *
- * Nothing calls this at runtime yet: the lesson-mount and first-resonance
- * triggers belong to the wiring family (spec section 4).
+ * Who reads it: BeatRunner and McqRunner (through bloomLookForNode), so only a
+ * node whose playable is a beat lesson shows its state. A node with no
+ * playable, or a reaction one, stays a mapping with nothing to mount on. Today
+ * that leaves enantiomers and solvated gallery-only (no Fischer, Strecker,
+ * Sharpless or zwitterion lesson exists), excitedState reachable only through
+ * u6-uv (u12-22 has no lesson), and u9-halo-base and u11-phenoxide unseen
+ * (reaction lessons). berryTopicState.test.ts pins that list.
  *
  * Same contract as berryState.ts: pure data, no React, no DOM. The one thing
  * remembered (whether the learner has seen a resonance berry) goes through a
