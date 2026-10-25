@@ -9,6 +9,11 @@
  * TrainerTab.tsx line for line; TrainerTab.tsx and TrainerScreen.tsx both
  * use this hook now. LessonPlayer.tsx carries its own variant with a combo
  * line and is not touched.
+ *
+ * Added 2026-10-24 (BLOOM-STATES-SPEC.md, B): a second props bundle, `stage`,
+ * for the <BloomStage> wrapper around the berry (combo sparkles and confetti,
+ * the Reduced puff), and `hintKey` for the tray's hint ring. `berry` is
+ * unchanged, so a surface that only renders <Berry> keeps working.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -16,6 +21,7 @@ import type { BerryBehaviour } from "./berryBehaviour";
 import type { BerryMood } from "./berryMood";
 import type { BerryProps } from "./Berry";
 import { reactionFor, SETTLED_AFTER_MISS, type ReactionOutcome } from "./berryReaction";
+import type { BloomStageReactionProps } from "./BloomStage";
 
 export type BerryReactionProps = Required<Pick<BerryProps, "behaviour" | "behaviourKey" | "chain" | "sparkleKey" | "flashKey" | "state">> &
   Pick<BerryProps, "mood">;
@@ -27,6 +33,10 @@ export interface BerryReactions {
   readonly bump: (next: BerryBehaviour, mood?: BerryMood, chain?: readonly BerryBehaviour[]) => void;
   /** A graded outcome as a reaction, with the run counters and the settle timer. */
   readonly react: (outcome: ReactionOutcome) => void;
+  /** Spread into <BloomStage>; the surface adds reducedMotion, thinking and the berry. */
+  readonly stage: BloomStageReactionProps;
+  /** Bumped on a wrong-again miss. Pass to <BloomHintRing ringKey> on the hint control. */
+  readonly hintKey: number;
 }
 
 export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviour): BerryReactions {
@@ -37,6 +47,12 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
   const [sparkleKey, setSparkleKey] = useState(0);
   const [flashKey, setFlashKey] = useState(0);
   const [charred, setCharred] = useState(false);
+  // Mirrors `charred` for react(), which can run twice before a re-render
+  // (two grades inside one frame) and would otherwise read a stale value.
+  const charredRef = useRef(false);
+  const [combo, setCombo] = useState<number | null>(null);
+  const [comboKey, setComboKey] = useState(0);
+  const [hintKey, setHintKey] = useState(0);
   const runRef = useRef({ correctRun: 0, missRun: 0 });
   const settleTimerRef = useRef<number | null>(null);
   useEffect(
@@ -57,17 +73,26 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
     if (outcome === "correct") {
       run.correctRun += 1;
       run.missRun = 0;
-      if (charred) {
+      if (charredRef.current) {
+        charredRef.current = false;
         setCharred(false);
         setFlashKey((k) => k + 1);
       }
-    } else if (outcome === "wrong") {
+    } else if (outcome === "wrong" || outcome === "wrongAgain") {
       run.correctRun = 0;
       run.missRun += 1;
     }
     const reaction = reactionFor(outcome, run);
-    if (reaction.state === "charred") setCharred(true);
+    if (reaction.state === "charred") {
+      charredRef.current = true;
+      setCharred(true);
+    }
     if (reaction.sparkles) setSparkleKey((k) => k + 1);
+    if (reaction.combo !== null) {
+      setCombo(reaction.combo);
+      setComboKey((k) => k + 1);
+    }
+    if (reaction.hint) setHintKey((k) => k + 1);
     bump(reaction.behaviour, reaction.mood, reaction.chain);
     if (reaction.holdMs !== null) {
       settleTimerRef.current = window.setTimeout(
@@ -80,5 +105,8 @@ export function useBerryReactions(reducedMotion: boolean, initial: BerryBehaviou
     berry: { behaviour, behaviourKey, mood, chain, sparkleKey, flashKey, state: charred ? "charred" : "neutral" },
     bump,
     react,
+    // The Reduced puff rides the same counter as Berry's flash ring: both mark the char clearing.
+    stage: { combo, comboKey, puffKey: flashKey },
+    hintKey,
   };
 }

@@ -1,0 +1,340 @@
+/*
+ * The answer overlays around Bloom: combo sparkles and confetti, thought dots,
+ * the Reduced puff and the hint ring. Imported by BloomStage.tsx only, so it
+ * ships with the lesson chunks that grade answers, never on #/app first paint.
+ *
+ * Timings are bloomMotion.ts's (THOUGHT_DOTS, COMBO_CONFETTI, HINT_RING,
+ * REDUCED_PUFF) and the curves are bloom-motion.css's tokens; the test holds
+ * the numbers here to the constants. Transform and opacity only, except the
+ * puff's brightness, which the spec asks for and which runs once for 600ms.
+ *
+ * Sizes are percentages of the stage, which is the berry's own box, with a px
+ * floor so every overlay still reads on a 40px berry.
+ *
+ * REDUCED MOTION. Three triggers, same as mascot.css: the stage's prop-driven
+ * `data-reduced`, the html attribute, and the media query. Every overlay lands
+ * on a still frame that still says what happened; the only motion left is a
+ * 150ms opacity fade where a still frame must go away again.
+ */
+
+.bloom-stage {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+/* The berry sits above the overlays, so confetti that passes the berry
+   passes behind it: depth, and the face is never covered. */
+.bloom-stage-body {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  transform-origin: 50% 100%;
+}
+
+.bloom-thought {
+  z-index: 2;
+}
+
+.bloom-thought,
+.bloom-combo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------ the puff ---- */
+/* Two names, one curve: BloomStage flips between them to restart the puff. */
+.bloom-stage-body[data-puff="a"] {
+  animation: bloom-puff-a 600ms var(--bloom-ease-settle) both;
+}
+.bloom-stage-body[data-puff="b"] {
+  animation: bloom-puff-b 600ms var(--bloom-ease-settle) both;
+}
+@keyframes bloom-puff-a {
+  0% {
+    transform: scale(1);
+    filter: brightness(1.15);
+  }
+  35% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+@keyframes bloom-puff-b {
+  0% {
+    transform: scale(1);
+    filter: brightness(1.15);
+  }
+  35% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* ------------------------------------------------------ thought dots ---- */
+/* Three dots rising off the head toward its right, small to large, like the
+   trail into a thought bubble. They loop for as long as the student is quiet. */
+.bloom-thought-dot {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--bb-muted-foreground);
+  opacity: 0.3;
+  animation: bloom-thought 1200ms var(--bloom-ease-breathe) infinite;
+}
+.bloom-thought-dot[data-i="0"] {
+  left: 76%;
+  top: 6%;
+  width: max(3px, 9%);
+  height: max(3px, 9%);
+  animation-delay: 0ms;
+}
+.bloom-thought-dot[data-i="1"] {
+  left: 87%;
+  top: -7%;
+  width: max(4px, 11%);
+  height: max(4px, 11%);
+  animation-delay: 160ms;
+}
+.bloom-thought-dot[data-i="2"] {
+  left: 99%;
+  top: -22%;
+  width: max(5px, 14%);
+  height: max(5px, 14%);
+  animation-delay: 320ms;
+}
+@keyframes bloom-thought {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------- combo sparkles ---- */
+/* Placed where Berry's own three are not (left, right, below the left), and
+   delayed so they land as a second wave after Berry's. */
+.bloom-combo-sparkle {
+  position: absolute;
+  width: max(8px, 18%);
+  height: max(8px, 18%);
+  fill: var(--warn-ink-strong);
+  opacity: 0;
+  animation: bloom-combo-sparkle 900ms var(--bloom-ease-out) both;
+}
+.bloom-combo-sparkle[data-i="0"] {
+  left: -18%;
+  top: 46%;
+  animation-delay: 120ms;
+}
+.bloom-combo-sparkle[data-i="1"] {
+  left: 100%;
+  top: 36%;
+  animation-delay: 210ms;
+}
+.bloom-combo-sparkle[data-i="2"] {
+  left: 10%;
+  top: -20%;
+  animation-delay: 300ms;
+}
+@keyframes bloom-combo-sparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15) rotate(-25deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-60deg) translateY(-40%);
+  }
+}
+
+/* ----------------------------------------------------------- confetti ---- */
+/* Combo 8 only: 24 pieces burst up from the head and fall back, staying
+   to either side of the head and behind it. Rise eases out, fall accelerates.
+   Each piece is a stage-sized wrapper, because a translate percentage is of
+   the element's OWN box: on the wrapper, 50% means half the stage. The
+   coloured piece is its ::before, which spins on its own so the rotation
+   does not swing the whole wrapper about the stage's centre. */
+.bloom-confetti {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  animation: bloom-confetti 1200ms both;
+}
+.bloom-confetti::before {
+  content: "";
+  position: absolute;
+  left: 46%;
+  top: 30%;
+  width: max(4px, 8%);
+  height: max(2px, 4%);
+  border-radius: 1px;
+  background: var(--confetti, var(--ic-blue));
+  animation: bloom-confetti-spin 1200ms linear both;
+  animation-delay: inherit;
+}
+.bloom-confetti[data-c="1"] {
+  --confetti: var(--ic-green);
+}
+.bloom-confetti[data-c="2"] {
+  --confetti: var(--ic-yellow);
+}
+.bloom-confetti[data-c="3"] {
+  --confetti: var(--ic-purple);
+}
+.bloom-confetti[data-c="4"] {
+  --confetti: var(--ic-orange);
+}
+@keyframes bloom-confetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+    animation-timing-function: var(--bloom-ease-out);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(calc(var(--cx) * 0.6), var(--cpeak));
+    animation-timing-function: var(--bloom-ease-fall);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--cx), var(--cfall));
+  }
+}
+@keyframes bloom-confetti-spin {
+  0% {
+    transform: rotate(0deg) scale(0.5);
+  }
+  30% {
+    transform: rotate(calc(var(--cspin) * 0.3)) scale(1);
+  }
+  100% {
+    transform: rotate(var(--cspin)) scale(1);
+  }
+}
+
+/* ---------------------------------------------------------- hint ring ---- */
+/* Once per wrong-again miss, on the tray's hint control: the control's own
+   shape swells out and fades, 1 to 1.5, 0.6 to 0. */
+.bloom-hint-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--bb-primary);
+  pointer-events: none;
+  opacity: 0;
+  animation: bloom-hint-ring 1000ms var(--bloom-ease-out) both;
+}
+@keyframes bloom-hint-ring {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ------------------------------------------------------ reduced motion ---- */
+/* Still frames. Thought dots hold fully visible. One combo sparkle stands in
+   for the sparkles and the confetti, held, then a 150ms fade. The hint ring
+   holds at its first frame, then fades the same way. No puff: Berry's flash
+   ring already marks the char clearing. */
+@keyframes bloom-still-then-fade {
+  0%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes bloom-ring-still-then-fade {
+  0%,
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.bloom-stage[data-reduced="true"] .bloom-stage-body[data-puff] {
+  animation: none;
+}
+.bloom-stage[data-reduced="true"] .bloom-thought-dot {
+  animation: none;
+  opacity: 1;
+}
+.bloom-stage[data-reduced="true"] .bloom-confetti,
+.bloom-stage[data-reduced="true"] .bloom-combo-sparkle:not([data-i="0"]) {
+  display: none;
+}
+.bloom-stage[data-reduced="true"] .bloom-combo-sparkle[data-i="0"] {
+  transform: scale(1) rotate(-25deg);
+  animation: bloom-still-then-fade 1000ms linear both;
+}
+.bloom-hint-ring[data-reduced="true"] {
+  transform: none;
+  animation: bloom-ring-still-then-fade 1000ms linear both;
+}
+
+html[data-motion="reduced"] .bloom-stage-body[data-puff] {
+  animation: none;
+}
+html[data-motion="reduced"] .bloom-thought-dot {
+  animation: none;
+  opacity: 1;
+}
+html[data-motion="reduced"] .bloom-confetti,
+html[data-motion="reduced"] .bloom-combo-sparkle:not([data-i="0"]) {
+  display: none;
+}
+html[data-motion="reduced"] .bloom-combo-sparkle[data-i="0"] {
+  transform: scale(1) rotate(-25deg);
+  animation: bloom-still-then-fade 1000ms linear both;
+}
+html[data-motion="reduced"] .bloom-hint-ring {
+  transform: none;
+  animation: bloom-ring-still-then-fade 1000ms linear both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloom-stage-body[data-puff] {
+    animation: none;
+  }
+  .bloom-thought-dot {
+    animation: none;
+    opacity: 1;
+  }
+  .bloom-confetti,
+  .bloom-combo-sparkle:not([data-i="0"]) {
+    display: none;
+  }
+  .bloom-combo-sparkle[data-i="0"] {
+    transform: scale(1) rotate(-25deg);
+    animation: bloom-still-then-fade 1000ms linear both;
+  }
+  .bloom-hint-ring {
+    transform: none;
+    animation: bloom-ring-still-then-fade 1000ms linear both;
+  }
+}
