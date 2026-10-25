@@ -1,30 +1,13 @@
 "use client";
 
 import * as React from "react";
-import {
-  CalendarDays,
-  CreditCard,
-  LayoutGrid,
-  FileText,
-  LogIn,
-  LogOut,
-  Settings,
-  Shield,
-  User,
-  Users,
-  MessageCircle,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { lazy, Suspense } from "react";
+import { LogIn, User } from "lucide-react";
 import { useSession } from "@/lib/useSession";
 import { useProfile } from "@/lib/profile";
-import { roleLabel } from "@/lib/account";
 import { cn } from "@/lib/utils";
+
+const ProfileMenu = lazy(() => import("@/components/ui/profile-menu").then((m) => ({ default: m.ProfileMenu })));
 
 /**
  * Who you are, in the corner of the bar.
@@ -45,16 +28,6 @@ import { cn } from "@/lib/utils";
  * positioned outside the trigger's own box, which clips against the edge of a
  * bar.
  */
-
-interface MenuItem {
-  label: string;
-  /** Shown on the right, as a badge. */
-  value?: string;
-  href: string;
-  icon: React.ReactNode;
-  /** Badges are tinted by meaning, not by position in the list. */
-  tone?: "role" | "plan";
-}
 
 export function ProfileDropdown({
   className,
@@ -87,125 +60,35 @@ export function ProfileDropdown({
   const chosenName = [profile.firstName, profile.lastName].filter(Boolean).join(" ");
   const name = chosenName || session.name || session.email;
   const avatar = profile.avatar || session.picture;
-  const staff = session.role === "admin" || session.role === "owner";
-
-  const menuItems: MenuItem[] = [
-    // The way into the dashboard. The burger on the hub opens the column now,
-    // which is a menu of destinations; this is the destination itself.
-    { label: "Dashboard", href: "#/d", icon: <LayoutGrid className="size-4" /> },
-    { label: "Profile", href: "#/d/profile", icon: <User className="size-4" /> },
-    {
-      label: "Role",
-      // `member` is the internal word; "Student" is what the person is.
-      value: session.role === "member" ? "Student" : roleLabel(session.role),
-      href: "#/home",
-      icon: <Shield className="size-4" />,
-      tone: "role",
-    },
-    { label: "Calendar", href: "#/calendar", icon: <CalendarDays className="size-4" /> },
-    { label: "Office hours", href: "#/tutoring", icon: <Users className="size-4" /> },
-    {
-      label: "Subscription",
-      value: "Free",
-      href: "#/d/subscriptions",
-      icon: <CreditCard className="size-4" />,
-      tone: "plan",
-    },
-    { label: "Settings", href: "#/d/settings", icon: <Settings className="size-4" /> },
-    { label: "Terms & Policies", href: "#/terms", icon: <FileText className="size-4" /> },
-  ];
+  // The avatar button. It is the Suspense fallback too, so the bar looks the
+  // same while the menu's chunk loads; the menu then wraps this same button.
+  const trigger = (
+    <button
+      type="button"
+      aria-label={`Account: ${name}`}
+      className="flex size-11 cursor-pointer items-center justify-center rounded-full"
+    >
+      {/* The gradient ring is the original's, kept because it reads as an
+          avatar even before the picture loads, and shrunk to match the
+          other controls in the bar rather than the 40px of a sidebar. */}
+      <span className="block size-9 rounded-full bg-gradient-to-br from-brand-from via-brand-to to-amber-400 p-0.5 transition-transform hover:scale-105 motion-reduce:transition-none">
+        <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-stone-900">
+          {avatar ? (
+            <img src={avatar} alt="" aria-hidden className="size-full object-cover" />
+          ) : (
+            <User className="size-4 text-slate-500 dark:text-stone-400" />
+          )}
+        </span>
+      </span>
+    </button>
+  );
 
   return (
     <div className={cn("relative", className)} {...props}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Account: ${name}`}
-            className="flex size-11 cursor-pointer items-center justify-center rounded-full"
-          >
-            {/* The gradient ring is the original's, kept because it reads as an
-                avatar even before the picture loads, and shrunk to match the
-                other controls in the bar rather than the 40px of a sidebar. */}
-            <span className="block size-9 rounded-full bg-gradient-to-br from-brand-from via-brand-to to-amber-400 p-0.5 transition-transform hover:scale-105 motion-reduce:transition-none">
-              <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-stone-900">
-                {avatar ? (
-                  <img src={avatar} alt="" aria-hidden className="size-full object-cover" />
-                ) : (
-                  <User className="size-4 text-slate-500 dark:text-stone-400" />
-                )}
-              </span>
-            </span>
-          </button>
-        </DropdownMenuTrigger>
-
-        {/* No `animate-in` / `zoom-in-95` here. Those are `tailwindcss-animate`
-            classes and this project does not use it, so upstream they would be
-            dead strings and the menu would open with no motion at all. The
-            shared `DropdownMenuContent` already runs its own keyframes. */}
-        <DropdownMenuContent align="end" sideOffset={8} className="w-64 p-2">
-          <div className="flex items-center gap-3 px-2 py-2">
-            <span className="block size-9 shrink-0 overflow-hidden rounded-full bg-slate-100 dark:bg-stone-800">
-              {avatar ? (
-                <img src={avatar} alt="" aria-hidden className="size-full object-cover" />
-              ) : (
-                <span className="flex size-full items-center justify-center">
-                  <User className="size-4 text-slate-500 dark:text-stone-400" />
-                </span>
-              )}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">{name}</span>
-              <span className="block truncate text-xs text-slate-500 dark:text-stone-400">
-                {session.email}
-              </span>
-            </span>
-          </div>
-
-          <DropdownMenuSeparator />
-
-          {menuItems.map((item) => (
-            <DropdownMenuItem key={item.label} asChild>
-              <a href={item.href} className="gap-2">
-                {item.icon}
-                <span className="flex-1 truncate">{item.label}</span>
-                {item.value && (
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-md border px-1.5 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase",
-                      item.tone === "role" && staff
-                        ? "border-[#6b51dd]/20 bg-[#f1f4fa] text-[#5a3fd8] dark:bg-[#6b51dd]/10 dark:text-[#bbb1eb]"
-                        : "border-slate-500/15 bg-slate-100 text-slate-600 dark:bg-stone-800 dark:text-stone-300",
-                    )}
-                  >
-                    {item.value}
-                  </span>
-                )}
-              </a>
-            </DropdownMenuItem>
-          ))}
-
-          {/* The assistant's way in, since the corner rail it used to sit in went
-              (2026-10-07). The panel listens for this event; see ui/blueberry-bot. */}
-          <DropdownMenuItem
-            onSelect={() => window.dispatchEvent(new CustomEvent("blueberry:open-bot"))}
-            className="gap-2"
-          >
-            <MessageCircle className="size-4" />
-            Ask Blueberry
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem
-            onSelect={session.signOut}
-            className="gap-2 bg-red-500/10 text-red-600 focus:bg-red-500/20 focus:text-red-700 dark:text-red-400 dark:focus:text-red-300"
-          >
-            <LogOut className="size-4" />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {/* React.lazy + Suspense: ProfileMenu (and Radix with it) loads as its own chunk. */}
+      <Suspense fallback={trigger}>
+        <ProfileMenu session={session} name={name} avatar={avatar} trigger={trigger} />
+      </Suspense>
     </div>
   );
 }

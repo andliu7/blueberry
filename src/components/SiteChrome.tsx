@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { MotionConfig } from "motion/react";
-import { GlobalSearch } from "@/components/GlobalSearch";
 import { ProfileDropdown } from "@/components/ui/profile-dropdown";
 import { SiteNav, SiteNavBar, SiteNavSpacer } from "@/components/ui/site-nav";
 import "@/components/ui/site-shell.css";
@@ -18,10 +17,13 @@ import { startCardGlow } from "@/lib/cardGlow";
  * in their place for the moment the chunk takes. The pill and the bot draw
  * nothing until used anyway, and the timer card is a corner launcher. The footer,
  * with the About sheet it opens, is lazy for the same reason: #/app never draws it.
+ * So is search (payload trim, 2026-10-25): it draws nothing until "/" or
+ * ctrl+k, and #/app never mounts it, so its feature index stays off the game's first open.
  */
 const FocusTimer = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusTimer })));
 const FocusPill = lazy(() => import("@/components/FocusTimer").then((m) => ({ default: m.FocusPill })));
 const BlueberryBot = lazy(() => import("@/components/ui/blueberry-bot").then((m) => ({ default: m.BlueberryBot })));
+const GlobalSearch = lazy(() => import("@/components/GlobalSearch").then((m) => ({ default: m.GlobalSearch })));
 const SiteFooter = lazy(() => import("@/components/ui/site-footer").then((m) => ({ default: m.SiteFooter })));
 
 /**
@@ -112,7 +114,11 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           <FocusTimer t={timer} />
         </Suspense>
       )}
-      {!inGame && <GlobalSearch />}
+      {!inGame && (
+        <Suspense fallback={null}>
+          <GlobalSearch />
+        </Suspense>
+      )}
       {!inGame && (
         <Suspense fallback={null}>
           <BlueberryBot />
