@@ -81,7 +81,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Phthalimide, with 1. KOH, 2. PhCH₂Br: what forms?",
     "back": "2-Benzylisoindole-1,3-dione",
-    "why": "The phthalimide N takes one alkyl group by SN2, then hydrazine cuts it free: one clean primary amine.",
+    "why": "Gabriel: one clean primary amine.",
     "fig": 0,
     "reactants": [
       "O=C1NC(=O)c2ccccc21"
@@ -104,7 +104,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Benzylisoindole-1,3-dione, with N₂H₄: what forms?",
     "back": "Phenylmethanamine",
-    "why": "The phthalimide N takes one alkyl group by SN2, then hydrazine cuts it free: one clean primary amine.",
+    "why": "Gabriel: one clean primary amine.",
     "fig": 1,
     "reactants": [
       "O=C1c2ccccc2C(=O)N1Cc1ccccc1"
@@ -166,7 +166,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Pentan-2-amine, with excess CH₃I: what forms?",
     "back": "N,N,N-Trimethylpentan-2-aminium",
-    "why": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. Hydroxide takes an H from the less hindered CH₃ end, where the bulky group crowds least: the less substituted alkene.",
+    "why": "Hofmann elimination: the less substituted alkene wins.",
     "fig": 0,
     "reactants": [
       "CCCC(C)N"
@@ -189,7 +189,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "N,N,N-Trimethylpentan-2-aminium, with Ag₂O, heat: what forms?",
     "back": "Pent-1-ene",
-    "why": "Exhaustive methylation makes N(CH₃)₃⁺ a leaving group. Hydroxide takes an H from the less hindered CH₃ end, where the bulky group crowds least: the less substituted alkene.",
+    "why": "Hofmann elimination: the less substituted alkene wins.",
     "fig": 1,
     "reactants": [
       "CCCC(C)[N+](C)(C)C"
@@ -212,7 +212,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "N,N-Dimethylcyclohexanamine, with H₂O₂: what forms?",
     "back": "The N-oxide",
-    "why": "H₂O₂ gives the N-oxide. Heated, its O⁻ takes a β-H and the C-N bond breaks: the alkene, plus a hydroxylamine.",
+    "why": "Heat the N-oxide: an alkene and a hydroxylamine.",
     "fig": 0,
     "reactants": [
       "CN(C)C1CCCCC1"
@@ -235,7 +235,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "The N-oxide, with heat: what forms?",
     "back": "Cyclohexene",
-    "why": "H₂O₂ gives the N-oxide. Heated, its O⁻ takes a β-H and the C-N bond breaks: the alkene, plus a hydroxylamine.",
+    "why": "Heat the N-oxide: an alkene and a hydroxylamine.",
     "fig": 1,
     "reactants": [
       "C[N+](C)([O-])C1CCCCC1"
@@ -320,7 +320,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzoyl chloride, with NaN₃: what forms?",
     "back": "Benzoyl azide",
-    "why": "Azide replaces Cl at the acyl carbon. Heated, the acyl azide loses N₂ and the ring ends on N, in an isocyanate.",
+    "why": "Curtius, like Hofmann: one carbon shorter.",
     "fig": 0,
     "reactants": [
       "O=C(Cl)c1ccccc1"
@@ -343,7 +343,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Benzoyl azide, with heat, −N₂: what forms?",
     "back": "Isocyanatobenzene",
-    "why": "Azide replaces Cl at the acyl carbon. Heated, the acyl azide loses N₂ and the ring ends on N, in an isocyanate.",
+    "why": "Curtius, like Hofmann: one carbon shorter.",
     "fig": 1,
     "reactants": [
       "[N-]=[N+]=NC(=O)c1ccccc1"
@@ -381,7 +381,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Bromobutane, with NaN₃, SN2: what forms?",
     "back": "1-Azidobutane",
-    "why": "Azide displaces bromide by SN2, then reduction keeps the N on carbon and lets the other two go as N₂: no carbon added.",
+    "why": "The azide route keeps the carbon count.",
     "fig": 0,
     "reactants": [
       "CCCCBr"
@@ -404,7 +404,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Azidobutane, with 1. LiAlH₄, 2. H₂O: what forms?",
     "back": "Butan-1-amine",
-    "why": "Azide displaces bromide by SN2, then reduction keeps the N on carbon and lets the other two go as N₂: no carbon added.",
+    "why": "The azide route keeps the carbon count.",
     "fig": 1,
     "reactants": [
       "CCCCN=[N+]=[N-]"
@@ -442,7 +442,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Aniline, with Ac₂O: what forms?",
     "back": "N-Phenylacetamide",
-    "why": "Ac₂O turns NH₂ into NHAc, which shares its lone pair with the C=O. The calmer ring brominates once, para.",
+    "why": "Protection works by sharing the lone pair, not removing it.",
     "fig": 0,
     "reactants": [
       "Nc1ccccc1"
@@ -465,7 +465,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "N-Phenylacetamide, with Br₂: what forms?",
     "back": "N-(4-Bromophenyl)acetamide",
-    "why": "Ac₂O turns NH₂ into NHAc, which shares its lone pair with the C=O. The calmer ring brominates once, para.",
+    "why": "Protection works by sharing the lone pair, not removing it.",
     "fig": 1,
     "reactants": [
       "CC(=O)Nc1ccccc1"
@@ -519,7 +519,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "4-Methylbenzenediazonium, with CuCN: what forms?",
     "back": "Ar-CN",
-    "why": "N₂ leaves and a new group takes that ring carbon: CN with copper, I with KI, and H with H₃PO₂, which deletes the N altogether.",
+    "why": "Cl, Br, CN with copper; I with KI; F with HBF₄ and heat; H with H₃PO₂.",
     "fig": 0,
     "reactants": [
       "Cc1ccc([N+]#N)cc1"
@@ -542,7 +542,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "4-Methylbenzenediazonium, with KI: what forms?",
     "back": "Ar-I",
-    "why": "N₂ leaves and a new group takes that ring carbon: CN with copper, I with KI, and H with H₃PO₂, which deletes the N altogether.",
+    "why": "Cl, Br, CN with copper; I with KI; F with HBF₄ and heat; H with H₃PO₂.",
     "fig": 1,
     "reactants": [
       "Cc1ccc([N+]#N)cc1"
@@ -565,7 +565,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "4-Methylbenzenediazonium, with H₃PO₂: what forms?",
     "back": "Ar-H",
-    "why": "N₂ leaves and a new group takes that ring carbon: CN with copper, I with KI, and H with H₃PO₂, which deletes the N altogether.",
+    "why": "Cl, Br, CN with copper; I with KI; F with HBF₄ and heat; H with H₃PO₂.",
     "fig": 2,
     "reactants": [
       "Cc1ccc([N+]#N)cc1"

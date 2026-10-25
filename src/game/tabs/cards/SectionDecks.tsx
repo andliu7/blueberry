@@ -16,8 +16,8 @@ import {
   adoptSectionDeck,
   assembleSectionDeck,
   loadUnitCards,
+  resolveSectionDeck,
   SECTION_UNITS,
-  sectionDeckRef,
   sectionDecksFor,
   sectionDeckSize,
   type SectionDeckRef,
@@ -93,7 +93,7 @@ export interface SectionDeckScreenProps {
 
 /** One premade deck as a set page: the same DeckSet every deck uses. */
 export function SectionDeckScreen({ unitId, deckKey, mode, snapshot, source, reducedMotion, onLearn }: SectionDeckScreenProps) {
-  const ref = sectionDeckRef(unitId, deckKey);
+  const ref = resolveSectionDeck(unitId, deckKey);
   const [cards, setCards] = useState<readonly Card[] | null>(null);
 
   useEffect(() => {

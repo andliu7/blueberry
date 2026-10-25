@@ -18,7 +18,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-chloro-2,4-dinitrobenzene, with NaOCH₃: what forms?",
     "back": "1-Methoxy-2,4-dinitrobenzene",
-    "why": "Methoxide takes the place of Cl at the same carbon. The nitro groups ortho and para to it make the swap possible.",
+    "why": "SNAr swaps the halogen for the nucleophile at the same carbon. The nitro groups ortho and para to it make the swap possible.",
     "fig": 0,
     "reactants": [
       "O=[N+]([O-])c1ccc(Cl)c([N+](=O)[O-])c1"
@@ -41,7 +41,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-fluoro-4-nitrobenzene, with HN(CH₃)₂, heat: what forms?",
     "back": "N,N-Dimethyl-4-nitroaniline",
-    "why": "Methoxide takes the place of Cl at the same carbon. The nitro groups ortho and para to it make the swap possible.",
+    "why": "SNAr swaps the halogen for the nucleophile at the same carbon. The nitro groups ortho and para to it make the swap possible.",
     "fig": 1,
     "reactants": [
       "O=[N+]([O-])c1ccc(F)cc1"
@@ -104,7 +104,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Chlorobenzene, with 1. NaOH, heat, 2. H₃O⁺: what forms?",
     "back": "Phenol",
-    "why": "Hot NaOH turns chlorobenzene into phenol. With a methyl on the ring, two isomers form: the aryne spans the old C-Br carbon and its neighbour.",
+    "why": "The Dow process: chlorobenzene and hot NaOH give phenol after acid workup.",
     "fig": 0,
     "reactants": [
       "Clc1ccccc1"
@@ -127,7 +127,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-bromo-4-methylbenzene, with 1. NaOH, heat, 2. H₃O⁺: what forms?",
     "back": "3-Methylphenol + 4-Methylphenol",
-    "why": "Hot NaOH turns chlorobenzene into phenol. With a methyl on the ring, two isomers form: the aryne spans the old C-Br carbon and its neighbour.",
+    "why": "The Dow process: chlorobenzene and hot NaOH give phenol after acid workup.",
     "fig": 1,
     "reactants": [
       "Cc1ccc(Br)cc1"
@@ -167,7 +167,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-bromo-4-fluoro-2-nitrobenzene, with NaOCH₃: what forms?",
     "back": "4-Fluoro-1-methoxy-2-nitrobenzene",
-    "why": "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not.",
+    "why": "In SNAr the slow step is addition, so the most electronegative halogen wins: F > Cl > Br > I.",
     "fig": 0,
     "reactants": [
       "O=[N+]([O-])c1cc(F)ccc1Br"
@@ -190,7 +190,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-chloro-5-fluoro-2,4-dinitrobenzene, with NaOCH₃, 1 equiv: what forms?",
     "back": "1-Chloro-5-methoxy-2,4-dinitrobenzene",
-    "why": "Br is ortho to NO₂, so its carbon is activated. F is meta to NO₂ and is not.",
+    "why": "In SNAr the slow step is addition, so the most electronegative halogen wins: F > Cl > Br > I.",
     "fig": 1,
     "reactants": [
       "O=[N+]([O-])c1cc([N+](=O)[O-])c(Cl)cc1F"
@@ -221,7 +221,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-chloro-4-methylbenzene, with NaNH₂, NH₃(l): what forms?",
     "back": "Aryne",
-    "why": "NH₂⁻ can add to either end of the aryne: at the old C-Cl carbon (para to CH₃) or next to it (meta).",
+    "why": "Without an acceptor, a very strong base goes the benzyne way: eliminate HCl, then add NH₂⁻ and H.",
     "fig": 0,
     "reactants": [
       "Cc1ccc(Cl)cc1"
@@ -244,7 +244,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Aryne, with NH₂⁻, then H⁺: what forms?",
     "back": "3-Methylaniline + 4-Methylaniline",
-    "why": "NH₂⁻ can add to either end of the aryne: at the old C-Cl carbon (para to CH₃) or next to it (meta).",
+    "why": "Without an acceptor, a very strong base goes the benzyne way: eliminate HCl, then add NH₂⁻ and H.",
     "fig": 1,
     "reactants": [
       "Cc1cc#ccc1"

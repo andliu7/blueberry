@@ -2445,6 +2445,15 @@ function OrgoMapTrack({
             <Fragment key={section.number}>
             <div className="path-section mx-auto flex w-full max-w-md flex-col" role="group" aria-labelledby={headingId}>
               <SectionDivider id={headingId} eyebrow={`Section ${section.number}`} title={section.title} />
+              {/* D2: the section's premade flashcards. A plain link built from imports already here, so the
+                  path loads no deck code; every unit with a guide has decks (cards/sections/sectionRoute.ts). */}
+              {hasUnitGuide(unit.id) ? (
+                <div className="flex justify-center">
+                  <a className="path-divider__card path-divider__eyebrow no-underline" href={hrefForTab("cards", "section", unit.id, String(section.number))}>
+                    Flashcards for this section
+                  </a>
+                </div>
+              ) : null}
               <RoadLine version={roadVersion} glow={reducedMotion ? null : glow} />
               <ol className="path-track flex w-full flex-col">
                 {section.stops.map((stop) => stop.item)}

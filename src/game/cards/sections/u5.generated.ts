@@ -18,7 +18,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(R)-Butan-2-ol, with PBr₃: what forms?",
     "back": "(S)-2-Bromobutane",
-    "why": "PBr₃ never makes a cation: bromide attacks from behind, so R becomes S. HBr goes through a cation, which shifts once to become tertiary.",
+    "why": "PBr₃ is the no-cation route: the C-O carbon becomes the C-Br carbon.",
     "fig": 0,
     "reactants": [
       "CC[C@@H](C)O"
@@ -41,7 +41,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3-Methylbutan-2-ol, with HBr: what forms?",
     "back": "2-Bromo-2-methylbutane",
-    "why": "PBr₃ never makes a cation: bromide attacks from behind, so R becomes S. HBr goes through a cation, which shifts once to become tertiary.",
+    "why": "PBr₃ is the no-cation route: the C-O carbon becomes the C-Br carbon.",
     "fig": 1,
     "reactants": [
       "CC(C)C(C)O"
@@ -103,7 +103,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(R)-Butan-2-ol, with TsCl, pyridine: what forms?",
     "back": "(R)-Butan-2-yl tosylate",
-    "why": "Only the O-H bond reacts, so the tosylate keeps R. Cyanide then attacks from behind: SN2 with inversion.",
+    "why": "Tosylation makes a good leaving group on oxygen without touching the carbon.",
     "fig": 0,
     "reactants": [
       "CC[C@@H](C)O"
@@ -126,7 +126,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(R)-Butan-2-yl tosylate, with NaCN, DMSO: what forms?",
     "back": "(S)-2-Methylbutanenitrile",
-    "why": "Only the O-H bond reacts, so the tosylate keeps R. Cyanide then attacks from behind: SN2 with inversion.",
+    "why": "Tosylation makes a good leaving group on oxygen without touching the carbon.",
     "fig": 1,
     "reactants": [
       "CC[C@@H](C)OS(=O)(=O)c1ccc(C)cc1"
@@ -157,7 +157,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3,3-Dimethylbutan-2-ol, with H₂SO₄, heat: what forms?",
     "back": "2,3-Dimethylbut-2-ene",
-    "why": "In hot acid the cation shifts a methyl, then the most substituted C=C forms. POCl₃ in pyridine makes no cation, so nothing shifts.",
+    "why": "Dehydration removes H from one carbon and OH from the next: an alkene and water.",
     "fig": 0,
     "reactants": [
       "CC(O)C(C)(C)C"
@@ -180,7 +180,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3,3-Dimethylbutan-2-ol, with POCl₃, pyridine: what forms?",
     "back": "3,3-Dimethylbut-1-ene",
-    "why": "In hot acid the cation shifts a methyl, then the most substituted C=C forms. POCl₃ in pyridine makes no cation, so nothing shifts.",
+    "why": "Dehydration removes H from one carbon and OH from the next: an alkene and water.",
     "fig": 1,
     "reactants": [
       "CC(O)C(C)(C)C"
@@ -226,7 +226,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Propan-1-ol, with PCC, CH₂Cl₂: what forms?",
     "back": "Propanal",
-    "why": "PCC takes a primary alcohol one level, to the aldehyde. Jones has water, so it goes on to the acid.",
+    "why": "A primary alcohol goes one level up with PCC: to the aldehyde.",
     "fig": 0,
     "reactants": [
       "CCCO"
@@ -249,7 +249,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Propan-1-ol, with CrO₃, H₂SO₄, water: what forms?",
     "back": "Propanoic acid",
-    "why": "PCC takes a primary alcohol one level, to the aldehyde. Jones has water, so it goes on to the acid.",
+    "why": "A primary alcohol goes one level up with PCC: to the aldehyde.",
     "fig": 1,
     "reactants": [
       "CCCO"
@@ -303,7 +303,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Bromobutane, with NaSH: what forms?",
     "back": "Butane-1-thiol",
-    "why": "HS⁻ is a strong nucleophile: Br out, SH in. One equivalent of oxidant adds one S=O.",
+    "why": "Thiol: R-SH. Sulfide: R-S-R. Sulfoxide and sulfone add one or two S=O.",
     "fig": 0,
     "reactants": [
       "CCCCBr"
@@ -326,7 +326,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Diethyl sulfide, with H₂O₂, 1 equiv: what forms?",
     "back": "Diethyl sulfoxide",
-    "why": "HS⁻ is a strong nucleophile: Br out, SH in. One equivalent of oxidant adds one S=O.",
+    "why": "Thiol: R-SH. Sulfide: R-S-R. Sulfoxide and sulfone add one or two S=O.",
     "fig": 1,
     "reactants": [
       "CCSCC"
@@ -349,7 +349,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Methylpropan-2-olate + Iodomethane, with SN2: what forms?",
     "back": "2-Methoxy-2-methylpropane",
-    "why": "The bulky part rides on the alkoxide and the halide carbon is a methyl. The stereocentre's C-O bond is never broken, so R stays R.",
+    "why": "Williamson: alkoxide plus methyl or primary halide, SN2, an ether.",
     "fig": 0,
     "reactants": [
       "CC(C)(C)[O-]",
@@ -373,7 +373,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(R)-Butan-2-ol, with 1. NaH, 2. CH₃I: what forms?",
     "back": "(R)-2-Methoxybutane",
-    "why": "The bulky part rides on the alkoxide and the halide carbon is a methyl. The stereocentre's C-O bond is never broken, so R stays R.",
+    "why": "Williamson: alkoxide plus methyl or primary halide, SN2, an ether.",
     "fig": 1,
     "reactants": [
       "CC[C@@H](C)O"
@@ -404,7 +404,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3,3-Dimethylbut-1-ene, with 1. Hg(OAc)₂, CH₃OH, 2. NaBH₄: what forms?",
     "back": "2-Methoxy-3,3-dimethylbutane",
-    "why": "Mercury bridges the two alkene carbons, so no methyl can shift. Acid makes a free cation, and a methyl does shift.",
+    "why": "Alkoxymercuration-demercuration makes a Markovnikov ether with no rearrangement.",
     "fig": 0,
     "reactants": [
       "C=CC(C)(C)C"
@@ -427,7 +427,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "3,3-Dimethylbut-1-ene, with CH₃OH, H₂SO₄: what forms?",
     "back": "2-Methoxy-2,3-dimethylbutane",
-    "why": "Mercury bridges the two alkene carbons, so no methyl can shift. Acid makes a free cation, and a methyl does shift.",
+    "why": "Alkoxymercuration-demercuration makes a Markovnikov ether with no rearrangement.",
     "fig": 1,
     "reactants": [
       "C=CC(C)(C)C"
@@ -458,7 +458,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Methoxybenzene, with HI, excess, heat: what forms?",
     "back": "Phenol + Iodomethane",
-    "why": "Iodide attacks the CH₃ carbon, so the O stays on the ring. A tertiary carbon cleaves by cation: SN1.",
+    "why": "Excess HX turns every alkyl C-O into C-X.",
     "fig": 0,
     "reactants": [
       "COc1ccccc1"
@@ -482,7 +482,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Methoxy-2-methylpropane, with HI, 1 equiv: what forms?",
     "back": "2-Iodo-2-methylpropane + Methanol",
-    "why": "Iodide attacks the CH₃ carbon, so the O stays on the ring. A tertiary carbon cleaves by cation: SN1.",
+    "why": "Excess HX turns every alkyl C-O into C-X.",
     "fig": 1,
     "reactants": [
       "COC(C)(C)C"
@@ -522,7 +522,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butan-1-ol, with TBSCl, imidazole: what forms?",
     "back": "TBS ether",
-    "why": "The alcohol's O bonds to silicon: the OH is masked. Fluoride attacks silicon and the alcohol comes back unchanged.",
+    "why": "Silyl protection: O-H becomes O-SiR₃, ready to survive bases and Grignards.",
     "fig": 0,
     "reactants": [
       "CCCCO"
@@ -545,7 +545,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "TBS ether, with TBAF: what forms?",
     "back": "Butan-1-ol",
-    "why": "The alcohol's O bonds to silicon: the OH is masked. Fluoride attacks silicon and the alcohol comes back unchanged.",
+    "why": "Silyl protection: O-H becomes O-SiR₃, ready to survive bases and Grignards.",
     "fig": 1,
     "reactants": [
       "CCCCO[Si](C)(C)C(C)(C)C"
@@ -568,7 +568,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(Z)-But-2-ene, with mCPBA: what forms?",
     "back": "cis-2,3-Dimethyloxirane",
-    "why": "Both C-O bonds form at once on the same face, so the two methyls that were cis stay cis.",
+    "why": "Epoxidation is stereospecific: cis alkene, cis epoxide.",
     "fig": 0,
     "reactants": [
       "C/C=C\\C"
@@ -591,7 +591,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexene, with mCPBA: what forms?",
     "back": "Cyclohexene oxide",
-    "why": "Both C-O bonds form at once on the same face, so the two methyls that were cis stay cis.",
+    "why": "Epoxidation is stereospecific: cis alkene, cis epoxide.",
     "fig": 1,
     "reactants": [
       "C1=CCCCC1"
@@ -614,7 +614,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2,2-Dimethyloxirane, with CH₃OH, H₂SO₄: what forms?",
     "back": "2-Methoxy-2-methylpropan-1-ol",
-    "why": "Under acid, methanol attacks the tertiary carbon. Water attacks from the back, so the two OH end up trans.",
+    "why": "Acidic opening: the nucleophile goes to the more substituted carbon.",
     "fig": 0,
     "reactants": [
       "CC1(C)CO1"
@@ -637,7 +637,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexene oxide, with H₃O⁺: what forms?",
     "back": "trans-Cyclohexane-1,2-diol",
-    "why": "Under acid, methanol attacks the tertiary carbon. Water attacks from the back, so the two OH end up trans.",
+    "why": "Acidic opening: the nucleophile goes to the more substituted carbon.",
     "fig": 1,
     "reactants": [
       "C1CCC2OC2C1"
@@ -668,7 +668,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2,2-Dimethyloxirane, with NaOCH₃, CH₃OH: what forms?",
     "back": "1-Methoxy-2-methylpropan-2-ol",
-    "why": "Methoxide attacks by SN2 at the less crowded CH₂. That carbon is not a stereocentre, so the stereocentre keeps its arrangement.",
+    "why": "Basic opening: SN2 at the less substituted carbon.",
     "fig": 0,
     "reactants": [
       "CC1(C)CO1"
@@ -691,7 +691,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(R)-2-Methyloxirane, with NaOCH₃, CH₃OH: what forms?",
     "back": "(R)-1-Methoxypropan-2-ol",
-    "why": "Methoxide attacks by SN2 at the less crowded CH₂. That carbon is not a stereocentre, so the stereocentre keeps its arrangement.",
+    "why": "Basic opening: SN2 at the less substituted carbon.",
     "fig": 1,
     "reactants": [
       "C[C@@H]1CO1"
@@ -730,7 +730,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(Z)-But-2-ene, with 1. OsO₄, 2. NMO: what forms?",
     "back": "meso-Butane-2,3-diol",
-    "why": "OsO₄ adds both oxygens from one face. On a cis alkene that gives meso; on a ring, both OH on the same face.",
+    "why": "OsO₄ is syn dihydroxylation: both OH on one face.",
     "fig": 0,
     "reactants": [
       "C/C=C\\C"
@@ -753,7 +753,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexene, with 1. OsO₄, 2. NMO: what forms?",
     "back": "cis-Cyclohexane-1,2-diol",
-    "why": "OsO₄ adds both oxygens from one face. On a cis alkene that gives meso; on a ring, both OH on the same face.",
+    "why": "OsO₄ is syn dihydroxylation: both OH on one face.",
     "fig": 1,
     "reactants": [
       "C1=CCCCC1"
@@ -784,7 +784,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Butane-2,3-diol, with HIO₄: what forms?",
     "back": "Ethanal: two of them",
-    "why": "HIO₄ cuts the C-C bond between the two OH carbons. In a ring the chain opens: C1, with its methyl, becomes a ketone and C2 an aldehyde.",
+    "why": "HIO₄ splits a 1,2-diol into two carbonyls.",
     "fig": 0,
     "reactants": [
       "CC(O)C(C)O"
@@ -807,7 +807,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-Methylcyclohexane-1,2-diol, with HIO₄: what forms?",
     "back": "6-Oxoheptanal",
-    "why": "HIO₄ cuts the C-C bond between the two OH carbons. In a ring the chain opens: C1, with its methyl, becomes a ketone and C2 an aldehyde.",
+    "why": "HIO₄ splits a 1,2-diol into two carbonyls.",
     "fig": 1,
     "reactants": [
       "CC1(O)CCCCC1O"
@@ -830,7 +830,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(E)-But-2-ene, with 1. mCPBA, 2. H₃O⁺: what forms?",
     "back": "meso-Butane-2,3-diol",
-    "why": "Epoxide then acid adds the two OH anti. A trans alkene gives meso; a cis alkene gives the pair of enantiomers.",
+    "why": "Epoxidation then acid opening is anti dihydroxylation.",
     "fig": 0,
     "reactants": [
       "C/C=C/C"
@@ -853,7 +853,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "(Z)-But-2-ene, with 1. mCPBA, 2. H₃O⁺: what forms?",
     "back": "(2R,3R) + (2S,3S)",
-    "why": "Epoxide then acid adds the two OH anti. A trans alkene gives meso; a cis alkene gives the pair of enantiomers.",
+    "why": "Epoxidation then acid opening is anti dihydroxylation.",
     "fig": 1,
     "reactants": [
       "C/C=C\\C"

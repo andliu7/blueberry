@@ -97,7 +97,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Methylcyclohexanone, with LDA, −78 °C: what forms?",
     "back": "Kinetic",
-    "why": "Cold, bulky LDA takes the most reachable H: the kinetic enolate. Warm, reversible ethoxide lets the enolates settle on the more substituted C=C.",
+    "why": "Cold, bulky, irreversible: the kinetic enolate, on the side with more H.",
     "fig": 0,
     "reactants": [
       "CC1CCCCC1=O"
@@ -120,7 +120,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-Methylcyclohexanone, with NaOEt, warm EtOH: what forms?",
     "back": "Thermodynamic",
-    "why": "Cold, bulky LDA takes the most reachable H: the kinetic enolate. Warm, reversible ethoxide lets the enolates settle on the more substituted C=C.",
+    "why": "Cold, bulky, irreversible: the kinetic enolate, on the side with more H.",
     "fig": 1,
     "reactants": [
       "CC1CCCCC1=O"
@@ -623,7 +623,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexanone, with pyrrolidine, trace H⁺: what forms?",
     "back": "1-(Cyclohex-1-en-1-yl)pyrrolidine",
-    "why": "The enamine's β-carbon attacks CH₃I like an enolate would, and hydrolysis turns the iminium back into the ketone.",
+    "why": "An enamine is an enolate equivalent: the carbon two atoms from N attacks.",
     "fig": 0,
     "reactants": [
       "O=C1CCCCC1"
@@ -646,7 +646,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "1-(Cyclohex-1-en-1-yl)pyrrolidine, with 1. CH₃I, 2. H₃O⁺: what forms?",
     "back": "2-Methylcyclohexan-1-one",
-    "why": "The enamine's β-carbon attacks CH₃I like an enolate would, and hydrolysis turns the iminium back into the ketone.",
+    "why": "An enamine is an enolate equivalent: the carbon two atoms from N attacks.",
     "fig": 1,
     "reactants": [
       "C1=C(N2CCCC2)CCCC1"
@@ -669,7 +669,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Diethyl malonate, with 1. NaOEt, 2. CH₃CH₂Br: what forms?",
     "back": "Diethyl 2-ethylpropanedioate",
-    "why": "Alkylate the carbon between the two esters, then hydrolyse and lose one CO₂: R-X becomes R-CH₂-CO₂H.",
+    "why": "Malonic synthesis: R-X becomes R-CH₂-CO₂H.",
     "fig": 0,
     "reactants": [
       "CCOC(=O)CC(=O)OCC"
@@ -692,7 +692,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Diethyl 2-ethylpropanedioate, with H₃O⁺, heat, −CO₂: what forms?",
     "back": "Butanoic acid",
-    "why": "Alkylate the carbon between the two esters, then hydrolyse and lose one CO₂: R-X becomes R-CH₂-CO₂H.",
+    "why": "Malonic synthesis: R-X becomes R-CH₂-CO₂H.",
     "fig": 1,
     "reactants": [
       "CCOC(=O)C(CC)C(=O)OCC"
@@ -715,7 +715,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Ethyl acetoacetate, with 1. NaOEt, 2. CH₃I: what forms?",
     "back": "Ethyl 2-methyl-3-oxobutanoate",
-    "why": "Same three steps on ethyl acetoacetate: alkylate between the carbonyls, hydrolyse, lose CO₂. Out comes a methyl ketone.",
+    "why": "Acetoacetic synthesis makes methyl ketones.",
     "fig": 0,
     "reactants": [
       "CCOC(=O)CC(C)=O"
@@ -738,7 +738,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Ethyl 2-methyl-3-oxobutanoate, with H₃O⁺, heat, −CO₂: what forms?",
     "back": "Butan-2-one",
-    "why": "Same three steps on ethyl acetoacetate: alkylate between the carbonyls, hydrolyse, lose CO₂. Out comes a methyl ketone.",
+    "why": "Acetoacetic synthesis makes methyl ketones.",
     "fig": 1,
     "reactants": [
       "CCOC(=O)C(C)C(C)=O"
@@ -824,7 +824,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "Cyclohexanone + But-3-en-2-one, with base, Michael: what forms?",
     "back": "2-(3-Oxobutyl)cyclohexan-1-one",
-    "why": "Michael addition first gives a 1,5-diketone. Then the new chain's methyl attacks the ring C=O and water leaves: a new six-membered ring.",
+    "why": "Robinson annulation: Michael, then intramolecular aldol condensation, a new six-membered ring.",
     "fig": 0,
     "reactants": [
       "O=C1CCCCC1",
@@ -848,7 +848,7 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "kind": "reaction",
     "front": "2-(3-Oxobutyl)cyclohexan-1-one, with base, heat, aldol, −H₂O: what forms?",
     "back": "Fused bicyclic enone",
-    "why": "Michael addition first gives a 1,5-diketone. Then the new chain's methyl attacks the ring C=O and water leaves: a new six-membered ring.",
+    "why": "Robinson annulation: Michael, then intramolecular aldol condensation, a new six-membered ring.",
     "fig": 1,
     "reactants": [
       "CC(=O)CCC1CCCCC1=O"
