@@ -930,3 +930,40 @@ running.
 - The design law (`documentation/DESIGN-GOALS.md` and friends) is here, but
   the images it judges against are in `blueberry_game/docs/reference/`. Where
   the two repositories' copies of a spec disagree, this one is the live one
+
+## Ready to push, 24 Oct
+
+Final check on branch `ui/cta-and-background`, 117 commits ahead of `origin/main` (ef9888b to
+ba5762b). Nothing pushed. Checks: `build:packages` and `tsc -b` clean; `vite build` passes; full
+vitest 301 of 314 files green under load, and every red file passes when rerun alone
+(timeouts plus one mid-edit read of the mascot files), except `bootLoader.test.ts`, red on
+purpose. **Payload is NOT ready:** `#/app` first open on a clean copy of HEAD is 400.3 KB gz,
+over the 400 KB ceiling. b509675 (Bloom ambient states) took it from 399.4 to 400.8 KB and
+ba5762b got back to 400.3; trim about 0.3 KB in the mascot's eager code before pushing.
+
+Commits by feature:
+- Economy and HUD (20 to 22 Oct): blanks, top bar A3, daily quests, chests, gates, drives
+- Payload and tidy: 400 KB cut, unused deps, lazy supabase-js and footer, shared clamp, plural, shuffle
+- Contrast, glossary, guidebooks (Units 3 to 6), pathway sections, admin lesson viewer, press and hold, scratch paper
+- Accounts: name on the account, sign in before the app (G1), lessons on the account (A1)
+- Money: Pro checkout gate (G2), upsell sheet (G3), AdSense behind consent (G4), paid tutoring (T1, T2), pKa paste (C2), analytics migration
+- Content audit, 23 Oct: Units 0 to 10 fixes, Level 2 items, pacing, MCQ letters, test-out drawings, IR live on the band sign-off, Unit 0 story cards
+- Mascot: Bloom states spec, ambient states, fix round
+- STATUS and docs commits
+
+Migrations not applied on the live project (kwoqzfvssoxxuvlzzhrp, checked 24 Oct; live stops at
+20260819120000), apply in order: 20260907120000_billing, 20261007120000_office_hours,
+20261023120000_progress_events, 20261023130000_user_pka_settings, 20261023180000_pro_interest,
+20261024120000_tutoring, 20261024130000_user_pka_sheet_values, 20261024140000_analytics.
+Never run supabase/seed.sql live.
+
+Edge Functions changed since origin: stripe-checkout, stripe-prices, new _shared/checkoutGate.ts.
+None of the four Stripe functions (checkout, prices, portal, webhook) is deployed live; only chat is.
+
+Owner steps: (1) apply the migrations above; (2) set Stripe secrets (see G2 OWNER STEPS above),
+then deploy stripe-checkout, stripe-prices (--no-verify-jwt), stripe-portal, stripe-webhook and
+set STRIPE_WEBHOOK_SECRET; (3) AdSense: set repo secrets VITE_ADSENSE_CLIENT and VITE_ADSENSE_SLOT,
+publish ads.txt, write the privacy page (G4 steps above); (4) trim the payload, then push.
+Uncommitted in the tree at this check, not part of the 117: other sessions' work on App.tsx,
+siteNav, useDocumentTitle, vite.config.ts, admin/slides.ts, signoff/, and an analytics wiring
+pass (analytics.ts, main.tsx, ads, upsell, onboarding, booking sheets).
