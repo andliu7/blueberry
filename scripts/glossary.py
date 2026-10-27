@@ -4,6 +4,7 @@ The glossary's data, derived with RDKit.
     python scripts/glossary.py          writes src/game/glossary/glossary.generated.ts
                                         and glossary.index.generated.ts
     python scripts/glossary.py --check  rebuilds both in memory and fails if a file on disk differs
+                                        (drawing coordinates aside, see GEOMETRY)
 
 WHAT THIS SCRIPT OWNS. Four lists the glossary page (src/game/glossary/)
 reads, each one checked here before anything is written:
@@ -950,13 +951,25 @@ def render_index(data: dict) -> str:
     )
 
 
+# RDKit lays some molecules out with different 2D coordinates on Windows and on
+# Linux. Found in CI on 27 Oct: 46 bond lines, 30 label positions and two figure
+# sizes differed, and nothing else in the file did. So --check blanks the drawing
+# numbers on both sides and compares the rest exactly: names, SMILES, name parts,
+# labels and bond kinds still cannot drift or be hand edited.
+GEOMETRY = re.compile(r'"(x1|y1|x2|y2|x|y|w|h)": -?\d+(?:\.\d+)?')
+
+
+def without_geometry(text: str) -> str:
+    return GEOMETRY.sub(r'"\1": 0', text)
+
+
 def main() -> int:
     data = build()
     outputs = [(OUT, render(data)), (INDEX_OUT, render_index(data))]
     if "--check" in sys.argv:
         for path, text in outputs:
             on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
-            if on_disk != text:
+            if without_geometry(on_disk) != without_geometry(text):
                 print(f"{path.relative_to(ROOT)} is stale or hand edited: rerun python scripts/glossary.py")
                 return 1
         print("glossary: every structure parses and both files match")

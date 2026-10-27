@@ -41,7 +41,7 @@ function find(query: string, section: GlossaryEntry["section"] | "all" = "all", 
 }
 
 describe("glossary data is derived by RDKit", () => {
-  it("matches what scripts/glossary.py derives, byte for byte", () => {
+  it("matches what scripts/glossary.py derives, byte for byte but for drawing coordinates", () => {
     const run = spawnSync("python", ["scripts/glossary.py", "--check"], {
       cwd: ROOT,
       encoding: "utf8",
