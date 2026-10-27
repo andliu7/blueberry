@@ -86,6 +86,12 @@ function drain() {
   loadMathJax();
 
   const step = () => {
+    // A timer can outlive its page (a test environment is torn down while the
+    // loop is still waiting for MathJax), and by then there is no window to read.
+    if (typeof window === "undefined") {
+      draining = false;
+      return;
+    }
     const mj = window.MathJax;
     if (!mj?.typesetPromise) {
       // MathJax is a deferred script; it may simply not be here yet.
