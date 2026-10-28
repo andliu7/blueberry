@@ -356,3 +356,144 @@ export function streakScreenModel(input: StreakModelInput): StreakScreenModel {
     exam,
   };
 }
+
+/* ------------------------------------------------------- the month page -- */
+
+/**
+ * The streak PAGE, the calendar view behind the celebration. Same rule as the
+ * strip: every day is the engine's own answer on a journal truncated to the end
+ * of that day, never a count walked back from the total. A day after today is
+ * `future` and is never judged.
+ */
+export type StreakMonthKind = StreakDayKind | "future";
+
+export interface StreakMonthCell {
+  readonly date: string;
+  readonly dayOfMonth: number;
+  readonly kind: StreakMonthKind;
+  readonly today: boolean;
+}
+
+export type StreakPageTone = "lit" | "frozen" | "start";
+
+export interface StreakPageModel {
+  readonly days: number;
+  readonly tone: StreakPageTone;
+  readonly todayCounted: boolean;
+  /** The one gentle nudge. Never a countdown and never a loss: ECONOMY.md. */
+  readonly nudge: { readonly line: string; readonly strong: string | null };
+  readonly monthLabel: string;
+  readonly canNext: boolean;
+  /** Blank grid slots before the 1st, Sunday first. */
+  readonly lead: number;
+  readonly cells: readonly StreakMonthCell[];
+  readonly practiced: number;
+  readonly freezesUsed: number;
+  readonly restDays: number;
+  readonly tag: "PERFECT" | "GOOD" | null;
+  readonly freezes: StreakFreezeInfo;
+  /** The weekday of a freeze that covered the day before today, for the sheet. */
+  readonly freezeSavedWeekday: string | null;
+}
+
+export interface StreakPageInput {
+  readonly journal: readonly EconomyEvent[];
+  readonly snapshot: EconomySnapshot;
+  readonly now: string;
+  /** The streak length to show. `snapshot.streak.current` when there is no receipt. */
+  readonly days: number;
+  /** 0 is this month, -1 the one before. Never positive. */
+  readonly monthOffset: number;
+}
+
+function monthStart(date: string, offset: number): string {
+  const [y, m] = date.split("-").map(Number) as [number, number];
+  const idx = y * 12 + (m - 1) + offset;
+  return `${Math.floor(idx / 12)}-${String((idx % 12) + 1).padStart(2, "0")}-01`;
+}
+
+function daysInMonth(start: string): number {
+  const [y, m] = start.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).getUTCDate();
+}
+
+export function streakPageModel(input: StreakPageInput): StreakPageModel {
+  const { journal, snapshot, now, days } = input;
+  const tz = snapshot.tz;
+  const nowMs = Date.parse(now);
+  const today = Number.isFinite(nowMs) ? localDate(nowMs, tz) : snapshot.now.slice(0, 10);
+  const first = monthStart(today, Math.min(0, input.monthOffset));
+  const total = daysInMonth(first);
+  const all: string[] = [];
+  for (let i = 0; i < total; i += 1) all.push(addDays(first, i));
+  // Judged days: those up to and including today. The day after the last one
+  // judged is needed for the bridge arithmetic, so it is derived as well.
+  const judged = all.filter((d) => d <= today);
+  const probe = judged.length === 0 ? [] : [...judged, addDays(judged[judged.length - 1] as string, 1)];
+  const snaps = probe.map((d) => (d === today ? snapshot : d > today ? snapshot : snapshotAtEndOf(journal, d, tz)));
+  const counted = snaps.map((s, i) => (probe[i] as string) <= today && s.streak.todayCounted);
+
+  const restUsed = new Set<string>();
+  const seed = snaps[0]?.streak.restDayThisWeek ?? null;
+  if (seed !== null) restUsed.add(isoWeekKey(seed));
+
+  const cells: StreakMonthCell[] = all.map((date, index) => {
+    const dayOfMonth = index + 1;
+    if (date > today) return { date, dayOfMonth, kind: "future", today: false };
+    let kind: StreakMonthKind;
+    if (counted[index] === true) kind = "counted";
+    else if (date === today) kind = "pending";
+    else {
+      const next = snaps[index + 1] as EconomySnapshot;
+      const after = next.streak.current - (counted[index + 1] === true ? 1 : 0);
+      if (after > 0) {
+        const week = isoWeekKey(date);
+        if (restUsed.has(week)) kind = "freeze";
+        else {
+          restUsed.add(week);
+          kind = "rest";
+        }
+      } else kind = "missed";
+    }
+    return { date, dayOfMonth, kind, today: date === today };
+  });
+
+  const practiced = cells.filter((c) => c.kind === "counted").length;
+  const yesterday = cells.find((c) => c.date === addDays(today, -1));
+  const freezeSaved = yesterday !== undefined && yesterday.kind === "freeze";
+  const weekday = freezeSaved ? weekdayNames(yesterday.date).weekday : null;
+  const todayCounted = snapshot.streak.todayCounted;
+  const tone: StreakPageTone = freezeSaved ? "frozen" : days <= 1 ? "start" : "lit";
+  const nudge = freezeSaved
+    ? { line: `${weekday} was covered by a freeze. Streak safe at ${days}.`, strong: weekday }
+    : todayCounted
+      ? { line: `Today counted. Meet your goal tomorrow and it becomes ${days + 1}.`, strong: "Today counted." }
+      : { line: "Today is still open. One lesson adds a day.", strong: "One lesson" };
+  const monthName = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(`${first}T12:00:00Z`),
+  );
+  const held = snapshot.streak.freezes;
+  return {
+    days,
+    tone,
+    todayCounted,
+    nudge,
+    monthLabel: monthName,
+    canNext: input.monthOffset < 0,
+    lead: new Date(`${first}T12:00:00Z`).getUTCDay(),
+    cells,
+    practiced,
+    freezesUsed: cells.filter((c) => c.kind === "freeze").length,
+    restDays: cells.filter((c) => c.kind === "rest").length,
+    tag: practiced === 0 ? null : cells.some((c) => c.kind === "missed" || c.kind === "rest" || c.kind === "freeze") ? "GOOD" : "PERFECT",
+    freezes: {
+      held,
+      max: STREAK_FREEZE_MAX_HELD,
+      cost: STREAK_FREEZE_COST,
+      affordable: snapshot.diamonds.balance >= STREAK_FREEZE_COST,
+      full: held >= STREAK_FREEZE_MAX_HELD,
+      line: freezeLine(held, STREAK_FREEZE_MAX_HELD),
+    },
+    freezeSavedWeekday: weekday,
+  };
+}

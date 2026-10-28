@@ -13,6 +13,7 @@
  * route.
  */
 
+import { FocusProvider } from "./tabs/focus/FocusProvider";
 import { lazy, Suspense, useEffect } from "react";
 import { Shell } from "./app/Shell";
 import { useHashRoute, navigate } from "./app/useHashRoute";
@@ -73,8 +74,20 @@ const PilotTrainerGallery = lazy(() => import("./tabs/trainer/engine/TrainerGall
  */
 const GlossaryPage = lazy(() => import("./glossary/GlossaryPage"));
 
+/** The shop, at #/app/shop. Lazy: only a student who opens it from the diamond counter pays for it. */
+const ShopPage = lazy(() => import("./shop/ShopPage"));
+
 /** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
 const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
+
+/** The streak page states, at #/app/gallery/streak?state=lit. Development only, lazy. */
+const StreakGallery = lazy(() => import("./lesson/StreakGallery"));
+
+/** The lesson-start card states, at #/app/gallery/start?state=ready. Development only, lazy. */
+const StartPopGallery = lazy(() => import("./charge/StartPopGallery"));
+
+/** The gem and XP reward screens, at #/app/gallery/gems?state=xp. Development only, lazy. */
+const GemRewardGallery = lazy(() => import("./lesson/GemRewardGallery"));
 
 /**
  * The staff lesson viewer, at #/app/admin. Lazy like the glossary, and only
@@ -86,7 +99,7 @@ const params = new URLSearchParams(window.location.search);
 /** The measurement scripts need the canvas with no onboarding in front of it. */
 const MEASURING = params.get("auto") === "1" || params.get("stats") === "1" || params.get("targets") === "1";
 
-export default function App() {
+function AppRoutes() {
   const route = useHashRoute();
   const snapshot = useProgress();
   const reducedMotion = useReducedMotion();
@@ -152,11 +165,35 @@ function Body({
         </Suspense>
       );
     }
+    if (route.name === "streak") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the streak page" />}>
+          <BootReady />
+          <StreakGallery />
+        </Suspense>
+      );
+    }
+    if (route.name === "start") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the lesson start card" />}>
+          <BootReady />
+          <StartPopGallery />
+        </Suspense>
+      );
+    }
     if (route.name === "buttons") {
       return (
         <Suspense fallback={<TabSkeleton label="the button sheet" />}>
           <BootReady />
           <ButtonGallery />
+        </Suspense>
+      );
+    }
+    if (route.name === "gems") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the reward screens" />}>
+          <BootReady />
+          <GemRewardGallery />
         </Suspense>
       );
     }
@@ -246,6 +283,15 @@ function Body({
     );
   }
 
+  if (route.kind === "shop") {
+    return (
+      <Suspense fallback={<TabSkeleton label="the shop" />}>
+        <BootReady />
+        <ShopPage reducedMotion={reducedMotion} />
+      </Suspense>
+    );
+  }
+
   return <Shell route={route} />;
 }
 
@@ -330,5 +376,17 @@ function AdminGate({ node }: { readonly node: string | null }) {
       <BootReady />
       <AdminViewer node={node} />
     </Suspense>
+  );
+}
+
+/**
+ * The game, with the study timer above every screen so it keeps running when its
+ * sheet is closed and can chime and prompt from anywhere (tabs/focus/FocusProvider).
+ */
+export default function App() {
+  return (
+    <FocusProvider>
+      <AppRoutes />
+    </FocusProvider>
   );
 }

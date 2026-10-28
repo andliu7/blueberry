@@ -50,7 +50,7 @@
  * 400 ms and 900 ms is a screen whose stills cannot be compared.
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from "react";
 import { STREAK_FREEZE_COST, type Receipt } from "@blueberry/economy";
 import { Press } from "../app/ui/Press";
 import { Berry } from "../mascot/Berry";
@@ -61,6 +61,9 @@ import { streakScreenModel, type StreakDayCell, type StreakScreenModel } from ".
 import { STREAK_LIT } from "../mascot/bloomMotion";
 import { flameScaleFor } from "../mascot/progression/progression";
 import "./streak-lit.css";
+
+/** The month page. Lazy: it is only drawn when the student asks for the calendar. */
+const StreakPage = lazy(() => import("./StreakPage").then((m) => ({ default: m.StreakPage })));
 
 export interface StreakScreenProps {
   /** The receipt for the clear that made today count. The day number comes off it. */
@@ -331,6 +334,7 @@ function FreezeRow({ model }: { readonly model: StreakScreenModel }) {
 export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel = "Continue" }: StreakScreenProps) {
   const snapshot = useProgress();
   const [skipped, setSkipped] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const now = useStageClock(BEATS.end, reducedMotion, skipped);
 
   // The clock the model is derived against, read ONCE at mount. A model that
@@ -481,6 +485,15 @@ export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel
 
       <div className="relative mx-auto w-full max-w-md shrink-0 p-4 pb-safe md:max-w-lg md:p-6">
         <Press
+          variant="secondary"
+          data-open-calendar
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => setCalendarOpen(true)}
+          className="mb-2 w-full"
+        >
+          See your calendar
+        </Press>
+        <Press
           // Pointer down only stops the stage's skip; Continue lands on click.
           onPointerDown={(event) => event.stopPropagation()}
           onClick={onContinue}
@@ -489,6 +502,17 @@ export function StreakScreen({ receipt, reducedMotion, onContinue, continueLabel
           {continueLabel}
         </Press>
       </div>
+      {calendarOpen ? (
+        <Suspense fallback={null}>
+          <StreakPage
+            days={model.days}
+            reducedMotion={reducedMotion}
+            announceFreeze={model.saved !== null && model.saved.kind !== "rest_day"}
+            onClose={() => setCalendarOpen(false)}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
+

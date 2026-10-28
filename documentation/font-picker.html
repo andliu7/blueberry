@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blueberry font picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Inter:wght@400;600;800&family=Fraunces:wght@400;700&family=Caveat:wght@500;700&family=Poppins:wght@400;600;800&family=DM+Sans:wght@400;700&family=Quicksand:wght@500;700&family=Lexend:wght@400;700&family=Manrope:wght@400;700;800&family=Outfit:wght@400;700&family=Baloo+2:wght@500;800&family=Plus+Jakarta+Sans:wght@400;700;800&family=Geist:wght@400;700&family=Instrument+Serif&family=Lora:wght@400;700&family=Patrick+Hand&family=Kalam:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f4f1ff; --card:#fff; --ink:#1d1740; --mute:#6b648f; --brand:#5a3fd8; --line:#d9d2f5; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, sans-serif; padding:16px; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.lead { color:var(--mute); margin:0 0 12px; max-width:62ch; }
+  .bar { position:sticky; top:0; background:var(--bg); padding:8px 0 12px; z-index:2; display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .bar button { border:2px solid var(--brand); background:var(--brand); color:#fff; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; min-height:44px; }
+  .bar .count { font-weight:700; }
+  #out { background:var(--card); border:2px dashed var(--line); border-radius:12px; padding:10px 12px; margin-bottom:14px; font-size:14px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
+  .card { background:var(--card); border:2px solid var(--line); border-radius:16px; padding:14px; }
+  .card.keep { border-color:#2f9e5b; background:#f1fbf5; }
+  .card.drop { opacity:.45; }
+  .tag { display:inline-block; font:700 11px/1 system-ui; padding:4px 7px; border-radius:99px; background:#ece8ff; color:var(--brand); margin-left:6px; vertical-align:middle; }
+  .tag.now { background:#fff0d6; color:#8a5200; }
+  .name { font:700 13px system-ui; color:var(--mute); margin-bottom:8px; }
+  .big { font-size:30px; line-height:1.15; margin:0 0 6px; }
+  .q { font-size:18px; margin:0 0 8px; }
+  .btn { display:inline-block; background:#5a3fd8; color:#fff; border-radius:12px; padding:10px 18px; font-weight:800; box-shadow:0 4px 0 #3d2a9c; margin-right:8px; }
+  .chip { display:inline-block; background:#ece8ff; color:#5a3fd8; border-radius:99px; padding:2px 9px; font-size:12px; }
+  .num { font-size:15px; margin-top:8px; color:var(--mute); }
+  .pick { display:flex; gap:8px; margin-top:12px; }
+  .pick button { flex:1; min-height:44px; border-radius:10px; border:2px solid var(--line); background:#fff; font:700 14px system-ui; cursor:pointer; }
+  .pick button.on-keep { background:#2f9e5b; color:#fff; border-color:#2f9e5b; }
+  .pick button.on-drop { background:#c0392b; color:#fff; border-color:#c0392b; }
+</style>
+</head>
+<body>
+<h1>Blueberry font picker</h1>
+<p class="lead">Tap Keep or Drop on each. The green list at the top is your answer; send it back to me. "In use now" means the site ships it today. Everything else is a candidate. Needs internet for the fonts to load.</p>
+<div class="bar"><button id="reset">Reset</button><span class="count" id="count"></span></div>
+<div id="out"></div>
+<div class="grid" id="grid"></div>
+<script>
+  // [name, css family, role it would play, in use now]
+  const FONTS = [
+    ["Nunito", "'Nunito'", "Headings and buttons (today's display font)", true],
+    ["Inter", "'Inter'", "Body text, some screens", true],
+    ["Fraunces", "'Fraunces'", "Serif, a few headings", true],
+    ["Caveat", "'Caveat'", "Handwriting, notes", true],
+    ["System font", "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif", "Body fallback (free, no download)", true],
+    ["Monospace", "ui-monospace, 'Cascadia Mono', Menlo, monospace", "Formulas, codes", true],
+    ["Poppins", "'Poppins'", "Round and bold, Duolingo-adjacent", false],
+    ["DM Sans", "'DM Sans'", "Clean body text", false],
+    ["Quicksand", "'Quicksand'", "Very soft and round", false],
+    ["Lexend", "'Lexend'", "Built for easy reading", false],
+    ["Manrope", "'Manrope'", "Modern, tidy numbers", false],
+    ["Outfit", "'Outfit'", "Geometric headings", false],
+    ["Baloo 2", "'Baloo 2'", "Chunky and playful", false],
+    ["Plus Jakarta Sans", "'Plus Jakarta Sans'", "Friendly app feel", false],
+    ["Geist", "'Geist'", "Sharp, technical", false],
+    ["Space Grotesk", "'Space Grotesk'", "Quirky headings", false],
+    ["Instrument Serif", "'Instrument Serif'", "Elegant display serif", false],
+    ["Lora", "'Lora'", "Readable serif", false],
+    ["Patrick Hand", "'Patrick Hand'", "Neat handwriting", false],
+    ["Kalam", "'Kalam'", "Casual handwriting", false],
+    ["JetBrains Mono", "'JetBrains Mono'", "Nicer monospace", false],
+  ];
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem("bb_fonts") || "{}"); } catch (e) {}
+  const grid = document.getElementById("grid");
+  FONTS.forEach(([name, fam, role, now]) => {
+    const c = document.createElement("div");
+    c.className = "card"; c.dataset.name = name;
+    c.innerHTML = `
+      <div class="name">${name}${now ? '<span class="tag now">in use now</span>' : '<span class="tag">candidate</span>'} &middot; ${role}</div>
+      <div style="font-family:${fam}">
+        <p class="big"><b>Which step went wrong?</b></p>
+        <p class="q">Draw the arrow from the nucleophile to the carbonyl carbon of CH<sub>3</sub>COCH<sub>3</sub>.</p>
+        <span class="btn">Start lesson</span><span class="chip">Concept node</span>
+        <div class="num">pKa 4.76 &nbsp; 1,234 XP &nbsp; 7-day streak &nbsp; 0123456789</div>
+      </div>
+      <div class="pick"><button data-v="keep">Keep</button><button data-v="drop">Drop</button></div>`;
+    c.querySelectorAll("button").forEach(b => b.onclick = () => {
+      state[name] = state[name] === b.dataset.v ? "" : b.dataset.v;
+      try { localStorage.setItem("bb_fonts", JSON.stringify(state)); } catch (e) {}
+      render();
+    });
+    grid.appendChild(c);
+  });
+  function render() {
+    let keep = [], drop = 0;
+    document.querySelectorAll(".card").forEach(c => {
+      const v = state[c.dataset.name] || "";
+      c.classList.toggle("keep", v === "keep"); c.classList.toggle("drop", v === "drop");
+      c.querySelector('[data-v="keep"]').className = v === "keep" ? "on-keep" : "";
+      c.querySelector('[data-v="drop"]').className = v === "drop" ? "on-drop" : "";
+      if (v === "keep") keep.push(c.dataset.name); if (v === "drop") drop++;
+    });
+    document.getElementById("count").textContent = keep.length + " kept (aim for 5), " + drop + " dropped";
+    document.getElementById("out").textContent = keep.length ? "Keep: " + keep.join(", ") : "Nothing kept yet.";
+  }
+  document.getElementById("reset").onclick = () => { state = {}; try { localStorage.removeItem("bb_fonts"); } catch (e) {} render(); };
+  render();
+</script>
+</body>
+</html>

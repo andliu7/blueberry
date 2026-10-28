@@ -50,7 +50,7 @@ afterEach(() => {
 
 /** The sheet's pressable keys, in document order, as [label, classes]. */
 function keys(): Array<[string, string]> {
-  return [...host.querySelectorAll<HTMLButtonElement>(".charge-panel button")].map((b) => [b.textContent?.trim() ?? "", b.className]);
+  return [...host.querySelectorAll<HTMLButtonElement>(".sp-card button:not(.sp-x)")].map((b) => [b.textContent?.trim() ?? "", b.className]);
 }
 
 // The sheet's first render in jsdom (Berry, the meter) takes about 4s cold, so these two get a 20s budget.
@@ -59,11 +59,10 @@ describe("START OVER's sheet makes keeping the default", { timeout: 20_000 }, ()
     act(() => root.render(createElement(ChargeGate, { node: NODE, onClose: () => {}, reducedMotion: true, restartSaved: "3 saved questions" })));
     const k = keys();
     expect(k[0]?.[0]).toBe("Keep my progress");
-    expect(k[0]?.[1]).toContain("btn3d--primary");
-    expect(k[0]?.[1]).toContain("btn3d--lg");
+    expect(k[0]?.[1]).toContain("sp-go");
     const last = k[k.length - 1];
     expect(last?.[0]).toBe("Erase and start over");
-    expect(last?.[1]).toContain("btn3d--ghost");
+    expect(last?.[1]).toContain("sp-quiet");
     expect(last?.[1]).toContain("restart-erase");
     // One keep key, never a second dismiss under the erase.
     expect(k.filter(([label]) => label === "Keep my progress")).toHaveLength(1);
@@ -72,8 +71,7 @@ describe("START OVER's sheet makes keeping the default", { timeout: 20_000 }, ()
   it("leaves a plain entry sheet as it was: START is the big filled key", () => {
     act(() => root.render(createElement(ChargeGate, { node: NODE, onClose: () => {}, reducedMotion: true })));
     const k = keys();
-    expect(k[0]?.[1]).toContain("btn3d--primary");
-    expect(k[0]?.[1]).toContain("btn3d--lg");
+    expect(k[0]?.[1]).toContain("sp-go");
     expect(k.some(([, cls]) => cls.includes("restart-erase"))).toBe(false);
   });
 

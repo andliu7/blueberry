@@ -3,6 +3,36 @@
 Updated 2026-10-17. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
 
+## Added 2026-10-28 (owner's list; built = uncommitted in the working tree)
+
+Built, not committed, not yet seen in a browser: admin stats boards (`#/app/admin/stats`, sample data
+only, labelled), once-per-session logo glass splash on the landing page, page-colour setting (Settings,
+next to Appearance; Lavender default kept), landing page: the sculpture section and the "Draw the
+arrows" proof block removed. `documentation/font-picker.html` is the font chooser.
+
+Open, in his words: streak freeze price 200 diamonds (it is 75 today, `STREAK_FREEZE_COST` in
+`packages/economy`; changing it is an economy change); homepage edits; one consistent lesson look
+(fonts, colours); a brand colour theme (he is unsure of blue-violet and lavender); Bloom from the
+bottom right of lessons to the top right, jumping with a closed-eye smile; Stripe set up for the
+shop only (Pro payments later); a free sign-in access code; shop, glossary and XP pages off the
+bottom bar; Unit 2's first lesson shows locked (first lesson of every section must be open);
+lesson and gem popups redesigned (one screen, no scroll); Diels-Alder builder with in/out rule
+(needs the professor's drawing first); optional electron-donating/withdrawing review lesson;
+open chests become an open, empty box; feedback feature (brief in `documentation/designs/`).
+Gauntlet 1 vs Duolingo screens (Mobbin, blind, two orders), 28 Oct: gems popup WON (2 rounds), shop WON (5
+rounds, narrow), lesson-start popup, streak screen and feed did NOT win both orders at the 5-round backstop.
+Critics are models judging screenshots, not students. Scratch output: scratchpad/gauntlet/<piece>/.
+Done 28 Oct: the berry-on-a-bar route loader is gone; `ui/blueberry-loader.tsx` is now Bloom hopping, upgraded
+to the liquid-glass reveal when WebGL2 allows. The index.html boot loader is untouched. The focus timer is now
+a game tool (`src/game/tabs/focus/`, provider above every screen, header tool, Settings row, `#/app/focus`):
+chime, tab-title flash, optional notification, 20-20-20 check/X prompt. Still missing: the pop-out window.
+(Original note:) Pomodoro: the site already has a focus timer with the 20-20-20 rest (`src/lib/useFocusTimer.ts`,
+`src/components/FocusTimer.tsx`, mounted in `SiteChrome` only). Missing: it is not in the game
+(`#/app`), no pop-out window that survives a tab switch, no end-of-session chime, no tab-title or
+system alert, and the eye rest has no check/X prompt before its 20 s countdown.
+Done 28 Oct: all "not here" screens share `src/lib/statusCopy.ts` and a thinking/sleepy Bloom; the
+404 number has a CSS glitch (`ui/glitch-text`). 404 button labels changed (no more "Grignard deck").
+
 ## Queue, 2026-10-17 (the to-do list; keep it current)
 
 Since the night of 17 Oct, Claude commits and pushes to `main` when the owner asks (it deploys).
@@ -289,6 +319,25 @@ Course (business test 2)
     not overwrite the Charge exam date; no staff read policy on the table.
     OWNER STEP: apply supabase/migrations/20261025120000_user_syllabus.sql (until then the plan
     stays on the device and the screen says so).
+  - syllabus-import fix round 25 Oct (critic findings): first open no longer imports the store;
+    useSyllabusMap.ts reads only the storage key and a save event, the rest (store, weeks, side
+    quest rule) loads by dynamic import once a plan exists, test-outs take covered side quests via
+    the lazy syllabusTests.ts, the node sheet gets a flag from the map. Payload delta not re-weighed
+    yet (see the commit that lands this). Checkpoint: covered side quests now take a slot BEFORE the
+    main line (max 2 of 5), so every askable side quest reaches its unit's checkpoint on the real map
+    (was 1 of 50). Quizzes: the hand-set stage quizzes and the review concept check stay main line;
+    the sheet now says exactly where a covered side quest counts (checkpoint, section test, unit
+    exam). OWNER QUESTION: should the authored stage quizzes take covered side quests too? That needs
+    new questions, not wiring. Undated syllabi ("Week 3: Aromaticity"): the screen asks for the first
+    day of Week 1; without it START walks the syllabus order from the top and Catch up cannot show.
+    Matching: two lessons of one unit now count as lookalikes ("Hofmann" is flagged), and the bare
+    "claisen" alias is gone (condensation or rearrangement: flagged). Adjust: a week picker per unit
+    (sets its chip), single lessons can be marked not covered, a plan the account sync adopts shows
+    on an open screen. Up/down sets only the order START walks; the map keeps Blueberry's order (the
+    screen says so). Minor: social START follows the syllabus; a side quest in a unit or section
+    marked not covered no longer counts; sign-out stashes an account's plan and clears it from the
+    device (back on that account's next sign-in). Left: "Oxidation" is an exact hit in Units 5 and 13
+    and is not flagged.
 - C2 pKa sheet paste updates the site's pKa values, with visible feedback on what changed.
   DECIDED 23 Oct: a student's own values only.
   - pka-per-student DONE 24 Oct: Me, Settings, pKa values has a "Paste your sheet" card. A student

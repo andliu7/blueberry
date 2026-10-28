@@ -78,8 +78,8 @@ describe("the bar", () => {
     }
   });
 
-  it("puts the periodic table and the reaction search in the header, not the bar", () => {
-    expect(TOOL_TABS.map((tab) => tab.id)).toEqual(["periodic", "search"]);
+  it("puts the periodic table, the reaction search and the focus timer in the header, not the bar", () => {
+    expect(TOOL_TABS.map((tab) => tab.id)).toEqual(["periodic", "search", "focus"]);
     for (const tool of TOOL_TABS) {
       expect(NAV_TABS.some((tab) => tab.id === tool.id)).toBe(false);
     }

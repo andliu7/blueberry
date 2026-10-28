@@ -1,5 +1,5 @@
 /**
- * The header tools: the periodic table and the reaction search, reachable from
+ * The header tools: the periodic table, the reaction search and the focus timer, reachable from
  * every tab and from inside a lesson.
  *
  * WHY THESE TWO ARE NOT TABS. Owner amendment of 2026-08-28, and mobile-ui says
@@ -48,6 +48,7 @@ import { closeOnBackdrop } from "./dismiss";
 
 const PeriodicTab = lazy(() => import("../../tabs/periodic/PeriodicTab"));
 const SearchTab = lazy(() => import("../../tabs/search/SearchTab"));
+const FocusTab = lazy(() => import("../../tabs/focus/FocusTab"));
 
 /**
  * The two buttons. `size` is "regular" in the shell header and "compact" in a
@@ -138,7 +139,7 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
           </div>
           <div className="tool-body">
             <Suspense fallback={<TabSkeleton label={definition.label} />}>
-              {tool === "periodic" ? <PeriodicTab selected={null} /> : <SearchTab query="" />}
+              {tool === "periodic" ? <PeriodicTab selected={null} /> : tool === "focus" ? <FocusTab /> : <SearchTab query="" />}
             </Suspense>
           </div>
         </div>

@@ -192,7 +192,8 @@ import {
 } from "./hudModel";
 import { closeOnBackdrop } from "./dismiss";
 import { hudDiamondsHold } from "./hudTargets";
-import { Press } from "./Press";
+import { Press, pressClassName } from "./Press";
+import { hrefForShop } from "../routes";
 
 /**
  * How often the header re-derives against the wall clock.
@@ -804,6 +805,17 @@ function HudSheet({
             <HudSheetStrip model={model} id={readout.id} reducedMotion={reducedMotion} />
             <h2 className="hud-panel-headline">{readout.headline}</h2>
             <p className="hud-panel-line">{readout.line}</p>
+            {/* The shop hangs off the diamond counter, not the bar (five tabs is the ceiling). */}
+            {readout.id === "diamonds" ? (
+              <a
+                href={hrefForShop()}
+                data-open-shop
+                onClick={onClose}
+                className={`${pressClassName({ variant: "secondary", block: true })} mt-1`}
+              >
+                Spend diamonds in the shop
+              </a>
+            ) : null}
             <Press block onClick={onClose} className="mt-1">
               Keep going
             </Press>

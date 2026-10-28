@@ -31,6 +31,8 @@ export type ViewMode = "admin" | "student";
 // The activity view (#/app/admin/activity) reads Supabase, so it is its own
 // lazy chunk: opening a lesson here never downloads it.
 const AdminActivity = lazy(() => import("./AdminActivity"));
+// The two statistics boards (#/app/admin/stats), lazy for the same reason.
+const BoardsPage = lazy(() => import("./BoardsPage"));
 
 const KIND_LABEL: Readonly<Record<Slide["kind"], string>> = {
   mcq: "Multiple choice",
@@ -282,21 +284,26 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
             <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <p className="av-bar__title">{node === "activity" ? "Admin" : "Lesson viewer"}</p>
+        <p className="av-bar__title">{node === "activity" || node === "stats" ? "Admin" : "Lesson viewer"}</p>
         {/* Bloom's every state and reaction, for checking the mascot by eye (BLOOM-STATES-SPEC.md). */}
         <a className="av-bar__lessons" href={hrefForGallery()}>
           Bloom
         </a>
-        {node === "activity" ? (
+        {node === "activity" || node === "stats" ? (
           <a className="av-bar__lessons" href={hrefForAdmin()}>
             Lessons
           </a>
         ) : (
-          <a className="av-bar__lessons" href={hrefForAdmin("activity")}>
-            Activity
-          </a>
+          <>
+            <a className="av-bar__lessons" href={hrefForAdmin("activity")}>
+              Activity
+            </a>
+            <a className="av-bar__lessons" href={hrefForAdmin("stats")}>
+              Stats
+            </a>
+          </>
         )}
-        {node === "activity" ? null : (
+        {node === "activity" || node === "stats" ? null : (
           <button
             type="button"
             className="av-bar__lessons"
@@ -308,7 +315,11 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
         )}
       </div>
 
-      {node === "activity" ? (
+      {node === "stats" ? (
+        <Suspense fallback={<p className="av-empty">Loading the boards...</p>}>
+          <BoardsPage />
+        </Suspense>
+      ) : node === "activity" ? (
         <Suspense fallback={<p className="av-empty">Loading activity...</p>}>
           <AdminActivity />
         </Suspense>

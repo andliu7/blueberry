@@ -184,6 +184,16 @@ const DRAWINGS: Record<TabId, () => ReactElement> = {
     </>
   ),
 
+  /* FOCUS: a stopwatch. A green face on its darker lip, a crown on top, one white hand. */
+  focus: () => (
+    <>
+      <rect x="9.6" y="1.4" width="4.8" height="2.6" rx="1.2" fill={GREEN_LIP} />
+      <circle cx="12" cy="14" r="8.6" fill={GREEN_LIP} />
+      <circle cx="12" cy="12.8" r="8.6" fill={GREEN} />
+      <path d="M12 7.6V13l3.4 2.2" stroke={WHITE} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+
   /* SEARCH: the magnifier on its own. */
   search: () => <Lens cx={10} cy={10} r={6.4} />,
 

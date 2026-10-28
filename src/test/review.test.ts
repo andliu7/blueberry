@@ -30,6 +30,7 @@ import { DECK_GROUPS, isReference } from "@/data/types";
 import { redirectFor } from "@/lib/redirects";
 import { titleForRoute } from "@/lib/useDocumentTitle";
 import { dueAcross, tallyWords } from "@/lib/reviewProgress";
+import { NOT_FOUND_TITLE } from "@/lib/statusCopy";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 // Each page settles in polls of up to 3s; under the full suite the machine is busy.
@@ -43,7 +44,7 @@ vi.mock("@/lib/appsScript", () => ({
 }));
 vi.mock("@/lib/useSession", () => ({ useSession: () => null }));
 
-const NOT_FOUND = "Looks like you're lost";
+const NOT_FOUND = NOT_FOUND_TITLE;
 let root: Root;
 let host: HTMLElement;
 

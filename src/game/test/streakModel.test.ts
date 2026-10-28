@@ -228,3 +228,19 @@ describe("streakScreenModel, the voice", () => {
     expect(model.line).toBe("Day one. Meet your daily goal tomorrow and it becomes two.");
   });
 });
+
+describe("streakPageModel, the month page", () => {
+  it("judges days up to today and leaves the rest as future", async () => {
+    const { streakPageModel } = await import("../lesson/streakModel");
+    const { journal } = history(6);
+    const snapshot = deriveEconomy(journal, NOW);
+    const page = streakPageModel({ journal, snapshot, now: NOW, days: 7, monthOffset: 0 });
+    expect(page.cells).toHaveLength(31);
+    expect(page.cells.filter((c) => c.today)).toHaveLength(1);
+    expect(page.cells.filter((c) => c.kind === "counted")).toHaveLength(7);
+    expect(page.cells[28]?.kind).toBe("future");
+    expect(page.practiced).toBe(7);
+    expect(page.monthLabel).toBe("August 2026");
+    expect(page.tone).toBe("lit");
+  });
+});

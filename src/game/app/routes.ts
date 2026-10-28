@@ -61,6 +61,7 @@ export type TabId =
   // header tools
   | "periodic"
   | "search"
+  | "focus"
   // collapsed
   | "courses"
   // behind a flag
@@ -109,6 +110,8 @@ export const ALL_TABS: readonly TabDefinition[] = Object.freeze([
   { id: "me", label: "Me", short: "Me", dataPhase: 5, placement: "nav", parent: "me" },
   { id: "periodic", label: "Periodic table", short: "Table", dataPhase: 5, placement: "tool", parent: "me" },
   { id: "search", label: "Reaction search", short: "Search", dataPhase: 5, placement: "tool", parent: "me" },
+  // The study timer (owner, 28 Oct: "one of the tools in the toolbar and settings").
+  { id: "focus", label: "Focus timer", short: "Focus", dataPhase: 5, placement: "tool", parent: "me" },
   { id: "courses", label: "Courses", short: "Courses", dataPhase: 5, placement: "collapsed", parent: "pathway" },
   { id: "leaderboards", label: "Leaderboards", short: "Boards", dataPhase: 6, placement: "flagged", parent: "me" },
   { id: "chat", label: "Ask Blueberry", short: "Chat", dataPhase: 7, placement: "flagged", parent: "me" },
@@ -136,7 +139,7 @@ export const FLAGGED_TABS: readonly TabDefinition[] = Object.freeze(
   ALL_TABS.filter((tab) => tab.placement === "flagged"),
 );
 
-export type ToolId = "periodic" | "search";
+export type ToolId = "periodic" | "search" | "focus";
 
 export type Route =
   | { readonly kind: "tab"; readonly tab: TabId; readonly rest: readonly string[] }
@@ -154,6 +157,12 @@ export type Route =
    * five-tab bar stays five (owner items 14 and 27).
    */
   | { readonly kind: "glossary"; readonly entry: string | null }
+  /**
+   * The shop: "#/app/shop". Reached from the diamond counter's sheet, never
+   * the bar. Diamonds earned by learning buy streak freezes and decks; no
+   * real money, no random boxes (shop/ShopPage.tsx).
+   */
+  | { readonly kind: "shop" }
   /**
    * Development surfaces. Deliberately NOT in ALL_TABS, so nothing renders a
    * link to them. Reached by typing the hash, which is the right amount of
@@ -210,6 +219,7 @@ export function parseHash(hash: string): Route {
   if (head === "review") return { kind: "tab", tab: "cards", rest: [] };
   if (head === "gallery") return { kind: "gallery", name: parts[1] ?? "berry" };
   if (head === "glossary") return { kind: "glossary", entry: parts[1] ?? null };
+  if (head === "shop") return { kind: "shop" };
   if (head === "admin") return { kind: "admin", node: parts[1] ?? null };
   if (head !== undefined && TAB_IDS.has(head)) {
     return { kind: "tab", tab: head as TabId, rest: parts.slice(1) };
@@ -282,6 +292,11 @@ export function hrefForOnboarding(step: string): string {
 /** The glossary, optionally opened on one entry (an id from glossary/glossaryModel.ts). */
 export function hrefForGlossary(entry?: string): string {
   return entry === undefined ? `#/${BASE}/glossary` : `#/${BASE}/glossary/${encodeURIComponent(entry)}`;
+}
+
+/** The shop, reached from the diamond counter. */
+export function hrefForShop(): string {
+  return `#/${BASE}/shop`;
 }
 
 /** The staff lesson viewer, optionally opened on one lesson node. */

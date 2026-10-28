@@ -22,6 +22,13 @@ installGradientCursor()
 // A dynamic import, so its 2 KB load beside the first screen instead of in it.
 void import('@/lib/analytics').then((analytics) => analytics.installAnalytics())
 
+// The liquid-glass logo reveal: once per session, landing page only, after the page has
+// loaded and the browser is idle. Never in the first-open path; see lib/glassSplash.
+const afterLoad = () =>
+  window.setTimeout(() => void import('@/lib/glassSplash').then((m) => m.mountGlassSplash()), 1200)
+if (document.readyState === 'complete') afterLoad()
+else window.addEventListener('load', afterLoad, { once: true })
+
 // Outside App on purpose. The turning sheet has to survive the route change it
 // is covering, and anything inside App unmounts with the page it belongs to.
 //

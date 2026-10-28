@@ -1,0 +1,33 @@
+/* A short broadcast glitch on a few big characters, in CSS only (no canvas, no WebGL).
+ * Two offset copies of the text slice sideways and split in colour for a moment, then
+ * rest for several seconds. The text itself is never altered, so it stays selectable
+ * and readable; the copies come from a data attribute, so a screen reader ignores them.
+ * Off under reduced motion. */
+.glitch-text { position: relative; display: inline-block; }
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+.glitch-text::before { color: #ff4f9a; }
+.glitch-text::after { color: #35c8ff; }
+
+@keyframes glitch-a {
+  0%, 84%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  86% { opacity: .9; transform: translateX(-6px); clip-path: inset(12% 0 62% 0); }
+  89% { opacity: .9; transform: translateX(5px); clip-path: inset(55% 0 18% 0); }
+  92% { opacity: .9; transform: translateX(-3px); clip-path: inset(30% 0 40% 0); }
+  95% { opacity: 0; transform: none; }
+}
+@keyframes glitch-b {
+  0%, 84%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+  87% { opacity: .9; transform: translateX(6px); clip-path: inset(48% 0 24% 0); }
+  90% { opacity: .9; transform: translateX(-5px); clip-path: inset(8% 0 70% 0); }
+  93% { opacity: .9; transform: translateX(3px); clip-path: inset(66% 0 8% 0); }
+  96% { opacity: 0; transform: none; }
+}
+html:not([data-motion="reduced"]) .glitch-text::before { animation: glitch-a 4.8s steps(1, end) infinite; }
+html:not([data-motion="reduced"]) .glitch-text::after { animation: glitch-b 4.8s steps(1, end) infinite; }

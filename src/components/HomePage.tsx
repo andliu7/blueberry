@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type ComponentType, type RefObject } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from "react";
 import { HomeHero } from "@/components/HomeHero";
 import { HomeLoader } from "@/components/HomeLoader";
 import { AdSlot } from "@/components/ads/AdSlot";
@@ -6,7 +6,7 @@ import { hasSeenIntro, markIntroSeen } from "@/lib/intro";
 import "./home.css";
 
 /**
- * Everything below the first screen, as two chunks of their own. React pattern:
+ * Everything below the first screen, as chunks of their own. React pattern:
  * `lazy(() => import(...))` splits a component into a separate file that is fetched the
  * first time it renders, and `<Suspense>` shows its fallback until then. The slots below
  * delay that first render until each part nears the screen, so neither costs the first
@@ -14,14 +14,6 @@ import "./home.css";
  */
 const HomePhoneDemo = lazy(() => import("@/components/HomePhoneDemo"));
 const HomeSections = lazy(() => import("@/components/HomeSections"));
-
-/**
- * The liquid-sculpture section (owner, 15 Oct): HomeSculpture wraps the owner-supplied
- * `src/components/ui/liquid-sculpture-hero.tsx` with Blueberry's image, copy and tokens, and
- * decides per screen between the WebGL engine and the still picture. Lazy, like the slots
- * above, so neither it nor the engine is in the first-paint bundle.
- */
-const LiquidSculpture = lazy(() => import("@/components/HomeSculpture"));
 
 /**
  * One study tip, app tip or quote under the hero, on the first arrival of a visit only (owner,
@@ -52,8 +44,7 @@ const previewSubscribe = ({ email }: { email: string }) =>
  *   beat 0  the loader, first arrival in a tab session only (HomeLoader)
  *   beat 1  the hero: the headline, Bloom, one button (HomeHero)
  *   beat 2  the phone demo, with the four destination rows beside it (HomePhoneDemo, lazy)
- *   beat 3  the liquid sculpture (SculptureSlot, lazy)
- *   beats 4 and 5  how it is checked, the close (HomeSections, lazy)
+ *   beat 5  the close (HomeSections, lazy)
  *
  * The site header and footer around it are drawn once for every page by SiteChrome.
  */
@@ -103,7 +94,6 @@ export function HomePage() {
         </Suspense>
       )}
       <PhoneDemoSlot />
-      <SculptureSlot Sculpture={LiquidSculpture} />
       <SectionsSlot />
       <AdSlot placement="site" />
       {HomeNewsletter && new URLSearchParams(window.location.search).has("newsletter") && (
@@ -117,7 +107,7 @@ export function HomePage() {
 
 /**
  * True once the element has come within 600 px of the screen, and from then on. A custom
- * hook (a function whose name starts with `use` and calls other hooks) so both slots share
+ * hook (a function whose name starts with `use` and calls other hooks) so the slots share
  * the one observer pattern.
  */
 function useNearScreen(ref: RefObject<HTMLElement | null>): boolean {
@@ -161,22 +151,7 @@ function PhoneDemoSlot() {
   );
 }
 
-/** Beat 3, the same way. No height is held: it is below the demo, so nothing above it jumps. */
-function SculptureSlot({ Sculpture }: { Sculpture: ComponentType }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const near = useNearScreen(ref);
-  return (
-    <div ref={ref} className="home-sculpture">
-      {near && (
-        <Suspense fallback={null}>
-          <Sculpture />
-        </Suspense>
-      )}
-    </div>
-  );
-}
-
-/** Beats 4 and 5, the same way. */
+/** Beat 5, the same way. */
 function SectionsSlot() {
   const ref = useRef<HTMLDivElement>(null);
   const near = useNearScreen(ref);

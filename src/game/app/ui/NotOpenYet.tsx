@@ -12,53 +12,24 @@
  * shape: say plainly what is true, do not read as a failure, and always leave a
  * way out that is not the back button.
  *
- * THE VOICE. CLAUDE.md: a coach on the student's side, never scolding, and
- * specific rather than generic. So each line names the ONE thing the surface is
- * waiting on and what is already being kept for it, because "coming soon" tells
- * a student nothing and "your attempts are already counted" tells them their
- * work is not being thrown away.
+ * THE VOICE. The words live in lib/statusCopy.ts, shared with the 404, so every
+ * "not here" screen sounds the same: a coach on the student's side, one line on
+ * what the surface is waiting on, one on what is already being kept for it.
+ * Bloom is asleep, the empty-state face in lib/berryMood.ts.
  */
 
 import { hrefForTab } from "../routes";
 import type { FlagId } from "../flags";
-import { TabIcon } from "./TabIcon";
+import { BlueberryMark } from "../../mascot/BlueberryMark";
+import { NOT_OPEN_ACTION, NOT_OPEN_COPY } from "../../../lib/statusCopy";
 import { pressClassName } from "./Press";
 
-interface Notice {
-  readonly title: string;
-  readonly line: string;
-  readonly kept: string;
-}
-
-const NOTICES: Record<FlagId, Notice> = {
-  leaderboards: {
-    title: "Leaderboards are not open yet",
-    line: "A rank is only worth reading if it was worked out from real attempts on the server. Until that is true for every row, showing you a board would be showing you a guess.",
-    kept: "Your attempts are already going into the history it will rank, so nothing you do between now and then is lost.",
-  },
-  chat: {
-    title: "Ask Blueberry is not open yet",
-    line: "It answers with a real model, and the limit on how much it can spend on your behalf has to exist before it says a word.",
-    kept: "In the meantime a wrong answer already comes back with a named cause and a written explanation, which is where most of the help was going to come from anyway.",
-  },
-  messages: {
-    title: "Tutor messages are not open yet",
-    line: "This one puts you in touch with a person, so there has to be a moderated place for that conversation and a tutor on the other end of it first.",
-    kept: "Your mistakes are collecting into a deck as you go, which is exactly the thing worth handing a tutor on day one.",
-  },
-};
-
 export function NotOpenYet({ surface }: { readonly surface: FlagId }) {
-  const notice = NOTICES[surface];
+  const notice = NOT_OPEN_COPY[surface];
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-4 py-10 text-center md:py-16">
-      {/* The glyph in a soft tinted disc. The DISC carries the colour and the
-          glyph recedes into it, which is sticker rules 5 and 6 in one object:
-          colour appears as a surface, and the line work stays neutral so the
-          surface is what leads. A purple glyph on a purple disc would be the
-          palette twice and the surface never. */}
-      <span className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-bb-border bg-[color:var(--tab-active)] text-bb-muted-foreground">
-        <TabIcon tab={surface} className="h-9 w-9" />
+      <span aria-hidden className="block h-24 w-24">
+        <BlueberryMark eyes mood="sleepy" className="h-full w-full" />
       </span>
       <h2 className="bb-h1 text-bb-foreground">{notice.title}</h2>
       <p className="text-scale-base text-bb-muted-foreground">{notice.line}</p>
@@ -67,7 +38,7 @@ export function NotOpenYet({ surface }: { readonly surface: FlagId }) {
         href={hrefForTab("pathway")}
         className={`${pressClassName({ variant: "primary" })} mt-2`}
       >
-        Back to your path
+        {NOT_OPEN_ACTION}
       </a>
     </div>
   );

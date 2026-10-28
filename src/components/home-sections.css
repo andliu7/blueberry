@@ -1,45 +1,9 @@
-/* Home beats 4 and 5 (HomeSections.tsx), phase 4c. The destination cards moved beside the
+/* Home beat 5, the close (HomeSections.tsx), phase 4c. The destination cards moved beside the
  * phone demo in S2 round 2 (home-destinations.css). Imported by that lazy component, so this
  * stylesheet rides its chunk. Tokens only; --bb-ease-* only; every animation has a reduced
  * branch at the foot that leaves the finished state in place. */
 
-/* ---------- Beat 4. How it is checked ---------- */
-.home-proof { max-width: 72rem; margin: 0 auto; padding: 16px 16px 32px; }
-.home-proof__title { margin: 0 0 24px; font-weight: 900; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.05; }
-/* The line mask reveal. Port of the effect, not the library: andliu-portfolio
-   app/motion.tsx:92-110 splits lines with GSAP SplitText and slides each up from 100% over
-   0.9 s, 80 ms apart, once at 85% in view. Here the lines are split by hand (PROOF_LINES). */
-.home-line { display: block; overflow: hidden; padding-bottom: .06em; }
-.home-line__in { display: block; transition: transform .9s var(--bb-ease-out) calc(var(--l) * 80ms); }
-html:not([data-motion="reduced"]) .home-proof__title:not(.is-in) .home-line__in { transform: translateY(100%); }
-.home-proof__body { display: grid; gap: 20px; align-items: start; }
-@media (min-width: 900px) { .home-proof__body { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; } .home-proof { padding: 32px 24px 40px; } }
-
-.home-wrong { display: grid; gap: 10px; margin: 0; padding: 16px; border: 2px solid var(--site-border); border-radius: 22px; background: var(--card); }
-.home-wrong__eyebrow { font: 800 .75rem/1.2 var(--site-display); letter-spacing: .06em; text-transform: uppercase; color: var(--muted-foreground); }
-.home-wrong__svg { width: 100%; max-width: 22rem; max-height: 200px; justify-self: center; color: var(--foreground); }
-@media (min-width: 900px) { .home-wrong__svg { max-height: none; } }
-/* Wrong is calm: amber, never red (Blueberry rule 4). The arrow is a graphic on the card. */
-.home-wrong__arrow { stroke: var(--bb-warn); fill: var(--bb-warn); }
-.home-wrong__said { margin: 0; padding: 10px 12px; border-left: 3px solid var(--bb-warn); border-radius: 10px; background: var(--bb-warn-wash); color: var(--bb-warn-ink); font-weight: 700; line-height: 1.45; }
-.home-wrong__look { margin: 0; font-size: .9375rem; line-height: 1.5; color: var(--muted-foreground); }
-
-.home-promises { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
-.home-promises li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--site-border); border-radius: 18px; background: var(--card); font-size: 1rem; line-height: 1.4; }
-/* The icon on a disc of its own tab colour, ink on it (the same mixes as the card pictures). */
-.home-promises__icon { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: color-mix(in srgb, var(--tone) 34%, var(--card)); color: var(--bb-deep); }
-/* From 900 px the list is as tall as the figure beside it, a third each (S2 round 3). */
-@media (min-width: 900px) {
-  .home-proof__body { align-items: stretch; }
-  .home-promises { grid-auto-rows: 1fr; }
-  .home-promises li { padding: 18px 22px; font-size: 1.1875rem; gap: 18px; }
-  .home-promises__icon { width: 60px; height: 60px; border-radius: 16px; }
-}
-
-/* The figure and the promises rise as they enter (the block rise, app/sections/hero.css:213). */
 @keyframes home-rise-in { from { opacity: 0; transform: translateY(24px); } }
-html:not([data-motion="reduced"]) :is(.home-wrong, .home-promises li)[data-reveal]:not(.is-in) { opacity: 0; }
-:is(.home-wrong, .home-promises li).is-in { animation: home-rise-in .7s var(--bb-ease-out) calc(var(--k, 0) * 100ms) backwards; }
 
 /* ---------- Beat 5. The close, a finale (home round 2) ----------
    One wide sticker band: the card face, the 2px outline with a 6px foot (blueberry rule 6,
@@ -81,5 +45,4 @@ html:not([data-motion="reduced"]) .home-close__band[data-reveal]:not(.is-in) { o
 .home-close__band.is-in .home-close__hop { animation: home-hop 700ms linear 450ms; }
 
 /* ---------- Reduced motion: everything in place, nothing moving ---------- */
-html[data-motion="reduced"] :is(.home-wrong, .home-promises li, .home-close__band, .home-close__hop) { animation: none; }
-html[data-motion="reduced"] .home-line__in { transition: none; }
+html[data-motion="reduced"] :is(.home-close__band, .home-close__hop) { animation: none; }

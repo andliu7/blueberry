@@ -53,6 +53,7 @@ import { WORKED_EXAMPLE_REACTION, WORKED_EXAMPLE_SCHEME } from "@/data/workedExa
 import { readdirSync, readFileSync } from "node:fs";
 import { stagedReagentSteps, stageReagentArt, stageReagentLabel } from "@/game/cards/reactionCard";
 import { labelShown } from "@/lib/reagentLabel";
+import { NOT_FOUND_TITLE } from "@/lib/statusCopy";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -66,7 +67,7 @@ vi.mock("@/lib/useCourse", () => ({
 // have. The route and the page around it are what is under test, not the editor.
 vi.mock("@/components/ui/molecule-canvas", () => ({ MoleculeCanvas: () => null, default: () => null }));
 
-const NOT_FOUND = "Looks like you're lost";
+const NOT_FOUND = NOT_FOUND_TITLE;
 const unitName = (title: string) => title.split(" · ")[1] ?? title;
 
 let root: Root;

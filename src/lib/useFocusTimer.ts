@@ -150,7 +150,14 @@ export function useFocusTimer() {
       const focusedMs = state.focusedMs + elapsed;
       return { remainingMs: Math.max(0, total - focusedMs), totalMs: total, focusedMs };
     }
-    return { remainingMs: settings.focusMinutes * 60_000, totalMs: settings.focusMinutes * 60_000, focusedMs: 0 };
+    // Idle: a fresh start, or a pause. A pause keeps the focus banked so far (pause() stores it
+    // and stop() zeroes it), so the clock shows what is left instead of jumping back to full.
+    const banked = state.focusedMs;
+    return {
+      remainingMs: Math.max(0, settings.focusMinutes * 60_000 - banked),
+      totalMs: settings.focusMinutes * 60_000,
+      focusedMs: banked,
+    };
   }, [state, settings, now]);
 
   /**
@@ -237,6 +244,19 @@ export function useFocusTimer() {
     });
   }, []);
 
+  /**
+   * Decline an eye rest that is due: bank the focus so far and restart the twenty
+   * minutes from here, without starting the twenty-second countdown. Without this
+   * a "no" had nowhere to go, because the rest stays due until one is taken.
+   */
+  const skipEyeRest = useCallback(() => {
+    setState((s) => {
+      if (s.phase !== "focus") return s;
+      const banked = s.focusedMs + (Date.now() - s.startedAt);
+      return { ...s, focusedMs: banked, startedAt: Date.now(), eyeBaseMs: banked };
+    });
+  }, []);
+
   const endEyeRest = useCallback(() => {
     setState((s) => ({ ...s, phase: s.resumeTo, startedAt: Date.now() }));
   }, []);
@@ -304,6 +324,7 @@ export function useFocusTimer() {
     stop,
     pause,
     beginEyeRest,
+    skipEyeRest,
     endEyeRest,
     setSettings,
     addTask,

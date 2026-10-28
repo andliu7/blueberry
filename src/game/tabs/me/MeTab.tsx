@@ -50,6 +50,8 @@ import { isFlagOn, type FlagId } from "../../app/flags";
 import { BlueberryMark } from "../../mascot/BlueberryMark";
 import { COURSE_LABEL } from "../courses/courseCopy";
 import { ArrowStyleSetting } from "../../settings/ArrowStyleSetting";
+import { GroundSetting } from "../../settings/GroundSetting";
+import { FocusSetting } from "../../settings/FocusSetting";
 import { ChestInventory } from "../../chest/ChestInventory";
 import {
   activeCount,
@@ -809,6 +811,8 @@ function SettingsScreen() {
           App
         </h2>
         <ThemeSetting />
+        <GroundSetting />
+        <FocusSetting />
         <button type="button" className="me-row" onClick={() => setLanguageOpen(true)}>
           <span className="me-row-text">
             <span className="me-row-title">Language</span>

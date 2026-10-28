@@ -80,6 +80,8 @@ import { NotOpenYet } from "./ui/NotOpenYet";
 import { ToolSheet } from "./ui/ToolRail";
 import { TabIcon, ToolsIcon } from "./ui/TabIcon";
 import "./ui/tabs.css";
+// Importing this paints the student's saved page colour, so it applies before Settings is ever opened.
+import "../settings/groundTheme";
 
 const TrainerTab = lazy(() => import("../tabs/trainer/TrainerTab").then((m) => ({ default: m.TrainerTab })));
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
@@ -90,6 +92,7 @@ const CoursesTab = lazy(() => import("../tabs/courses/CoursesTab"));
 const SearchTab = lazy(() => import("../tabs/search/SearchTab"));
 const LeaderboardsTab = lazy(() => import("../tabs/leaderboards/LeaderboardsTab"));
 const PeriodicTab = lazy(() => import("../tabs/periodic/PeriodicTab"));
+const FocusTab = lazy(() => import("../tabs/focus/FocusTab"));
 const ChatTab = lazy(() => import("../tabs/chat/ChatTab"));
 const MessagesTab = lazy(() => import("../tabs/messages/MessagesTab"));
 
@@ -154,6 +157,8 @@ function Outlet({
       return <SearchTab query={rest[0] ?? ""} />;
     case "periodic":
       return <PeriodicTab selected={rest[0] ?? null} />;
+    case "focus":
+      return <FocusTab />;
     case "leaderboards":
       return (
         <Flagged flag="leaderboards">
@@ -241,7 +246,7 @@ function HeaderTools({ route }: { readonly route: Route }) {
         // menu opens on release over the button, so sliding off cancels.
         onClick={() => setMenuOpen(true)}
         aria-haspopup="dialog"
-        aria-label="Tools: the periodic table and the reaction search"
+        aria-label="Tools: the periodic table, the reaction search and the focus timer"
         className="lip-button header-tools inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-2"
       >
         <ToolsIcon className="h-7 w-7" />
@@ -451,7 +456,8 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
             <CourseChip />
             <HeaderTools route={route} />
           </div>
-          <Hud />
+          {/* The Feed is a calm screen: no score counters over it. */}
+          {activeTab === "feed" ? null : <Hud />}
         </header>
 
         <main className="min-h-0 flex-1">

@@ -73,7 +73,7 @@
  * berries, drawn small and flat, never the imported mark.
  */
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { Fragment, useEffect, useId, useMemo, useState } from "react";
 import { isFlagOn } from "../../app/flags";
 import { useProgress } from "../../app/hooks";
 import { useReducedMotionPref } from "@/lib/motionPref";
@@ -85,13 +85,14 @@ import { useDisplayName } from "../../app/useDisplayName";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
 import { browserStorage, hasSavedLesson } from "../../resume/lessonSave";
 import { firstNameOf } from "@/lib/accountName";
-import { rememberReturn } from "@/lib/returnTo";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
-import { activityFeed, type ActivityItem, type ActivityKind } from "./activityModel";
+import { activityFeed, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
 import { dailyQuestRows, feedModel, feedReminders, welcomeCard, welcomesBack, type DailyQuestRow, type WelcomeCard } from "./feedModel";
+import { NudgeCard, PostCard, TipCard, useCheers } from "./PostCards";
+import { FriendCards } from "./FriendCards";
 import "./feed.css";
 
 /**
@@ -445,29 +446,17 @@ const ACTIVITY_BADGE: Readonly<Record<ActivityKind, { readonly face: string; rea
   boss: { face: "#ff9b3d", ink: "#5a2a00", glyph: STAR, solid: true },
 };
 
-function ActivityRow({ item }: { readonly item: ActivityItem }) {
-  const badge = ACTIVITY_BADGE[item.kind];
+/** The big flat picture on a post: the kind's colour disc and glyph, drawn once at card size. */
+function PostArt({ kind }: { readonly kind: ActivityKind }) {
+  const badge = ACTIVITY_BADGE[kind];
   return (
-    <li className="feed-quest">
-      <svg viewBox="0 0 24 24" className="feed-post-badge" aria-hidden focusable="false">
-        <circle cx="12" cy="12" r="11" fill={badge.face} />
-        <path
-          d={badge.glyph}
-          fill={badge.solid ? badge.ink : "none"}
-          stroke={badge.ink}
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <div className="min-w-0 flex-1">
-        <p className="feed-quest-label">{item.text}</p>
-        <p className="feed-post-when">{item.when}</p>
-      </div>
-    </li>
+    <svg viewBox="0 0 24 24" aria-hidden focusable="false">
+      <ellipse cx="12" cy="22.2" rx="7" ry="1.2" fill="currentColor" opacity="0.12" />
+      <circle cx="12" cy="12" r="11" fill={badge.face} />
+      <path d={badge.glyph} fill={badge.solid ? badge.ink : "none"} stroke={badge.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
-
 
 /**
  * The lab mates invite, as one pressable row in the rail: there are no lab
@@ -606,19 +595,6 @@ function FirstWin({ lesson, name }: { readonly lesson: string | null; readonly n
 
 /* ------------------------------------------------------- welcome back --- */
 
-/** Signed out: a quiet text link, not a second filled button. It comes back here after (lib/returnTo.ts). */
-function SignInLink({ children }: { readonly children: string }) {
-  return (
-    <a
-      href="#/signin"
-      onClick={() => rememberReturn(window.location.hash)}
-      className="text-[0.9375rem] font-extrabold text-bb-primary-ink underline underline-offset-2"
-    >
-      {children}
-    </a>
-  );
-}
-
 /**
  * The returning student's card, first on the page with its one filled button
  * (owner, item 11). The button goes to the PATH, where the charge gate and the
@@ -652,11 +628,6 @@ function WelcomeBack({ card }: { readonly card: WelcomeCard }) {
       <a href={card.href} className="btn3d btn3d--primary mt-1 w-full">
         {card.button}
       </a>
-      {card.askSignIn ? (
-        <p className="m-0 text-center">
-          <SignInLink>Sign in to save your progress and your name</SignInLink>
-        </p>
-      ) : null}
     </section>
   );
 }
@@ -727,6 +698,10 @@ export default function FeedTab() {
     playedHere: activity.length > 0,
   });
   const reminders = feedReminders(study);
+  const [cheers, toggleCheer] = useCheers();
+  const reducedMotion = useReducedMotionPref();
+  const dayIndex = Math.floor(Date.now() / 86_400_000);
+  const tipArt = <Berry mood="happy" behaviour="wave" chain={[]} sizePx={92} reducedMotion={reducedMotion} />;
 
   return (
     <div
@@ -749,24 +724,27 @@ export default function FeedTab() {
           ) : (
             <FirstWin lesson={study.input.nextLesson} name={study.input.name} />
           )}
-          {activity.length === 0 && !signedIn ? (
-            <p className="m-0 text-center">
-              <SignInLink>Sign in to save your progress and your name</SignInLink>
-            </p>
-          ) : null}
+          <section aria-label="Your feed" className="flex flex-col">
+            <ul className="fp-stream">
+              <FriendCards afterFirst={<NudgeCard counted={model.snapshot.streak.todayCounted} streak={model.snapshot.streak.current} />} />
+              {activity.length === 0 ? <TipCard dayIndex={dayIndex} art={tipArt} /> : null}
+              {activity.map((item, index) => (
+                <Fragment key={item.key}>
+                  <PostCard
+                    item={item}
+                    name={firstNameOf(study.input.name) ?? "You"}
+                    avatar={<BlueberryAvatar />}
+                    art={<PostArt kind={item.kind} />}
+                    liked={cheers.has(item.key)}
+                    onToggle={toggleCheer}
+                  />
+                  {index === 0 ? <TipCard dayIndex={dayIndex} art={tipArt} /> : null}
+                </Fragment>
+              ))}
+            </ul>
+          </section>
 
           <Reminders lines={reminders} />
-
-          {activity.length === 0 ? null : (
-            <section aria-label="Your activity" className="flex flex-col gap-3">
-              <h2 className="feed-heading">Your activity</h2>
-              <ol className="feed-quests !mt-0">
-                {activity.map((item) => (
-                  <ActivityRow key={item.key} item={item} />
-                ))}
-              </ol>
-            </section>
-          )}
 
           <AdSlot placement="feed" />
 

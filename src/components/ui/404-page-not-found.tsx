@@ -1,5 +1,7 @@
 import { Home, Search, ArrowLeft } from "lucide-react";
-import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
+import { BlueberryMark } from "@/components/ui/blueberry-mark";
+import { GlitchText } from "@/components/ui/glitch-text";
+import { NOT_FOUND_ACTIONS, NOT_FOUND_TITLE, notFoundLine } from "@/lib/statusCopy";
 
 /**
  * The page for a URL that does not resolve.
@@ -21,6 +23,10 @@ import { MOTIF_VIEWBOX, motifMarkup } from "@/data/testimonialArt";
  *    and cannot break. It is also somebody's copyrighted shot.
  * 4. **Theme-aware.** The original hardcoded `bg-white` and `text-black`, which
  *    would have been a white flash in the middle of a dark site.
+ *
+ * 28 Oct: the words live in lib/statusCopy.ts so every "not here" screen sounds
+ * the same; Bloom now reacts (thinking) instead of a static drawing; and the
+ * "404" gets a brief CSS glitch (ui/glitch-text), off under reduced motion.
  */
 export function NotFoundPage({
   what = "That page",
@@ -34,29 +40,25 @@ export function NotFoundPage({
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-lg text-center">
-        {/* The mascot above the number, not behind it: nothing sits behind text
-            (owner, 2026-10-07). It was a 25 percent wash under the "404". */}
+        {/* Bloom above the number, not behind it: nothing sits behind text
+            (owner, 2026-10-07). */}
         <div className="mx-auto mb-2 flex w-full flex-col items-center">
-          <svg
-            aria-hidden
-            viewBox={MOTIF_VIEWBOX}
-            className="h-24 w-auto text-primary dark:text-amber-200"
-            dangerouslySetInnerHTML={{ __html: motifMarkup("mascot") }}
-          />
-          <span
-            aria-hidden
-            className="page-title block text-7xl text-slate-900 sm:text-8xl dark:text-stone-100"
-          >
-            404
+          <span aria-hidden className="mb-1 block h-24 w-24">
+            <BlueberryMark eyes mood="thinking" className="h-full w-full" />
+          </span>
+          <span aria-hidden>
+            <GlitchText
+              text="404"
+              className="page-title block text-7xl text-slate-900 sm:text-8xl dark:text-stone-100"
+            />
           </span>
         </div>
 
         <h1 className="page-title text-2xl text-slate-900 sm:text-3xl dark:text-stone-100">
-          Looks like you're lost
+          {NOT_FOUND_TITLE}
         </h1>
         <p className="mx-auto mt-3 max-w-sm font-sans text-lg text-slate-500 dark:text-stone-400">
-          {what} does not exist. It may have been renamed, or the link may have a
-          typo in it.
+          {notFoundLine(what)}
         </p>
 
         {detail && (
@@ -67,24 +69,24 @@ export function NotFoundPage({
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <a
-            href="#/home"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#5a3fd8] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none"
+            href={NOT_FOUND_ACTIONS.primary.href}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#5a3fd8] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#6b51dd] focus-visible:ring-2 focus-visible:ring-[#9989e2] focus-visible:outline-none"
           >
             <Home className="h-4 w-4" />
-            All decks
+            {NOT_FOUND_ACTIONS.primary.label}
           </a>
           <a
-            href="#/"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-white dark:border-stone-700 dark:text-stone-300 dark:hover:bg-white/5"
+            href={NOT_FOUND_ACTIONS.secondary.href}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-600 transition hover:bg-white dark:border-stone-700 dark:text-stone-300 dark:hover:bg-white/5"
           >
             <ArrowLeft className="h-4 w-4" />
-            Grignard deck
+            {NOT_FOUND_ACTIONS.secondary.label}
           </a>
         </div>
 
         <p className="mt-6 inline-flex items-center gap-1.5 text-xs text-slate-400 dark:text-stone-500">
           <Search className="h-3.5 w-3.5" />
-          Or search for it from the hub.
+          Or search for it from the home page.
         </p>
       </div>
     </main>

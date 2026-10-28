@@ -39,7 +39,11 @@ const TITLES: Record<string, string> = {
   // "Not Found", because a route added in a merge does not add itself here.
   app: "Course",
   "app/glossary": "Glossary",
+  "app/shop": "Shop",
   "app/admin": "Lesson Viewer",
+  "app/focus": "Focus timer",
+  // Dev only, like the page itself (src/App.tsx): in a build #/signoff is a 404 and titles itself so.
+  ...(import.meta.env.DEV ? { signoff: "Unit 1 Sign-off" } : {}),
 };
 
 /** Prefixed routes, longest first so `lessons/x/y` does not match `lessons`. */

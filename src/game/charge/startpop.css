@@ -1,0 +1,323 @@
+/* The lesson-start card. One screen, no scroll: a solid unit-coloured card
+   (violet today), the node-type chip and a way out on top, Bloom smiling beside
+   "Ready?", the meter on a white inset, and one white pill key that carries the
+   cost. Scoped to .start-pop so the other sheets sharing charge.css are untouched. */
+.start-pop::backdrop {
+  background: rgb(24 14 70 / 0.32);
+}
+.start-pop {
+  align-items: flex-end;
+}
+.start-pop .sp-card {
+  --sp-ink: #ffffff;
+  --sp-hue: #6a45e6;
+  --sp-btn: #5a3fd8;
+  --sp-lip: #4327a8;
+  --sp-key-lip: #d9d2f8;
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  width: min(27rem, calc(100% - 1.5rem));
+  max-height: calc(100dvh - 2rem);
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  padding: 0.25rem 1.125rem 0.25rem;
+  border-radius: 1.5rem;
+  background: var(--sp-hue);
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.25), 0 7px 0 var(--sp-lip), 0 22px 36px rgb(20 12 60 / 0.3);
+  color: var(--sp-ink);
+  overflow: visible;
+}
+/* The card's colour is the node's type, and the six kinds read apart at a glance. */
+.start-pop .sp-card[data-hue="rose"] { --sp-hue: #e5484d; --sp-btn: #c92f3c; --sp-lip: #a02030; --sp-key-lip: #f7cdd0; }
+.start-pop .sp-card[data-hue="amber"] { --sp-hue: #f08c00; --sp-btn: #b45f00; --sp-lip: #b36200; --sp-key-lip: #fbe0b0; }
+.start-pop .sp-card[data-hue="green"] { --sp-hue: #2bb04f; --sp-btn: #1d8a3b; --sp-lip: #1a7a35; --sp-key-lip: #c9efd3; }
+.start-pop .sp-card[data-hue="teal"] { --sp-hue: #12a3b4; --sp-btn: #0b7886; --sp-lip: #0b7482; --sp-key-lip: #bfeaf0; }
+/* Bloom stands on the card's top edge, on the side the tapped node is NOT on. */
+.sp-bloom {
+  position: absolute;
+  top: -4.5rem;
+  right: 3.4rem;
+  z-index: 2;
+  width: 7.25rem;
+  height: 7.25rem;
+  pointer-events: none;
+  animation: sp-bounce 1.15s cubic-bezier(0.3, 0, 0.3, 1) infinite;
+}
+.start-pop[data-bloom="l"] .sp-bloom {
+  right: auto;
+  left: 0.75rem;
+}
+.start-pop[data-bloom="l"] .sp-top {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+.start-pop[data-bloom="l"] .sp-top .sp-chip {
+  margin-right: 0.25rem;
+}
+@keyframes sp-bounce {
+  0%, 100% { transform: translateY(0) scaleY(0.96); transform-origin: 50% 100%; }
+  50% { transform: translateY(-0.6rem) scaleY(1.03); transform-origin: 50% 100%; }
+}
+.start-pop.sp-anchored {
+  align-items: flex-start;
+}
+.start-pop.sp-anchored .sp-card {
+  margin-top: var(--sp-top);
+  margin-bottom: 0;
+}
+/* The charge halo ring around Bloom is the meter's job here; on a coloured card it reads as a green ring. */
+.sp-bloom .berry-halo {
+  display: none;
+}
+/* The notch: a rotated square in the card's colour, pointing at the tapped node. */
+.sp-notch {
+  position: absolute;
+  top: -0.5rem;
+  left: var(--sp-notch);
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  background: var(--sp-hue);
+  transform: translateX(-50%) rotate(45deg);
+}
+@media (min-width: 768px) {
+  .start-pop {
+    align-items: center;
+  }
+  .start-pop .sp-card {
+    margin-bottom: 0;
+  }
+}
+.start-pop[open] .sp-card {
+  animation: sp-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes sp-in {
+  from {
+    transform: translateY(1.5rem) scale(0.97);
+    opacity: 0;
+  }
+}
+.sp-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.75rem;
+  position: relative;
+  z-index: 1;
+}
+.sp-chip {
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 999px;
+  padding: 0.125rem 0.625rem;
+  font-size: var(--text-scale-xs);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sp-x {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: -0.5rem;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sp-ink);
+  cursor: pointer;
+}
+.sp-x svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.sp-x:hover,
+.sp-x:focus-visible {
+  background: rgb(255 255 255 / 0.18);
+}
+.sp-words {
+  min-width: 0;
+  text-align: left;
+}
+.sp-words {
+  padding: 0.25rem 0 0.5rem;
+}
+.sp-ask {
+  font-size: 2.25rem;
+  font-weight: 900;
+  text-shadow: 0 3px 0 rgb(0 0 0 / 0.16);
+  line-height: 1.05;
+}
+.sp-name {
+  margin-top: 0.25rem;
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.25;
+  text-wrap: balance;
+  color: rgb(255 255 255 / 0.95);
+}
+.sp-meter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 1rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.sp-line {
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+  text-align: center;
+  text-wrap: balance;
+  color: #ffffff;
+}
+.sp-go {
+  display: flex;
+  min-height: 4.5rem;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.875rem;
+  padding: 0.375rem 0.5rem 0.375rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 7px 0 var(--sp-key-lip), 0 9px 14px rgb(20 12 60 / 0.25);
+  margin-bottom: 0.5rem;
+  color: var(--sp-btn);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
+}
+.sp-go:active {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--sp-key-lip);
+}
+.sp-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 3.25rem;
+  padding: 0 1.125rem 0 0.875rem;
+  border-radius: 999px;
+  background: var(--sp-btn);
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.25);
+  color: #ffffff;
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.sp-bolt {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+.sp-cost .sp-bolt {
+  width: 2rem;
+  height: 2rem;
+  color: #ffd23f;
+  filter: drop-shadow(0 2px 0 rgb(0 0 0 / 0.25));
+}
+.sp-readout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  align-self: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  background: rgb(20 10 70 / 0.26);
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.95);
+}
+.sp-readout .sp-bolt {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+.sp-readout b {
+  font-weight: 900;
+  color: #ffffff;
+}
+.sp-readout i {
+  font-style: normal;
+}
+.start-pop .sp-card .sp-dismiss {
+  min-height: 2.75rem;
+  margin-bottom: 0.25rem;
+  color: rgb(255 255 255 / 0.92);
+  text-transform: none;
+  font-size: var(--text-scale-base);
+  letter-spacing: 0;
+}
+.sp-quiet {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sp-ink);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.sp-quiet:hover,
+.sp-quiet:focus-visible {
+  background: rgb(255 255 255 / 0.14);
+}
+.sp-quiet:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.sp-promise {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.375rem;
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  color: rgb(255 255 255 / 0.9);
+}
+.sp-tick {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.sp-card .restart-erase {
+  color: #ffd9d9;
+}
+.start-pop button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .start-pop[open] .sp-card {
+    animation: none;
+  }
+  .sp-bloom {
+    animation: none;
+  }
+  .sp-go {
+    transition: none;
+  }
+}
+.sp-quiet svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}

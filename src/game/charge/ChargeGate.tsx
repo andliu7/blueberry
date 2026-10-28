@@ -48,20 +48,19 @@
  * frame is the destination.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { deriveEconomy, type EconomySnapshot } from "@blueberry/economy";
 import { Berry } from "../mascot/Berry";
-import { DiamondMark } from "../app/ui/HudIcons";
+import { ChargeMark, DiamondMark } from "../app/ui/HudIcons";
 import { economyOptions, progress } from "../app/progress";
 import { useProgress } from "../app/hooks";
 import { navigate } from "../app/useHashRoute";
 import { hrefForReview } from "../app/routes";
-import { ChargeMeter } from "./ChargeMeter";
 import { chargeMeterModel, type ChargeMeterModel } from "./chargeMeterModel";
 import { chargeEntryOf, chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
 import "./charge.css";
+import "./startpop.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
-import { Press } from "../app/ui/Press";
 import { isRestart, restartCopy } from "../resume/restartCopy";
 
 /**
@@ -138,20 +137,32 @@ function useLiveEconomy(live: boolean): EconomySnapshot {
   );
 }
 
-/** The tick under the promise line. Not a decoration: it is the mark for "this is true". */
-function CheckMark({ className = "" }: { readonly className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden>
-      <path
-        d="M5 12.5l4.5 4.5L19 7.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+/** The question the card asks. Presentation only; the model's words stay the model's. */
+function askOf(state: ChargeGateModel["state"]): string {
+  if (state === "empty") return "Recharging";
+  return "Ready?";
+}
+
+/** The helper under the key is ONE sentence: the first one the model wrote. */
+function oneLine(text: string): string {
+  const end = text.search(/[.!?](\s|$)/);
+  return end < 0 ? text : text.slice(0, end + 1);
+}
+
+/** The card's colour follows the node kind, the way a unit's does on the path. */
+function hueOf(kind: ChargeGateNode["kind"]): string {
+  if (kind === "review") return "rose";
+  if (kind === "quiz") return "amber";
+  if (kind === "tutorial" || kind === "intro") return "green";
+  if (kind === "branch") return "teal";
+  return "violet";
+}
+
+/** The main key's verb. The price rides beside it as a bolt and a number. */
+function goLabel(model: ChargeGateModel): string {
+  if (model.state === "empty") return "Review, free";
+  if (model.state === "free") return "Start, free";
+  return "Start";
 }
 
 export interface ChargeGateProps {
@@ -184,6 +195,30 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
   const [frozen, setFrozen] = useState<ChargeGateModel | null>(null);
   const [frozenMeter, setFrozenMeter] = useState<ChargeMeterModel | null>(null);
   const timer = useRef<number | null>(null);
+  /**
+   * Where the tapped node was, read off the element that held focus when the
+   * sheet opened. The card hangs under that node with a notch pointing at it,
+   * over the live path, so the pathway needs no wiring and a caller that opens
+   * the sheet from elsewhere (no node focused) gets the bottom sheet instead.
+   */
+  const [anchor, setAnchor] = useState<{ readonly bottom: number; readonly x: number } | null>(null);
+  const [place, setPlace] = useState<{ readonly top: number; readonly notch: number; readonly side: "l" | "r" } | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (node === null) {
+      setAnchor(null);
+      setPlace(null);
+      return;
+    }
+    const el = document.activeElement;
+    if (!(el instanceof HTMLElement) || el === document.body || el.closest("dialog") !== null) {
+      setAnchor(null);
+      return;
+    }
+    const r = el.getBoundingClientRect();
+    setAnchor(r.width === 0 ? null : { bottom: r.bottom, x: r.left + r.width / 2 });
+  }, [node]);
 
   const economy = useLiveEconomy(node !== null && phase === "idle");
   const live = useMemo(() => {
@@ -213,6 +248,30 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
    * the same reason the gate model is frozen one line above.
    */
   const meter = phase === "spending" ? frozenMeter : liveMeter;
+
+  const cardKey = model === null ? "" : `${model.state}${meter === null ? 0 : 1}${model.topUp === null ? 0 : 1}`;
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (anchor === null || card === null || window.innerWidth >= 768) {
+      setPlace(null);
+      return;
+    }
+    const width = card.offsetWidth;
+    const left = (window.innerWidth - width) / 2;
+    const roomAbove = 12;
+    let { bottom } = anchor;
+    // Not enough room under the node: slide the path up so the card still fits below it.
+    const need = bottom + 20 + card.offsetHeight + 12 - window.innerHeight;
+    if (need > 0) {
+      const before = window.scrollY;
+      window.scrollBy(0, need);
+      bottom -= window.scrollY - before;
+    }
+    const top = Math.max(roomAbove, Math.min(bottom + 20, window.innerHeight - card.offsetHeight - 12));
+    const notch = Math.max(28, Math.min(width - 28, anchor.x - left));
+    // Bloom stands to the side the node is NOT on, so he never covers what was tapped.
+    setPlace({ top, notch, side: notch < width / 2 ? "r" : "l" });
+  }, [anchor, cardKey]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -277,7 +336,8 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
   return (
     <dialog
       ref={ref}
-      className="charge-sheet"
+      className={`charge-sheet start-pop${place === null ? "" : " sp-anchored"}`}
+      data-bloom={place === null ? "r" : place.side}
       data-charge-state={model === null ? "closed" : model.state}
       data-charge-phase={phase}
       aria-label={model === null ? "Charge" : model.label}
@@ -285,55 +345,51 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
       onClick={closeOnBackdrop(ref, onClose)}
     >
       {model === null ? null : (
-        <div className="charge-panel">
-          <span className="charge-grabber" aria-hidden />
-
-          <div className="charge-hero">
+        <div
+          ref={cardRef}
+          className="sp-card"
+          data-hue={hueOf(model.node.kind)}
+          style={place === null ? undefined : ({ "--sp-top": `${place.top}px`, "--sp-notch": `${place.notch}px` } as CSSProperties)}
+        >
+          {place === null ? null : <span className="sp-notch" aria-hidden />}
+          <div className="sp-bloom" aria-hidden>
             <Berry
               state="charged"
               chargeLevel={
                 model.state === "exam" ? 1 : model.cap <= 0 ? 0 : (phase === "spending" ? model.after : model.before) / model.cap
               }
-              mood={model.state === "empty" ? "sleepy" : model.state === "exam" ? "cheer" : "focused"}
-              behaviour={model.state === "empty" ? "sleepy" : "idle"}
+              mood={model.state === "empty" ? "sleepy" : "happy"}
+              behaviour={model.state === "empty" ? "sleepy" : phase === "spending" ? "celebrate" : "wave"}
               reducedMotion={reducedMotion}
-              sizePx={72}
+              sizePx={116}
             />
-            {meter === null ? null : (
-              /* The sheet prints the mistakes promise in its own, stronger
-                 words two elements down, so the meter's caption would be the
-                 same sentence twice on one card. */
-              <ChargeMeter model={meter} committed={phase === "spending"} caption={false} />
+          </div>
+          <div className="sp-top">
+            <span className="sp-chip">{model.kindLabel}</span>
+            <button type="button" className="sp-x" aria-label="Close" data-charge-close onClick={onClose}>
+              <svg viewBox="0 0 24 24" aria-hidden>
+                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="sp-words">
+            <h2 className="sp-ask">{askOf(model.state)}</h2>
+            <p className="sp-name">{model.node.title}</p>
+            {meter === null || model.state !== "ready" ? null : (
+              <span className="sr-only">{`Charge ${model.before} of ${model.cap}, ${model.cost} to start`}</span>
             )}
           </div>
 
-          <p className="charge-kind">{model.kindLabel}</p>
-          {/* The node the student pressed, kept small and above the rule.
-              They already know its name; what they came for is the price, so
-              the price is the thing set in display type underneath. */}
-          <p className="charge-title">{model.node.title}</p>
-          <h2 className="charge-headline">{model.headline}</h2>
-          <p className="charge-line">{model.line}</p>
-
-          {model.promise === "" ? null : (
-            <p className="charge-promise">
-              <CheckMark className="charge-promise-mark" />
-              <span>{model.promise}</span>
-            </p>
-          )}
-
-          {/* START OVER from the resume screen: the safe key is the big one (resume/restartCopy.ts). */}
           {isRestart(model, restartSaved) ? (
-            <Press block size="lg" data-charge-keep onClick={onClose}>
+            <button type="button" className="sp-go" data-charge-keep onClick={onClose}>
               {model.dismissLabel}
-            </Press>
+            </button>
           ) : null}
 
-          <Press
-            block
-            size={isRestart(model, restartSaved) ? "md" : "lg"}
-            variant={isRestart(model, restartSaved) ? "ghost" : "primary"}
-            className={isRestart(model, restartSaved) ? "restart-erase" : ""}
+          <button
+            type="button"
+            className={isRestart(model, restartSaved) ? "sp-quiet restart-erase" : "sp-go"}
             data-charge-primary
             data-track="lesson.start"
             data-cta
@@ -346,27 +402,37 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
               start();
             }}
           >
-            {model.primaryLabel}
-          </Press>
+            {isRestart(model, restartSaved) ? (
+              model.primaryLabel
+            ) : (
+              <>
+                <span>{goLabel(model)}</span>
+                {model.state === "ready" ? (
+                  <span className="sp-cost">
+                    <ChargeMark className="sp-bolt" />
+                    {model.cost}
+                  </span>
+                ) : null}
+              </>
+            )}
+          </button>
 
           {model.topUp === null ? null : (
-            <Press
-              block
-              variant="secondary"
-              data-charge-topup
-              disabled={!model.topUp.affordable}
-              onClick={topUp}
-            >
+            <button type="button" className="sp-quiet" data-charge-topup disabled={!model.topUp.affordable} onClick={topUp}>
               <DiamondMark className="h-5 w-5 shrink-0" />
               <span>{model.topUp.label}</span>
-            </Press>
+            </button>
           )}
-          {model.topUp === null ? null : <p className="charge-note">{model.topUp.note}</p>}
+          {model.topUp === null ? null : <p className="sp-promise">{model.topUp.note}</p>}
+
+          {model.topUp !== null || meter === null ? null : (
+            model.state === "ready" ? null : <p className="sp-line">{oneLine(model.headline)}</p>
+          )}
 
           {isRestart(model, restartSaved) ? null : (
-            <Press block variant="ghost" onClick={onClose}>
+            <button type="button" className="sp-quiet sp-dismiss" onClick={onClose}>
               {model.dismissLabel}
-            </Press>
+            </button>
           )}
         </div>
       )}
