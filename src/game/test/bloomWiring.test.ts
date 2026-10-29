@@ -192,7 +192,7 @@ describe("the gallery shows everything", () => {
   });
 
   it("is reachable from the staff viewer", () => {
-    expect(read("../admin/AdminViewer.tsx")).toMatch(/href=\{hrefForGallery\(\)\}/);
+    expect(read("../admin/AdminHome.tsx")).toMatch(/href: hrefForGallery\(\)/);
   });
 });
 

@@ -3,14 +3,16 @@
  * through useReducer, so every hand adjustment is one testable step:
  *
  *   read           a fresh paste: the matched lines and the plan they make
- *   load           a saved plan, reopened (no lines: there is nothing to re-flag)
+ *   load           a saved plan, reopened, or adopted from the account while
+ *                  the screen is open (no lines: there is nothing to re-flag)
  *   resolve        answer a flag: pick a unit, or mark the topic not covered
  *   moveUnit       up or down in the syllabus order
  *   moveSection    up or down inside its unit (what "next up" walks first)
  *   toggleCovered  a unit, a section ("u3/s2") or a lesson in or out
  *   addUnit        put a unit the syllabus did not name onto it
  *   toggleSideQuest  count a side quest on quizzes and exams, or stop
- *   assignWeek     move a unit to another week
+ *   assignWeek     move a unit to another week (its map chip follows)
+ *   setTermStart   the first day of Week 1, for a syllabus with no dates
  *
  * Resolving a flag rebuilds the plan from the lines but keeps every hand
  * edit made so far: the order the student set, their sections, their not
@@ -38,6 +40,7 @@ export type EditAction =
   | { readonly type: "addUnit"; readonly unitId: string }
   | { readonly type: "toggleSideQuest"; readonly nodeId: string }
   | { readonly type: "assignWeek"; readonly unitId: string; readonly week: number | null }
+  | { readonly type: "setTermStart"; readonly date: string | null }
   | { readonly type: "clear" };
 
 export const EMPTY_EDIT: EditState = { rows: [], plan: null };
@@ -87,6 +90,7 @@ function rebuild(state: EditState, rows: readonly MatchedLine[]): EditState {
       sectionOrder: Object.fromEntries(unitOrder.map((id) => [id, old.sectionOrder[id] ?? fresh.sectionOrder[id] ?? []])),
       notCovered: old.notCovered,
       sideQuests: [...new Set([...fresh.sideQuests.filter((id) => !handOff.includes(id)), ...handOn])],
+      termStart: old.termStart ?? null,
     },
   };
 }
@@ -133,5 +137,7 @@ export function syllabusEdit(state: EditState, action: EditAction): EditState {
       if (action.week !== null && !weeks.some((week) => week.week === action.week)) weeks.push({ week: action.week, start: null, unitIds: [action.unitId] });
       return next({ weeks: weeks.sort((a, b) => a.week - b.week) });
     }
+    case "setTermStart":
+      return next({ termStart: action.date !== null && /^\d{4}-\d{2}-\d{2}$/.test(action.date) ? action.date : null });
   }
 }

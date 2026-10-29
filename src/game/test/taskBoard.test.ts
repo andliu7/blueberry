@@ -30,3 +30,32 @@ describe("task board ordering", () => {
     expect(nextTask([])).toBeNull();
   });
 });
+
+import { withNewSeeds } from "../admin/TaskBoard";
+import { PROJECTS, nodeStatus, projectProgress } from "../admin/gauntletProjects";
+
+describe("new seed cards", () => {
+  it("adds only seeds this browser has not seen, with fresh numbers, and never brings back a deleted one", () => {
+    const old = SEED_TASKS.slice(0, 21).filter((t) => t.id !== "t5");
+    const seen = SEED_TASKS.slice(0, 21).map((t) => t.id);
+    const out = withNewSeeds(old, seen);
+    expect(out.tasks.some((t) => t.id === "t5")).toBe(false);
+    expect(out.tasks.filter((t) => t.id > "t21" && /^t(2[2-9]|3\d)$/.test(t.id))).toHaveLength(10);
+    expect(new Set(out.tasks.map((t) => t.num)).size).toBe(out.tasks.length);
+  });
+});
+
+describe("gauntlet projects", () => {
+  const st = (p: { status: "todo" | "doing" | "done" | "stuck" }) => p.status;
+  it("lists the overnight run as a project with the audit and three waves as nodes", () => {
+    const run = PROJECTS.find((p) => p.id === "overnight-units")!;
+    expect(run.nodes.map((n) => n.id)).toEqual(["audit", "wave-1", "wave-2", "wave-3"]);
+    expect(projectProgress(run, st).total).toBe(15);
+  });
+  it("marks a node doing once any piece starts, stuck on an open gap, done when all won", () => {
+    const [audit, , , ] = PROJECTS[0]!.nodes;
+    expect(nodeStatus(audit!, st)).toBe("doing");
+    expect(nodeStatus({ ...audit!, pieces: audit!.pieces.map((p) => ({ ...p, status: "done" as const })) }, st)).toBe("done");
+    expect(nodeStatus(PROJECTS[1]!.nodes[1]!, st)).toBe("stuck");
+  });
+});

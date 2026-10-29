@@ -11,13 +11,26 @@ import type { McqBeat } from "../../beats/types";
 import type { SortContent } from "../../beats/sort/ladders";
 import type { MatchBoardSpec } from "../../beats/match/spec";
 import type { DrawBeat } from "../../beats/draw/types";
+import type { KeqTypedSpec } from "../../energy/keqTypedSpec";
+import type { NmrProductQuestion } from "../../tabs/spectra/spectraTypes";
 
 export type PoolItem =
   | { readonly kind: "mcq"; readonly beat: McqBeat }
   | { readonly kind: "sort"; readonly content: SortContent }
   | { readonly kind: "match"; readonly board: MatchBoardSpec }
   /** Draw the structure in the editor (beats/draw). Added 2026-10-17, U1-P3. */
-  | { readonly kind: "draw"; readonly beat: DrawBeat };
+  | { readonly kind: "draw"; readonly beat: DrawBeat }
+  /**
+   * Reaction given, product picked from its derived 1H NMR (tabs/spectra/NmrProductQuestion).
+   * Added 2026-10-29 (nmr-ir-toolbar round 2). Never shown with the NMR tool open.
+   */
+  | { readonly kind: "nmrProduct"; readonly question: NmrProductQuestion }
+  /**
+   * A typed pKa-to-Keq step (energy/KeqTypedQuestion). The student works the arithmetic on their OWN
+   * calculator and types the exponent, then Keq as a number times a power of ten. No option tiles.
+   * Added 2026-10-29 (energy-keq round 4).
+   */
+  | { readonly kind: "keqTyped"; readonly question: KeqTypedSpec };
 
 export interface PoolEntry {
   /** Stable id, unique across the unit. Stored progress and requeues key on it. */

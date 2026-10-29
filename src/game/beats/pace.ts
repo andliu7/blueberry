@@ -39,6 +39,11 @@ import { unitSections } from "../tabs/pathway/testOuts";
 
 export type Pace = -1 | 0 | 1;
 
+/** R2: flawless clears in a row that set pace to +1. */
+export const FLAWLESS_RUN_FOR_HARDER = 2;
+/** R3: a clear under this first-try share is rough and sets pace to -1 (exactly this share is not rough). */
+export const ROUGH_BELOW = 0.5;
+
 export type { LessonRating };
 
 const RATING_PACE: Readonly<Record<LessonRating, Pace>> = { too_easy: 1, about_right: 0, too_hard: -1 };
@@ -59,9 +64,20 @@ function hasMechanismStep(nodeId: string): boolean {
 
 type Outcome = "flawless" | "poor" | "mixed";
 
+/**
+ * First-try accuracy of a clear, 0 to 1, or null when the clear carries no
+ * count (before 23 Oct, or from a surface that does not count). A flawless
+ * clear is 1 whatever the count says.
+ */
+export function clearAccuracy(event: Extract<EconomyEvent, { kind: "node_cleared" }>): number | null {
+  if (event.flawless) return 1;
+  if (event.cleared === undefined || event.stepsInOneSitting <= 0) return null;
+  return event.cleared / event.stepsInOneSitting;
+}
+
 function outcomeOf(event: Extract<EconomyEvent, { kind: "node_cleared" }>): Outcome {
   if (event.flawless) return "flawless";
-  if (event.cleared !== undefined && event.cleared / event.stepsInOneSitting < 0.5) return "poor";
+  if (event.cleared !== undefined && event.cleared / event.stepsInOneSitting < ROUGH_BELOW) return "poor";
   return "mixed";
 }
 
@@ -92,7 +108,7 @@ export function paceFor(journal: readonly EconomyEvent[], unitId: string): Pace 
     const outcome = outcomeOf(event);
     if (outcome === "flawless") {
       flawlessRun += 1;
-      if (flawlessRun >= 2) pace = 1;
+      if (flawlessRun >= FLAWLESS_RUN_FOR_HARDER) pace = 1;
       else if (pace === -1) pace = 0;
     } else {
       flawlessRun = 0;

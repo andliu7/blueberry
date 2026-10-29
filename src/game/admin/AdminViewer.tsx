@@ -16,13 +16,14 @@
  * never downloads this chunk.
  */
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { hrefForAdmin, hrefForChallenge, hrefForGallery, hrefForLesson, hrefForTab } from "../app/routes";
+import { hrefForAdmin, hrefForChallenge, hrefForLesson } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
-import { Press, pressClassName } from "../app/ui/Press";
+import { pressClassName } from "../app/ui/Press";
 import { challengeable } from "../beats/template";
 import { McqVisualCard } from "../beats/mcq/McqVisualCard";
 import { StructureFigure } from "../onboarding/StructureFigure";
 import { lessonIndex, lessonSlides, type LessonRow, type Slide, type UnitRow } from "./slides";
+import { PathwayDeck } from "./PathwayDeck";
 import { planAccess, type PlanAccess, type PlanView } from "./planView";
 import "./admin.css";
 
@@ -37,9 +38,7 @@ const BoardsPage = lazy(() => import("./BoardsPage"));
 const AdminHome = lazy(() => import("./AdminHome"));
 // The task board (#/app/admin/tasks), lazy like the rest.
 const TaskBoardPage = lazy(() => import("./TaskBoardPage"));
-
-/** Nodes that are staff pages, not lesson ids. */
-const isPage = (node: string | null): boolean => node === "home" || node === "activity" || node === "stats" || node === "tasks";
+const AdminShell = lazy(() => import("./AdminHome").then((m) => ({ default: m.AdminShell })));
 
 const KIND_LABEL: Readonly<Record<Slide["kind"], string>> = {
   mcq: "Multiple choice",
@@ -206,26 +205,7 @@ function Slideshow({
   readonly view: ViewMode;
   readonly plan: PlanView;
 }) {
-  const [index, setIndex] = useState(0);
-  const last = slides.length - 1;
-  const prev = () => setIndex((i) => Math.max(0, i - 1));
-  const next = () => setIndex((i) => Math.min(last, i + 1));
-
-  // Arrow keys step the slides. The cleanup removes the listener when the
-  // lesson changes or the page closes, so two lessons never both listen.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target !== null && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-      if (event.key === "ArrowLeft") setIndex((i) => Math.max(0, i - 1));
-      if (event.key === "ArrowRight") setIndex((i) => Math.min(last, i + 1));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [last]);
-
   const access = planAccess({ ...lesson, unitId: unit.unitId }, plan);
-  const slide = slides[index];
 
   return (
     <section className="av-show" aria-label={`${lesson.title} slides`}>
@@ -243,24 +223,12 @@ function Slideshow({
           ) : null}
         </div>
       </header>
-      {slide === undefined ? (
-        <p className="av-empty">This lesson has no slides to show.</p>
-      ) : (
-        <>
-          <SlideCard slide={slide} view={view} plan={plan} access={access} />
-          <nav className="av-steps" aria-label="Slides">
-            <Press variant="secondary" size="sm" onClick={prev} disabled={index === 0}>
-              Prev
-            </Press>
-            <span className="av-steps__count" aria-live="polite">
-              Slide {index + 1} of {slides.length}
-            </span>
-            <Press variant="primary" size="sm" onClick={next} disabled={index === last}>
-              Next
-            </Press>
-          </nav>
-        </>
-      )}
+      <PathwayDeck
+        lesson={lesson}
+        unit={unit}
+        questions={slides}
+        renderQuestion={(slide) => <SlideCard slide={slide} view={view} plan={plan} access={access} />}
+      />
     </section>
   );
 }
@@ -270,82 +238,23 @@ function Slideshow({
 export default function AdminViewer({ node }: { readonly node: string | null }) {
   const [view, setView] = useState<ViewMode>("admin");
   const [plan, setPlan] = useState<PlanView>("pro");
-  const [pickerOpen, setPickerOpen] = useState(node === null);
+  // "lessons" is the picker page; a bare #/app/admin lands on the dashboard.
+  const lessonNode = node === "lessons" ? null : node;
+  const [pickerOpen, setPickerOpen] = useState(lessonNode === null);
+  useEffect(() => {
+    if (node === null) navigate(hrefForAdmin("home"));
+  }, [node]);
 
   // Built once per mount: walking every lesson plan is cheap but not free.
   const units = useMemo(() => lessonIndex(), []);
-  const unit = node === null ? null : (units.find((u) => u.lessons.some((l) => l.id === node)) ?? null);
-  const lesson = unit?.lessons.find((l) => l.id === node) ?? null;
-  const slides = useMemo(() => (node === null ? [] : lessonSlides(node)), [node]);
+  const unit = lessonNode === null ? null : (units.find((u) => u.lessons.some((l) => l.id === lessonNode)) ?? null);
+  const lesson = unit?.lessons.find((l) => l.id === lessonNode) ?? null;
+  const slides = useMemo(() => (lessonNode === null ? [] : lessonSlides(lessonNode)), [lessonNode]);
 
-  return (
-    <div className="av-page">
-      <div className="av-bar">
-        <button
-          type="button"
-          className="av-back bb-back-disc"
-          aria-label="Back to Me"
-          onClick={() => navigate(hrefForTab("me"))}
-        >
-          <svg viewBox="0 0 24 24" aria-hidden focusable="false">
-            <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-        <p className="av-bar__title">{isPage(node) ? "Admin" : "Lesson viewer"}</p>
-        {/* Bloom's every state and reaction, for checking the mascot by eye (BLOOM-STATES-SPEC.md). */}
-        <a className="av-bar__lessons" href={hrefForGallery()}>
-          Bloom
-        </a>
-        {isPage(node) ? (
-          <a className="av-bar__lessons" href={hrefForAdmin()}>
-            Lessons
-          </a>
-        ) : (
-          <>
-            <a className="av-bar__lessons" href={hrefForAdmin("home")}>
-              Home
-            </a>
-            <a className="av-bar__lessons" href={hrefForAdmin("activity")}>
-              Activity
-            </a>
-            <a className="av-bar__lessons" href={hrefForAdmin("stats")}>
-              Stats
-            </a>
-            <a className="av-bar__lessons" href={hrefForAdmin("tasks")}>
-              Tasks
-            </a>
-          </>
-        )}
-        {isPage(node) ? null : (
-          <button
-            type="button"
-            className="av-bar__lessons"
-            aria-expanded={pickerOpen}
-            onClick={() => setPickerOpen((open) => !open)}
-          >
-            Lessons
-          </button>
-        )}
-      </div>
-
-      {node === "home" ? (
-        <Suspense fallback={<p className="av-empty">Loading the admin home...</p>}>
-          <AdminHome />
-        </Suspense>
-      ) : node === "tasks" ? (
-        <Suspense fallback={<p className="av-empty">Loading the task board...</p>}>
-          <TaskBoardPage />
-        </Suspense>
-      ) : node === "stats" ? (
-        <Suspense fallback={<p className="av-empty">Loading the boards...</p>}>
-          <BoardsPage />
-        </Suspense>
-      ) : node === "activity" ? (
-        <Suspense fallback={<p className="av-empty">Loading activity...</p>}>
-          <AdminActivity />
-        </Suspense>
-      ) : (
-        <>
+  const lessonViewer = (
+    <>
+          <details className="av-prefs" open={lessonNode === null ? true : undefined}>
+            <summary className="av-prefs__sum">Preview settings</summary>
           <p className="av-banner" role="note">
             Preview. Switching plan changes what this page draws, never your account. Nothing here saves.
             Play this lesson runs it for real, and like any run it writes this device's journal.
@@ -371,8 +280,9 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
               onChange={setPlan}
             />
           </div>
+          </details>
 
-          <div className="av-body">
+          <div className={`av-body${pickerOpen ? " av-body--list" : ""}`}>
             <nav className={`av-picker${pickerOpen ? " is-open" : ""}`} aria-label="Lessons">
               {units.map((u) => (
                 <div key={u.unitId} className="av-picker__unit">
@@ -383,7 +293,7 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
                         <a
                           className="av-picker__lesson"
                           href={hrefForAdmin(l.id)}
-                          aria-current={l.id === node ? "page" : undefined}
+                          aria-current={l.id === lessonNode ? "page" : undefined}
                           onClick={() => setPickerOpen(false)}
                         >
                           {l.title}
@@ -395,19 +305,41 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
               ))}
             </nav>
 
-            <main className="av-main">
-              {node === null ? (
+            <div className="av-main">
+              {lessonNode === null ? (
                 <p className="av-empty">Pick a lesson to see its slides.</p>
               ) : lesson === null || unit === null ? (
-                <p className="av-empty">No lesson called {node} is on the map.</p>
+                <p className="av-empty">No lesson called {lessonNode} is on the map.</p>
               ) : (
                 // Keyed on the node: a new key makes React mount a fresh Slideshow,
                 // so the slide index starts at 1 on every lesson.
-                <Slideshow key={node} lesson={lesson} unit={unit} slides={slides} view={view} plan={plan} />
+                <Slideshow key={lessonNode} lesson={lesson} unit={unit} slides={slides} view={view} plan={plan} />
               )}
-            </main>
+            </div>
           </div>
-        </>
+    </>
+  );
+
+  const page = (current: string, fallback: string, body: React.ReactNode) => (
+    <Suspense fallback={<p className="av-empty">{fallback}</p>}>
+      <AdminShell current={current}>{body}</AdminShell>
+    </Suspense>
+  );
+
+  return (
+    <div className="av-page">
+      {node === "home" ? (
+        <Suspense fallback={<p className="av-empty">Loading the admin home...</p>}>
+          <AdminHome />
+        </Suspense>
+      ) : node === "tasks" ? (
+        page("tasks", "Loading the task board...", <TaskBoardPage />)
+      ) : node === "stats" ? (
+        page("stats", "Loading the boards...", <BoardsPage />)
+      ) : node === "activity" ? (
+        page("activity", "Loading activity...", <AdminActivity />)
+      ) : (
+        page("lessons", "Loading the lesson viewer...", lessonViewer)
       )}
     </div>
   );

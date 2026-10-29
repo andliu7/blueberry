@@ -181,7 +181,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     id: "u2",
     title: "Unit 2 · Aromaticity & Benzene",
     // Draft content since 2026-10-17 (owner: "complete like Unit 1"), so the note names the topics; the old note called it a checkpoint quiz.
-    note: "Aromaticity: the four Hückel tests, then charged rings, annulenes and heterocycles. Unlocks Unit 3.",
+    note: "Three tools first (induction, pKa, resonance), then aromaticity: Hückel, charged rings, annulenes, heterocycles, and the donor/withdrawer review. Unlocks Unit 3.",
     // The u2 checkpoint plays an exam pool (beats/practice/pools.ts), so it says so, as Unit 1's does. Draft copy.
     // Round 3: the checkpoint plays as a whole exam (pools.ts isExamRun), so the blurb says that rule, not "three in a row".
     examBlurb: "The unit exam: every question once, Hückel, charged rings, annulenes, heterocycles and ring-current NMR mixed. 80% right first time passes it.",
@@ -194,13 +194,25 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       // nodes do), not "practice": the owner's 2026-10-17 rule is that every lesson node plays the seven-slot lesson,
       // and the in-a-row run hid their last items from a clean run. Nomenclature stays the unit's in-a-row problem set.
       // Charged rings come before annulenes because u2-ann-ladder-cation and u2-ann-azulene lean on charged rings.
+      // TOOLS FIRST (29 Oct 2026, reports/Orgo II course comparison.md gaps 1 to 3): induction, the pKa and equilibrium link, and
+      // resonance as the reason a ring is stable come BEFORE Hückel, because the later gates quietly lean on all three and
+      // the report found none of them taught in Units 0 to 2. Draft pools in content/u2tools (scripts/u2_tools_pools.py).
+      { id: "u2-induction", kind: "gate", role: "video", title: "Induction", blurb: "Electronegative atoms pull charge through bonds. The closer and the more of them, the stronger.", playable: { kind: "beat", id: "u2-induction" } },
+      { id: "u2-keq-pka", kind: "gate", role: "video", title: "pKa and which side wins", blurb: "An equilibrium rests on the weaker acid. Read it from two pKa values.", playable: { kind: "beat", id: "u2-keq-pka" } },
+      { id: "u2-energy", kind: "gate", role: "video", title: "Energy diagrams and Keq", blurb: "Read a diagram, work Keq from pKa, and see which steps run both ways and which are one way doors.", playable: { kind: "beat", id: "u2-energy" } },
+      { id: "u2-resonance", kind: "gate", role: "video", title: "Resonance steadies the ring", blurb: "Unit 1's delocalisation, now round a ring: why benzene's bonds are all equal.", playable: { kind: "beat", id: "u2-resonance" } },
       { id: "u2-huckel", kind: "gate", role: "video", title: "Hückel 4n+2 classification", blurb: "Aromatic vs antiaromatic vs nonaromatic.", playable: { kind: "beat", id: "u2-huckel" } },
       { id: "u2-charged", kind: "gate", role: "video", title: "Charged aromatics", blurb: "Cyclopentadienyl anion, tropylium cation.", playable: { kind: "beat", id: "u2-charged" } },
       { id: "u2-annulene", kind: "gate", role: "video", title: "Annulenes and ring size", blurb: "Why cyclooctatetraene tubs out.", playable: { kind: "beat", id: "u2-annulene" } },
       { id: "u2-hetero", kind: "gate", role: "video", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in.", playable: { kind: "beat", id: "u2-hetero" } },
+      // The donor/withdrawer review the owner listed as open (STATUS 28 Oct) and Unit 3 depends on. It needs resonance and induction, so it follows the heterocycles.
+      { id: "u2-ewg-edg", kind: "gate", role: "video", title: "Donors and withdrawers", blurb: "Resonance and induction decide whether a group enriches or drains a ring. Unit 3 starts here.", playable: { kind: "beat", id: "u2-ewg-edg" } },
       { id: "u2-nmr", kind: "gate", role: "video", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6.", playable: { kind: "beat", id: "u2-nmr" } },
-      // A side quest off the first lesson: naming benzene rings needs only what Hückel teaches, not the NMR lesson.
-      { id: "u2-nomen", kind: "branch", role: "practice", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics.", playable: { kind: "beat", id: "u2-nomen" }, after: [] }, // Unit 2 is all gates, so this side quest is the first thing drawn: it waits for nothing, or the first lesson on screen shows locked (owner, 28 Oct).
+      // NAMING IS MAIN LINE NOW (round 4, 29 Oct 2026). It was two optional side quests, so the highest test-value naming
+      // material (suffix priority, lowest locants, when o/m/p stops) could be skipped. Both are gates in the order the
+      // lessons assume: o/m/p needs only the ring lessons, priority needs o/m/p. They come last in the unit (after the ring-current lesson) and play as the in-a-row problem set.
+      { id: "u2-nomen", kind: "gate", role: "practice", title: "Naming: ortho, meta, para", blurb: "Why position has names, common parents, and when numbers take over.", playable: { kind: "beat", id: "u2-nomen" } },
+      { id: "u2-nomen-priority", kind: "gate", role: "practice", title: "Naming: priority and locants", blurb: "Which group sets the suffix, lowest numbers, and when ortho, meta and para stop.", playable: { kind: "beat", id: "u2-nomen-priority" } },
     ],
   },
   {

@@ -67,7 +67,19 @@ export type AnalyticsBentoProps = React.ComponentPropsWithoutRef<"div"> & {
   monoFamily?: string;
   /** The "by vasnev.art" badge under the grid. */
   credit?: boolean;
+  /**
+   * Per-card honesty. `example: true` swaps the card's headline numbers for "No data",
+   * fades its graph and marks the card with `badge`. `note` is the footnote (the source
+   * when real, why there is no data when not). Cards left out render as before.
+   */
+  cardState?: Partial<Record<CardKey, { example: boolean; badge?: React.ReactNode; note?: React.ReactNode }>>;
 };
+
+export type CardKey = "revenue" | "sessions" | "categories" | "seasonality";
+
+const NoData = () => <span className="text-muted-foreground">No data</span>;
+const Wash = ({ on, children }: { on?: boolean; children: React.ReactNode }) =>
+  on ? <div className="pointer-events-none select-none opacity-50 saturate-[.6]" aria-hidden>{children}</div> : <>{children}</>;
 
 /* ---------------- helpers ---------------- */
 
@@ -616,6 +628,7 @@ export function AnalyticsBento({
   fontFamily = "var(--font-display), ui-sans-serif, system-ui, sans-serif",
   monoFamily = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
   credit = true,
+  cardState = {},
   className = "",
   style,
   ...rest
@@ -635,6 +648,10 @@ export function AnalyticsBento({
   const mono: React.CSSProperties = { fontFamily: monoFamily, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.04em" };
   const Y = seasonality.years[year];
   const sl = { desktop: "Desktop", mobile: "Mobile", prior: "Prior weeks", current: "this week", ...sessions.labels };
+  const ex = (k: CardKey) => cardState[k]?.example === true;
+  const head = (k: CardKey) => (cardState[k]?.badge ? <div className="mb-2">{cardState[k]!.badge}</div> : null);
+  const foot = (k: CardKey) => (cardState[k]?.note ? <div className="mt-3 text-xs leading-snug text-muted-foreground">{cardState[k]!.note}</div> : null);
+  const cardCls = (k: CardKey) => (ex(k) ? "border-dashed" : "");
   const enter = (i: number) =>
     `transition-[opacity,transform] duration-1000 [transition-timing-function:cubic-bezier(.2,.9,.25,1)] motion-reduce:transition-none ${shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3.5"} ` +
     ["", "delay-75", "delay-150", "delay-200"][i];
@@ -647,42 +664,47 @@ export function AnalyticsBento({
     >
       <div className="grid grid-cols-12 gap-4">
         {/* revenue */}
-        <Card className={`col-span-12 flex flex-col lg:col-span-5 ${enter(0)}`} aria-label={revenue.label}>
+        <Card className={`col-span-12 flex flex-col lg:col-span-5 ${cardCls("revenue")} ${enter(0)}`} aria-label={revenue.label}>
+          {head("revenue")}
           <div className="flex flex-1 flex-col gap-5 sm:flex-row">
             <div className="shrink-0">
               <div className="text-[13px] tracking-[-0.01em] text-muted-foreground">{revenue.label}</div>
               <div className="mt-2.5 text-[38px] font-medium leading-none sm:text-[44px]" style={mono}>
-                <CountUp value={revenue.value} prefix={currency} />
-                <Delta className="ml-2.5 align-[6px] text-sm">{revenue.delta}</Delta>
+                {ex("revenue") ? <NoData /> : <><CountUp value={revenue.value} prefix={currency} />
+                {revenue.delta ? <Delta className="ml-2.5 align-[6px] text-sm">{revenue.delta}</Delta> : null}</>}
               </div>
-              {revenue.note && <div className="mt-2 text-[13px] tracking-[-0.01em] text-muted-foreground/80">{revenue.note}</div>}
+              {revenue.note && !ex("revenue") && <div className="mt-2 text-[13px] tracking-[-0.01em] text-muted-foreground/80">{revenue.note}</div>}
             </div>
-            <RevenueChart series={revenue.series} caption={revenue.caption} unit={revenue.unit} prefix={currency} colors={c.revenue as [string, string]} mono={monoFamily} tip={tip} />
+            <Wash on={ex("revenue")}><RevenueChart series={revenue.series} caption={revenue.caption} unit={revenue.unit} prefix={currency} colors={c.revenue as [string, string]} mono={monoFamily} tip={tip} /></Wash>
           </div>
+          {foot("revenue")}
         </Card>
 
         {/* sessions */}
-        <Card className={`col-span-12 flex flex-col lg:col-span-7 ${enter(1)}`} aria-label={sessions.label}>
+        <Card className={`col-span-12 flex flex-col lg:col-span-7 ${cardCls("sessions")} ${enter(1)}`} aria-label={sessions.label}>
+          {head("sessions")}
           <div className="flex flex-1 flex-col gap-5 sm:flex-row">
             <div className="shrink-0">
               <div className="text-[13px] tracking-[-0.01em] text-muted-foreground">{sessions.label}</div>
               <div className="mt-2.5 text-[38px] font-medium leading-none sm:text-[44px]" style={mono}>
-                <CountUp value={sessions.value} />
-                <Delta className="ml-2.5 align-[6px] text-sm">{sessions.delta}</Delta>
+                {ex("sessions") ? <NoData /> : <><CountUp value={sessions.value} />
+                {sessions.delta ? <Delta className="ml-2.5 align-[6px] text-sm">{sessions.delta}</Delta> : null}</>}
               </div>
-              {sessions.note && <div className="mt-2 text-[13px] tracking-[-0.01em] text-muted-foreground/80">{sessions.note}</div>}
+              {sessions.note && !ex("sessions") && <div className="mt-2 text-[13px] tracking-[-0.01em] text-muted-foreground/80">{sessions.note}</div>}
               <div className="mt-3.5 flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs tracking-[-0.01em] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-3.5 rounded-sm" style={{ background: `linear-gradient(90deg,${c.desktop[0]},${c.desktop[1]})` }} />{sl.desktop}</span>
                 <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-3.5 rounded-sm" style={{ background: `linear-gradient(90deg,${c.mobile[0]},${c.mobile[1]})` }} />{sl.mobile}</span>
                 {(sessions.desktop.length > 1 || sessions.mobile.length > 1) && <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-3.5 rounded-sm bg-muted-foreground/50" />{sl.prior}</span>}
               </div>
             </div>
-            <SessionsChart desktop={sessions.desktop} mobile={sessions.mobile} labels={sl} colors={{ desktop: [...c.desktop] as [string, string], mobile: [...c.mobile] as [string, string] }} tip={tip} />
+            <Wash on={ex("sessions")}><SessionsChart desktop={sessions.desktop} mobile={sessions.mobile} labels={sl} colors={{ desktop: [...c.desktop] as [string, string], mobile: [...c.mobile] as [string, string] }} tip={tip} /></Wash>
           </div>
+          {foot("sessions")}
         </Card>
 
         {/* categories */}
-        <Card className={`col-span-12 lg:col-span-7 ${enter(2)}`} aria-label={categories.title}>
+        <Card className={`col-span-12 lg:col-span-7 ${cardCls("categories")} ${enter(2)}`} aria-label={categories.title}>
+          {head("categories")}
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <h2 className="m-0 text-[17px] font-semibold tracking-[-0.02em]">{categories.title}</h2>
             <div className="flex flex-wrap gap-x-3.5 gap-y-1.5 text-xs tracking-[-0.01em] text-muted-foreground">
@@ -705,13 +727,14 @@ export function AnalyticsBento({
                   {p.label}
                 </div>
                 <div className="mt-1.5 text-xl font-medium leading-none sm:text-[28px]" style={mono}>
-                  <CountUp value={p.total} prefix={currency} />
-                  <Delta className="ml-1.5 hidden align-[4px] text-xs sm:inline-flex">{p.delta}</Delta>
+                  {ex("categories") ? <NoData /> : <><CountUp value={p.total} prefix={currency} />
+                  {p.delta ? <Delta className="ml-1.5 hidden align-[4px] text-xs sm:inline-flex">{p.delta}</Delta> : null}</>}
                 </div>
                 <div className="mt-1.5 hidden text-xs tracking-[-0.01em] text-muted-foreground/80 sm:block">{p.compare}</div>
               </button>
             ))}
           </div>
+          <Wash on={ex("categories")}>
           <Treemap data={categories} period={period} mono={monoFamily} tip={tip} />
           {categories.table && (
             <table className="mt-[18px] w-full border-collapse text-sm">
@@ -728,14 +751,18 @@ export function AnalyticsBento({
               </tbody>
             </table>
           )}
+          </Wash>
+          {foot("categories")}
         </Card>
 
         {/* seasonality */}
-        <Card className={`col-span-12 lg:col-span-5 ${enter(3)}`} aria-label={seasonality.title}>
+        <Card className={`col-span-12 lg:col-span-5 ${cardCls("seasonality")} ${enter(3)}`} aria-label={seasonality.title}>
+          {head("seasonality")}
           <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <h2 className="m-0 text-[17px] font-semibold tracking-[-0.02em]">{seasonality.title}</h2>
             <Segmented label={seasonality.switchLabel ?? "Year"} items={seasonality.years.map((y) => y.label)} value={year} onChange={setYear} />
           </div>
+          <Wash on={ex("seasonality")}>
           <Radar
             values={Y.values}
             axis={seasonality.axis ?? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]}
@@ -750,7 +777,7 @@ export function AnalyticsBento({
             {Y.stats.map((s) => (
               <div key={s.label}>
                 <div className="text-[13px] tracking-[-0.01em] text-muted-foreground">{s.label}</div>
-                <div className="mt-1.5 text-[26px] font-medium leading-none sm:text-[30px]" style={mono}><CountUp value={s.value} prefix={currency} /></div>
+                <div className="mt-1.5 text-[26px] font-medium leading-none sm:text-[30px]" style={mono}>{ex("seasonality") ? <NoData /> : <CountUp value={s.value} prefix={currency} />}</div>
                 <div className="mt-1.5 text-xs text-muted-foreground/80">{s.delta && <Delta className="mr-1.5">{s.delta}</Delta>}<span style={mono}>{s.note}</span></div>
               </div>
             ))}
@@ -763,6 +790,8 @@ export function AnalyticsBento({
               </div>
             ))}
           </div>
+          </Wash>
+          {foot("seasonality")}
         </Card>
       </div>
 

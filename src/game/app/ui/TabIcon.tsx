@@ -194,6 +194,15 @@ const DRAWINGS: Record<TabId, () => ReactElement> = {
     </>
   ),
 
+  /* SPECTRA: a spectrum card, a blue tile on its lip with a white peak trace. */
+  spectra: () => (
+    <>
+      <rect x="1.4" y="3.4" width="21.2" height="18" rx="4.4" fill={BLUE_LIP} />
+      <rect x="1.4" y="1.8" width="21.2" height="18" rx="4.4" fill={BLUE} />
+      <path d="M4.6 16.4h3.2l1.4-6.2 1.6 8.6 1.8-12 1.6 9.6h5.2" stroke={WHITE} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </>
+  ),
+
   /* SEARCH: the magnifier on its own. */
   search: () => <Lens cx={10} cy={10} r={6.4} />,
 

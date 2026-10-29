@@ -176,6 +176,6 @@ describe("wiring", () => {
   it("Me shows the viewer row to staff only", () => {
     const me = read("tabs/me/MeTab.tsx");
     expect(me).toMatch(/\{isStaffRole\(role\) \? <AdminRow \/> : null\}/);
-    expect(me).toContain("hrefForAdmin()");
+    expect(me).toContain('hrefForAdmin("home")');
   });
 });

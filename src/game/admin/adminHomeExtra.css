@@ -359,20 +359,21 @@
 
 /* ---------------------------------------------------------------- round 4: light, quiet, one big number */
 
-/* The admin page reads in the daytime lavender whatever the app theme is, so ground, cards and
+/* The admin page reads in a plain Apple-style light grey whatever the app theme is, so ground, cards and
    ink always come from one set. Nothing here mixes a dark token with a light surface. */
 .ah {
-  --bb-background: #eef0ff;
-  --bb-foreground: #18253d;
+  --bb-background: #f5f5f7;
+  --bb-foreground: #1d1d1f;
   --bb-card: #ffffff;
-  --bb-card-foreground: #18253d;
+  --bb-card-foreground: #1d1d1f;
   --bb-primary: #5a3fd8;
   --bb-primary-ink: #472ab4;
   --bb-primary-foreground: #ffffff;
-  --bb-muted: #e9e6fb;
-  --bb-muted-foreground: #465670;
-  --bb-border: #7f7ab4;
-  --btn-line: #d3cdf5;
+  --bb-muted: #ececf0;
+  --bb-muted-foreground: #515154;
+  --bb-border: #c7c7cc;
+  --btn-line: #d2d2d7;
+  --btn-secondary-face: #ffffff;
   --bb-ring: #5a3fd8;
   --good: #065f46;
   --good-ink: #064e3b;
@@ -503,4 +504,96 @@
 .ah-growth .ah-big {
   color: var(--bb-foreground);
   font-size: var(--text-scale-2xl);
+}
+
+/* ---------------------------------------------------------------- honesty: example tiles and source notes */
+
+.ah-tag.is-example {
+  border: 1.5px dashed var(--bb-border);
+  background: transparent;
+  color: var(--bb-muted-foreground);
+}
+.ah-card.is-example,
+.ah-stat.is-example,
+.ah-hero.is-example {
+  border-style: dashed;
+}
+.ah-wash {
+  opacity: 0.55;
+  filter: saturate(0.6);
+  pointer-events: none;
+  user-select: none;
+}
+.ah-nodata {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.ah-source {
+  margin: 0.75rem 0 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+  line-height: 1.4;
+}
+.ah-source.is-example {
+  font-style: normal;
+}
+.ah-stat .ah-source {
+  margin-top: 0.5rem;
+}
+.ah-open {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 999px;
+  color: var(--bb-foreground);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------- connect banner: the one action when nothing is live */
+
+.ah-connect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 20px;
+  background: var(--bb-card);
+}
+.ah-connect__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+.ah-connect .ah-muted {
+  margin: 0;
+  max-width: 52ch;
+}
+.ah-connect__act {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: #5a3fd8;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ah-connect__act:focus-visible {
+  outline: 3px solid #5a3fd8;
+  outline-offset: 3px;
 }

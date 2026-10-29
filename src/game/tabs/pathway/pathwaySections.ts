@@ -58,8 +58,8 @@ export const SECTION_TITLES: Readonly<Record<string, string>> = Object.freeze({
 export const SECTION_ENDS: Readonly<Record<string, string>> = Object.freeze({
   // Units 2 and 6 are checkpoint units (unitShape.ts isCheckpointUnit): their
   // lessons are the gate run, so the only section on the road is the side
-  // quests, and the title says so (audit 23 Oct, section 5 #4).
-  "u2-nomen": "Side quest: naming benzene rings",
+  // quests, and the title says so (audit 23 Oct, section 5 #4). Unit 2 has no
+  // side quest left: its two naming lessons became main-line gates (29 Oct, round 4).
   "u3-sulfo": "Directing and the first reactions",
   "u3-blocking": "Friedel-Crafts and blocking",
   "u3-sequencing": "Changing groups and synthesis",

@@ -133,7 +133,8 @@ function sortSlide(content: SortContent, slot: ContentSlot, entry?: PoolEntry): 
   };
 }
 
-function poolEntrySlide(entry: PoolEntry, slot: ContentSlot): Slide {
+/** Exported for the dev-only Unit 1 sign-off page (src/game/signoff/), which shows the same answer key. */
+export function poolEntrySlide(entry: PoolEntry, slot: ContentSlot): Slide {
   const { item } = entry;
   if (item.kind === "mcq") return mcqSlide(item.beat, slot, entry);
   if (item.kind === "sort") return sortSlide(item.content, slot, entry);
@@ -147,6 +148,29 @@ function poolEntrySlide(entry: PoolEntry, slot: ContentSlot): Slide {
       ...(board.brief === undefined ? {} : { brief: board.brief }),
       cards: Object.values(board.text).sort(byText),
       answer: board.answer.pairs.map((pair) => `${board.text[pair.promptId] ?? pair.promptId} goes with ${board.text[pair.targetId] ?? pair.targetId}`),
+      ...poolMeta(entry),
+    };
+  }
+  if (item.kind === "nmrProduct") {
+    const q = item.question;
+    return {
+      id: entry.id,
+      kind: "draw",
+      slot,
+      prompt: `Reaction given (${q.reagent}). Pick the product from its 1H NMR.`,
+      brief: `${q.product.h1.map((p) => `${p.shift.toFixed(1)} ppm ${p.nH}H ${p.exch ? "broad s" : p.mult}`).join("; ")}`,
+      answer: [`SMILES ${q.options[q.answer].smiles}`, `Formula ${q.product.formula}`],
+      ...poolMeta(entry),
+    };
+  }
+  if (item.kind === "keqTyped") {
+    const q = item.question;
+    return {
+      id: entry.id,
+      kind: "draw",
+      slot,
+      prompt: `${q.acidName} (pKa ${q.usedPka}) gives ${q.conjAcidName} (pKa ${q.formedPka}). Type the exponent, then Keq, on your own calculator.`,
+      answer: [`Exponent ${q.formedPka} − ${q.usedPka} = ${q.gap}`, `Keq = 10^${q.gap}`],
       ...poolMeta(entry),
     };
   }
@@ -220,6 +244,9 @@ export function lessonSlides(node: string): readonly Slide[] {
         break;
       case "poolMatch":
         slides.push(...lessonPoolItems(beat.node, "match").map((entry) => poolEntrySlide(entry, slot)));
+        break;
+      case "poolKeq":
+        slides.push(...lessonPoolItems(beat.node, "keqTyped").map((entry) => poolEntrySlide(entry, slot)));
         break;
       case "draw":
         slides.push(...lessonPoolItems(beat.node, "draw").map((entry) => poolEntrySlide(entry, slot)));

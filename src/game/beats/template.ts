@@ -147,6 +147,8 @@ export type ResolvedBeat =
   | { readonly kind: "poolMatch"; readonly node: string }
   /** The node's "Draw it" items (beats/draw), played one after another. */
   | { readonly kind: "draw"; readonly node: string }
+  /** The node's typed pKa-to-Keq items (energy/KeqTypedQuestion), worked on the student's own calculator. */
+  | { readonly kind: "poolKeq"; readonly node: string }
   /**
    * The trainer engine inside a lesson: the node's own mechanism, the same full screen.
    * `draws` names the node whose "Draw it" items play first, inside the same
@@ -165,6 +167,7 @@ export const SLOT_FOR_KIND: Readonly<Record<ResolvedBeat["kind"], ContentSlot>> 
   poolSort: "order",
   poolMatch: "connect",
   draw: "produce",
+  poolKeq: "produce",
   synthesis: "produce",
   mechanism: "produce",
   resonance: "produce",
@@ -283,7 +286,7 @@ function matchBoardsForNode(node: string) {
  * the quick questions above; the ladders, boards and drawings each get their
  * own step (U1-P3, 2026-10-17: before this only pool MCQs reached a lesson).
  */
-export function lessonPoolItems(node: string, kind: "sort" | "match" | "draw"): readonly PoolEntry[] {
+export function lessonPoolItems(node: string, kind: "sort" | "match" | "draw" | "keqTyped"): readonly PoolEntry[] {
   return lessonPool(node).filter((entry) => entry.item.kind === kind);
 }
 
@@ -443,6 +446,9 @@ export function planLesson(node: string, options: PlanOptions = {}): LessonPlan 
     steps.push({ slot: "produce", beat: { kind: "resonance", resonanceId: link.id, ...draws } });
   } else if ("draws" in draws) {
     steps.push({ slot: "produce", beat: { kind: "draw", node } });
+  } else if (lessonPoolItems(node, "keqTyped").length > 0) {
+    // Typed pKa-to-Keq work: the produce slot of an energy node, which has no trainer or drawing.
+    steps.push({ slot: "produce", beat: { kind: "poolKeq", node } });
   }
 
   return steps.length === 0 ? null : { node, steps };
@@ -775,6 +781,7 @@ export const BADGE_LABEL: Readonly<Record<BadgeKind, string>> = Object.freeze({
   poolSort: "Put them in order",
   poolMatch: "Match the pairs",
   draw: "Draw it",
+  poolKeq: "Work the number",
   synthesis: "Build the synthesis",
   mechanism: "Push the electrons",
   resonance: "Find the resonance form",
@@ -808,6 +815,7 @@ export const SLOT_FOR_BADGE: Readonly<Record<BadgeKind, LessonSlot>> = Object.fr
   poolSort: "order",
   poolMatch: "connect",
   draw: "produce",
+  poolKeq: "produce",
   synthesis: "produce",
   mechanism: "produce",
   resonance: "produce",

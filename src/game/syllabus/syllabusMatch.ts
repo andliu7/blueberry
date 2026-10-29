@@ -7,7 +7,9 @@
  *   0.8+  an alias sits inside the topic ("Hückel's rule and annulenes")
  *   0.45 to 0.85  the topic's words overlap a unit or lesson title, scaled
  *         by how much of the topic and of the title they cover
- *   capped at 0.45 when another unit scores within 0.1: a lookalike, so flagged
+ *   capped at 0.45 when a rival scores within 0.1: a lookalike, so flagged.
+ *         A rival is another unit, or another lesson of the same unit when
+ *         the best is a lesson ("Hofmann": rearrangement or elimination)
  * Buckets: high >= 0.8, medium >= 0.5, low below, none with no candidate.
  * Low and none are FLAGGED: the screen asks the student to pick a unit or
  * mark the line not covered. A line with chapter numbers and no topic words
@@ -16,10 +18,10 @@
  * Lazy: only the syllabus screen imports this.
  */
 import { PATHWAY_UNITS, unitName, type PathwayNode } from "../demo/pathwayMap";
-import { branchSection, unitSections } from "../tabs/pathway/testOuts";
+import { unitSections } from "../tabs/pathway/testOuts";
 import { SYLLABUS_ALIASES } from "./syllabusAliases";
 import type { SyllabusLine } from "./syllabusParse";
-import type { SyllabusExam, SyllabusPlan, SyllabusWeek } from "./syllabusPlan";
+import { branchSection, type SyllabusExam, type SyllabusPlan, type SyllabusWeek } from "./syllabusPlan";
 
 export interface Candidate {
   readonly unitId: string;
@@ -167,9 +169,10 @@ export function matchTopic(topic: string): TopicMatch {
     // Best first; on a tie a lesson beats its whole unit, then map order.
     .sort((a, b) => b.confidence - a.confidence || (a.nodeId === null ? 1 : 0) - (b.nodeId === null ? 1 : 0));
   const top = candidates[0];
-  // A lookalike: two different units score the same, so neither is trusted.
+  // A lookalike: two units, or two lessons of one unit, score the same, so neither is trusted.
+  // A lesson and its own whole unit are not rivals: either way the unit is right.
   if (top !== undefined && top.confidence < 1) {
-    const rival = candidates.find((candidate) => candidate.unitId !== top.unitId);
+    const rival = candidates.find((candidate) => candidate.unitId !== top.unitId || (top.nodeId !== null && candidate.nodeId !== null && candidate.nodeId !== top.nodeId));
     if (rival !== undefined && top.confidence - rival.confidence < 0.1) {
       candidates = [{ ...top, confidence: Math.min(top.confidence, 0.45) }, ...candidates.slice(1)];
     }

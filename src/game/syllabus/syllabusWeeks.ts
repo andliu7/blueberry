@@ -8,7 +8,7 @@
  * for it on first open. Pure, no React.
  */
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { syllabusStore, type SyllabusExam, type SyllabusPlan, type SyllabusWeek } from "./syllabusPlan";
+import { syllabusStore, todayIso, type SyllabusExam, type SyllabusPlan, type SyllabusWeek } from "./syllabusPlan";
 
 /* ------------------------------------------------------------------ */
 /* Sanitise: a hand-edited or stale store keeps known ids only          */
@@ -68,6 +68,8 @@ export function sanitisePlan(value: unknown): SyllabusPlan | null {
     notCovered: unique(strings(raw.notCovered).filter((id) => units.has(id) || nodes.has(id) || /^u\d+\/s\d+$/.test(id))),
     sideQuests: unique(strings(raw.sideQuests).filter((id) => branches.has(id))),
     exams,
+    // Only when set, so a plan saved before the field existed reads back unchanged.
+    ...(typeof raw.termStart === "string" && DATE.test(raw.termStart) ? { termStart: raw.termStart } : {}),
   };
 }
 
@@ -88,11 +90,34 @@ export function weekOfUnit(plan: SyllabusPlan, unitId: string): number | null {
   return plan.weeks.find((week) => week.unitIds.includes(unitId))?.week ?? null;
 }
 
-/** The week the date falls in: the last week starting on or before it, or null with no dates. */
+/** "2026-08-24" plus `days`, as a local "YYYY-MM-DD" (the Date constructor rolls months and years over). */
+export function addDays(date: string, days: number): string {
+  return todayIso(new Date(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1, Number(date.slice(8, 10)) + days));
+}
+
+/** When a week starts: its own date, else 7 days a week from the hand-set first day of Week 1, else null. */
+export function weekStart(plan: SyllabusPlan, week: SyllabusWeek): string | null {
+  if (week.start !== null) return week.start;
+  return plan.termStart == null ? null : addDays(plan.termStart, 7 * (week.week - 1));
+}
+
+/**
+ * The week the date falls in: the last week starting on or before it, or null
+ * with no dates. A syllabus with week numbers and no dates ("Week 3:
+ * Aromaticity") has none until the student sets the first day of Week 1.
+ */
 export function weekOnDate(plan: SyllabusPlan, today: string): number | null {
   let found: number | null = null;
-  for (const week of plan.weeks) if (week.start !== null && week.start <= today) found = week.week;
+  for (const week of plan.weeks) {
+    const start = weekStart(plan, week);
+    if (start !== null && start <= today) found = week.week;
+  }
   return found;
+}
+
+/** True when the plan has weeks and at least one has no date: the screen then asks for the first day of Week 1. */
+export function needsTermStart(plan: SyllabusPlan): boolean {
+  return plan.weeks.some((week) => week.start === null);
 }
 
 /** The next exam on or after today, or null. */

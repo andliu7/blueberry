@@ -1,6 +1,6 @@
 /**
- * A STUDENT'S SYLLABUS PLAN (STATUS C1), the light half: the type, the store
- * and the one helper the entry chunk needs.
+ * A STUDENT'S SYLLABUS PLAN (STATUS C1): the type, the store and the side
+ * quest rule.
  *
  * The student pastes their Orgo II syllabus on the lazy settings screen
  * (SyllabusSettings.tsx). What is saved is the DERIVED plan, never the pasted
@@ -9,13 +9,15 @@
  * cover, and the exam dates. This file holds that type and a tiny store for it
  * (localStorage, blueberry.syllabus.v1).
  *
- * IN THE ENTRY CHUNK, SO IT STAYS SMALL. #/app's first open is over its byte
- * budget, so only what a student with no syllabus needs lives here: the store
- * (read on the first frame) and coveredSideQuests (testOuts.ts). The store
- * checks only the plan's shape; the full id sanitising, the week lookups and
- * the map chip are in syllabusWeeks.ts, loaded once a plan exists. An unknown
- * id in a shape-checked plan is harmless here: coveredSideQuests is only ever
- * asked about real map nodes.
+ * NOT IN THE ENTRY CHUNK. #/app's first open is over its byte budget, so
+ * nothing on first open imports this file. The map learns that a plan exists
+ * from useSyllabusMap.ts, which reads the storage key and listens for
+ * SYLLABUS_EVENT (fired by every save) and only then loads this file through
+ * syllabusStart.ts. The side quest rule reaches the section tests and unit
+ * exams through syllabusTests.ts (loaded by the lazy test-out run), and the
+ * checkpoint mix through beats/template.ts (lazy too). The store checks only
+ * the plan's shape; the full id sanitising and the week lookups are in
+ * syllabusWeeks.ts.
  *
  * DATES are local wall-clock "YYYY-MM-DD" strings, compared as strings and
  * never passed through toISOString, which would shift a late-evening date by
@@ -23,6 +25,9 @@
  *
  * No React, no pool import, no parser.
  */
+import { PATHWAY_UNITS, type PathwayNode, type PathwayUnit } from "../demo/pathwayMap";
+import { prerequisitesOf } from "../tabs/pathway/pathwayState";
+import { unitSections } from "../tabs/pathway/testOuts";
 
 export interface SyllabusWeek {
   readonly week: number;
@@ -51,9 +56,17 @@ export interface SyllabusPlan {
   /** Side quest (branch) ids the syllabus covers: these count on quizzes and exams. */
   readonly sideQuests: readonly string[];
   readonly exams: readonly SyllabusExam[];
+  /**
+   * The first day of Week 1, set by hand when the syllabus numbers its weeks
+   * but gives no dates. Undated weeks then start 7 days apart from it. Absent
+   * on plans saved before it existed.
+   */
+  readonly termStart?: string | null;
 }
 
 export const SYLLABUS_KEY = "blueberry.syllabus.v1";
+/** Fired on window by every save, so the map (useSyllabusMap.ts) knows without importing this file. */
+export const SYLLABUS_EVENT = "blueberry:syllabus";
 
 export function sectionKey(unitId: string, section: number): string {
   return `${unitId}/s${section}`;
@@ -124,6 +137,7 @@ export function createSyllabusStore(storage: () => Storage | undefined): Syllabu
       // Blocked storage still shows the plan this session.
       if (read() === null) cache = { raw: null, plan: plan === null ? null : { ...plan, updatedAt: at ?? Date.now() } };
       for (const listener of listeners) listener();
+      if (typeof window !== "undefined") window.dispatchEvent(new Event(SYLLABUS_EVENT));
     },
   };
 }
@@ -147,8 +161,38 @@ export function todayIso(now: Date = new Date()): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-/** Side quests that count on quizzes and exams: the syllabus covers them. Empty with no plan. */
+/**
+ * The section a side quest belongs to: the latest section holding one of its
+ * prerequisites (a prerequisite that is itself a side quest is followed back
+ * to the main line). The last section when nothing places it.
+ */
+export function branchSection(unit: PathwayUnit, node: PathwayNode, seen: ReadonlySet<string> = new Set()): number {
+  const sections = unitSections(unit);
+  let found = 0;
+  for (const id of prerequisitesOf(unit, node)) {
+    const holder = sections.find((section) => section.sources.includes(id) || section.lights.includes(id));
+    const before = unit.nodes.find((entry) => entry.id === id);
+    const at = holder !== undefined ? holder.number : before !== undefined && before.kind === "branch" && !seen.has(id) ? branchSection(unit, before, new Set([...seen, node.id])) : 0;
+    found = Math.max(found, at);
+  }
+  return found === 0 ? (sections[sections.length - 1]?.number ?? 1) : found;
+}
+
+/**
+ * Side quests that count on the section tests, unit exams and unit
+ * checkpoints: the syllabus covers them. A side quest the student marked not
+ * covered, or whose unit or section they marked not covered, does not count.
+ * Empty with no plan.
+ */
 export function coveredSideQuests(plan: SyllabusPlan | null = syllabusStore.getSnapshot()): ReadonlySet<string> {
   if (plan === null) return new Set();
-  return new Set(plan.sideQuests.filter((id) => typeof id === "string" && !plan.notCovered.includes(id)));
+  const off = new Set(plan.notCovered);
+  return new Set(
+    plan.sideQuests.filter((id) => {
+      if (typeof id !== "string" || off.has(id)) return false;
+      const unit = PATHWAY_UNITS.find((entry) => entry.nodes.some((node) => node.id === id));
+      const node = unit?.nodes.find((entry) => entry.id === id);
+      return unit !== undefined && node !== undefined && !off.has(unit.id) && !off.has(sectionKey(unit.id, branchSection(unit, node)));
+    }),
+  );
 }

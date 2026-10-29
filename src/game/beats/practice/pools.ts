@@ -9,11 +9,13 @@ import { checkpointNodeId, pathwayNode } from "../../demo/pathwayMap";
 import { U1_POOLS, mergePools } from "../../content/u1";
 // Unit 2 draft pools join the lookup so its nodes have something to play (CHANGED 2026-10-17).
 import { U2_EXAM_IDS, U2_POOLS } from "../../content/u2";
+import { U2T_POOLS } from "../../content/u2tools";
+import { U2E_POOLS } from "../../content/u2energy";
 import { STAGE_CD_EXAM_IDS } from "../../content/u1/stage-cd";
 import { U3_POOLS } from "../../content/u3";
 import { U4_POOLS } from "../../content/u4";
 import { U5_POOLS } from "../../content/u5";
-import { U6_POOLS } from "../../content/u6";
+import { U6_NMR_PRODUCT_KEY, U6_NMR_PRODUCT_POOLS, U6_POOLS } from "../../content/u6";
 import { U7_POOLS } from "../../content/u7";
 import { U8_POOLS, U8_TEST_ONLY } from "../../content/u8";
 // Unit 9 draft pools (ADDED 2026-10-17, scripts/u9_pools.py).
@@ -68,7 +70,7 @@ const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string
 
 /** Every unit's pools in one table. Node ids carry their unit prefix, so keys cannot collide. */
 // mergePools throws on a node or entry id written twice, so a unit collision fails at import, never silently overwrites.
-const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U3_POOLS, U4_POOLS, U5_POOLS, U6_POOLS, U7_POOLS, U8_POOLS, U9_POOLS, U10_POOLS, U0_POOLS);
+const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U2T_POOLS, U2E_POOLS, U3_POOLS, U4_POOLS, U5_POOLS, U6_POOLS, U6_NMR_PRODUCT_POOLS, U7_POOLS, U8_POOLS, U9_POOLS, U10_POOLS, U0_POOLS);
 
 /**
  * What a node's Challenge adds to its own pool. Radical items may reach a quiz
@@ -76,6 +78,8 @@ const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U3_POOLS, U4_POOLS, 
  */
 const CHALLENGE_EXTRAS: Readonly<Record<string, readonly string[]>> = Object.freeze({
   "u1-quiz-a": ["u1-rank-radical"],
+  // Unit 6: the product-from-NMR questions (content/u6/nmrProduct.ts) join the unit check's Challenge, never its exam.
+  [checkpointNodeId("u6")]: [U6_NMR_PRODUCT_KEY],
 });
 
 /** One from each list in turn, so the first few problems already sample every source. */

@@ -62,6 +62,7 @@ export type TabId =
   | "periodic"
   | "search"
   | "focus"
+  | "spectra"
   // collapsed
   | "courses"
   // behind a flag
@@ -112,6 +113,8 @@ export const ALL_TABS: readonly TabDefinition[] = Object.freeze([
   { id: "search", label: "Reaction search", short: "Search", dataPhase: 5, placement: "tool", parent: "me" },
   // The study timer (owner, 28 Oct: "one of the tools in the toolbar and settings").
   { id: "focus", label: "Focus timer", short: "Focus", dataPhase: 5, placement: "tool", parent: "me" },
+  // NMR and IR reference (owner, 29 Oct). Hidden in challenges and tests: app/ui/toolAccess.tsx.
+  { id: "spectra", label: "NMR and IR", short: "NMR", dataPhase: 5, placement: "tool", parent: "me" },
   { id: "courses", label: "Courses", short: "Courses", dataPhase: 5, placement: "collapsed", parent: "pathway" },
   { id: "leaderboards", label: "Leaderboards", short: "Boards", dataPhase: 6, placement: "flagged", parent: "me" },
   { id: "chat", label: "Ask Blueberry", short: "Chat", dataPhase: 7, placement: "flagged", parent: "me" },
@@ -139,7 +142,7 @@ export const FLAGGED_TABS: readonly TabDefinition[] = Object.freeze(
   ALL_TABS.filter((tab) => tab.placement === "flagged"),
 );
 
-export type ToolId = "periodic" | "search" | "focus";
+export type ToolId = "periodic" | "search" | "focus" | "spectra";
 
 export type Route =
   | { readonly kind: "tab"; readonly tab: TabId; readonly rest: readonly string[] }

@@ -260,10 +260,10 @@ function ToolRow({ tab, title, detail }: { readonly tab: TabId; readonly title: 
   );
 }
 
-/** The staff-only row: the lesson viewer. ToolRow takes a TabId, and this is not a tab. */
+/** The staff-only row: the admin dashboard, which holds the lesson viewer. ToolRow takes a TabId, and this is not a tab. */
 function AdminRow() {
   return (
-    <a href={hrefForAdmin()} className="me-row">
+    <a href={hrefForAdmin("home")} className="me-row">
       <span className="me-row-icon">
         <svg viewBox="0 0 24 24" className="h-6 w-6" aria-hidden>
           <rect x="3" y="5" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
@@ -271,8 +271,8 @@ function AdminRow() {
         </svg>
       </span>
       <span className="me-row-text">
-        <span className="me-row-title">Lesson viewer</span>
-        <span className="me-row-detail">Admin: open any lesson, preview each plan.</span>
+        <span className="me-row-title">Admin dashboard</span>
+        <span className="me-row-detail">Staff only: figures, tasks, activity and the lesson viewer.</span>
       </span>
       <span className="me-row-chevron" aria-hidden>
         <Chevron />

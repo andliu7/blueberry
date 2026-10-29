@@ -4,9 +4,12 @@
  * The student pastes their Orgo II syllabus (or picks a .txt or .md file),
  * presses Read, and sees the order Blueberry proposes, grouped by unit, with
  * every topic it was not sure of at the top. They answer those flags, move
- * units and sections up or down, mark what their course does not cover, and
- * switch side quests on for quizzes and exams. Save writes the plan
- * (syllabusPlan.ts); the map then shows each unit's week and START follows it.
+ * units and sections up or down (the order START walks), set a unit's week
+ * (its map chip), mark a unit, section or single lesson not covered, set the
+ * first day of Week 1 when the syllabus gives no dates, and switch side
+ * quests on for the checkpoint, section test and unit exam. Save writes the
+ * plan (syllabusPlan.ts); the map then shows each unit's week and START
+ * follows it.
  *
  * Opened through React.lazy from MeTab, so the parser, the aliases and this
  * screen load only here, never on the game's first open. It renders inside
@@ -19,7 +22,7 @@ import { syllabusEdit, type EditState } from "./syllabusEdit";
 import { accepted, isFlagged, matchLines, unitCandidate } from "./syllabusMatch";
 import { parseSyllabus } from "./syllabusParse";
 import { sectionKey, syllabusStore, type SyllabusPlan } from "./syllabusPlan";
-import { sanitisePlan, shortDate, weekOfUnit } from "./syllabusWeeks";
+import { needsTermStart, sanitisePlan, shortDate, weekOfUnit } from "./syllabusWeeks";
 import { getSyllabusSyncStatus, subscribeSyllabusSyncStatus, type SyllabusSyncStatus } from "./syllabusSync";
 
 const SYNC_LINE: Readonly<Record<SyllabusSyncStatus, string>> = {
@@ -31,7 +34,7 @@ const SYNC_LINE: Readonly<Record<SyllabusSyncStatus, string>> = {
 
 /** The same plan, whenever it was stamped: compared as sorted JSON without updatedAt. */
 function same(a: SyllabusPlan | null, b: SyllabusPlan | null): boolean {
-  const key = (plan: SyllabusPlan | null) => (plan === null ? "null" : JSON.stringify({ ...plan, updatedAt: 0 }, (_k, v: unknown) => (v !== null && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([x], [y]) => (x < y ? -1 : 1))) : v)));
+  const key = (plan: SyllabusPlan | null) => (plan === null ? "null" : JSON.stringify({ ...plan, updatedAt: 0, termStart: plan.termStart ?? null }, (_k, v: unknown) => (v !== null && typeof v === "object" && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([x], [y]) => (x < y ? -1 : 1))) : v)));
   return key(a) === key(b);
 }
 
@@ -72,6 +75,15 @@ export default function SyllabusSettings() {
   // screen and its tests run the same pure steps. The third argument builds
   // the first state once, from the saved plan.
   const [state, send] = useReducer(syllabusEdit, saved, (plan): EditState => ({ rows: [], plan }));
+  // The saved plan can change while the screen is open (account sync adopts a
+  // newer one). Keeping the last one seen and comparing during render is
+  // React's "adjust state when a prop changes" pattern: no effect, no flash.
+  // The new plan is shown only when the student has no unsaved edits.
+  const [seen, setSeen] = useState(saved);
+  if (saved !== seen) {
+    setSeen(saved);
+    if (state.rows.length === 0 && same(state.plan, seen)) send({ type: "load", plan: saved });
+  }
   const [draft, setDraft] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   // Any edit after a save clears the "Saved" line, so "Not saved yet" can show.
@@ -137,6 +149,7 @@ export default function SyllabusSettings() {
       </Card>
 
       {plan === null ? null : <Flags state={state} dispatch={dispatch} />}
+      {plan === null || !needsTermStart(plan) ? null : <TermStart plan={plan} dispatch={dispatch} />}
       {plan === null ? null : <Order plan={plan} dispatch={dispatch} />}
       {plan === null || plan.exams.length === 0 ? null : <Exams plan={plan} />}
 
@@ -211,12 +224,42 @@ function Flags({ state, dispatch }: { readonly state: EditState; readonly dispat
   );
 }
 
+/** The first day of Week 1, for a syllabus that numbers its weeks but gives no dates. */
+function TermStart({ plan, dispatch }: { readonly plan: SyllabusPlan; readonly dispatch: Dispatch }) {
+  const id = useId();
+  return (
+    <Card title="When does Week 1 start?">
+      <label htmlFor={id} className="mt-1 block text-scale-sm me-muted">
+        Your syllabus numbers its weeks but gives no dates, so Blueberry cannot tell which week it is. Set the first day of
+        Week 1 and START follows the week. Without it, START walks your order from the top.
+      </label>
+      <input
+        id={id}
+        type="date"
+        value={plan.termStart ?? ""}
+        onChange={(event) => dispatch({ type: "setTermStart", date: event.currentTarget.value === "" ? null : event.currentTarget.value })}
+        className="mt-3 min-h-11 rounded-2xl border-2 border-bb-input bg-bb-card px-3 text-scale-base"
+      />
+    </Card>
+  );
+}
+
+/** Week 1 to the syllabus's last week (at least 16), for the week picker. */
+function weekChoices(plan: SyllabusPlan): number[] {
+  const last = Math.max(16, ...plan.weeks.map((week) => week.week));
+  return Array.from({ length: last }, (_, at) => at + 1);
+}
+
 /** The units in the student's order, each with its sections and side quests behind a disclosure. */
 function Order({ plan, dispatch }: { readonly plan: SyllabusPlan; readonly dispatch: Dispatch }) {
   const missing = PATHWAY_UNITS.filter((unit) => !plan.unitOrder.includes(unit.id));
   return (
     <>
       <Card title="Your order">
+        <p className="mt-1 text-scale-sm me-muted">
+          Up and down set the order START walks once this week's unit is done. The week sets the chip a unit wears on the map.
+          The map itself keeps Blueberry's order.
+        </p>
         {plan.unitOrder.length === 0 ? <p className="mt-1 text-scale-sm">No units matched yet. Answer the lines above, or add units below.</p> : null}
         <ol className="mt-3 flex flex-col gap-3">
           {plan.unitOrder.map((unitId, at) => {
@@ -235,10 +278,21 @@ function Order({ plan, dispatch }: { readonly plan: SyllabusPlan; readonly dispa
                   <span className={`min-w-0 flex-1 font-bold leading-snug ${off ? "me-muted line-through" : ""}`}>{label(unitId)}</span>
                   <Mover name={unitNumber(unit.title)} first={at === 0} last={at === plan.unitOrder.length - 1} onMove={(by) => dispatch({ type: "moveUnit", unitId, by })} />
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <button type="button" className="btn3d btn3d--ghost btn3d--sm" aria-pressed={off} onClick={() => dispatch({ type: "toggleCovered", key: unitId })}>
                     {off ? "Put back on my syllabus" : "Not covered"}
                   </button>
+                  <select
+                    aria-label={`Week for ${unitNumber(unit.title)}`}
+                    className="min-h-11 min-w-0 rounded-2xl border-2 border-bb-input bg-bb-card px-3 text-scale-sm"
+                    value={week === null ? "" : String(week)}
+                    onChange={(event) => dispatch({ type: "assignWeek", unitId, week: event.currentTarget.value === "" ? null : Number(event.currentTarget.value) })}
+                  >
+                    <option value="">No week</option>
+                    {weekChoices(plan).map((number) => (
+                      <option key={number} value={number}>{`Week ${number}`}</option>
+                    ))}
+                  </select>
                 </div>
                 <details className="mt-2">
                   <summary className="cursor-pointer text-scale-sm font-semibold">Sections{quests.length > 0 ? " and side quests" : ""}</summary>
@@ -248,20 +302,37 @@ function Order({ plan, dispatch }: { readonly plan: SyllabusPlan; readonly dispa
                       if (section === undefined) return null;
                       const key = sectionKey(unitId, number);
                       const covered = !plan.notCovered.includes(key);
+                      const lessons = section.sources.flatMap((id) => unit.nodes.filter((node) => node.id === id));
                       return (
-                        <li key={key} className="flex items-center gap-2">
-                          <label className="flex min-w-0 flex-1 items-center gap-2 text-scale-sm">
-                            <input type="checkbox" checked={covered} onChange={() => dispatch({ type: "toggleCovered", key })} />
-                            <span className={covered ? "" : "me-muted line-through"}>{`Section ${number}: ${section.title}`}</span>
-                          </label>
-                          <Mover name={`Section ${number}`} first={i === 0} last={i === order.length - 1} onMove={(by) => dispatch({ type: "moveSection", unitId, section: number, by })} />
+                        <li key={key}>
+                          <div className="flex items-center gap-2">
+                            <label className="flex min-w-0 flex-1 items-center gap-2 text-scale-sm">
+                              <input type="checkbox" checked={covered} onChange={() => dispatch({ type: "toggleCovered", key })} />
+                              <span className={covered ? "" : "me-muted line-through"}>{`Section ${number}: ${section.title}`}</span>
+                            </label>
+                            <Mover name={`Section ${number}`} first={i === 0} last={i === order.length - 1} onMove={(by) => dispatch({ type: "moveSection", unitId, section: number, by })} />
+                          </div>
+                          {/* One lesson in or out, for a course that skips a single topic. Off with its section. */}
+                          <ul className="ml-7 mt-1 flex flex-col gap-1">
+                            {lessons.map((node) => {
+                              const on = covered && !plan.notCovered.includes(node.id);
+                              return (
+                                <li key={node.id}>
+                                  <label className="flex items-center gap-2 text-scale-sm">
+                                    <input type="checkbox" checked={on} disabled={!covered} onChange={() => dispatch({ type: "toggleCovered", key: node.id })} />
+                                    <span className={on ? "" : "me-muted line-through"}>{node.title}</span>
+                                  </label>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         </li>
                       );
                     })}
                   </ul>
                   {quests.length === 0 ? null : (
                     <>
-                      <p className="mt-3 text-scale-sm font-semibold">Side quests: count on quizzes and exams</p>
+                      <p className="mt-3 text-scale-sm font-semibold">Side quests: count on the checkpoint, section test and unit exam</p>
                       <ul className="mt-1 flex flex-col gap-1">
                         {quests.map((node) => (
                           <li key={node.id}>

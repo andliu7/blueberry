@@ -552,3 +552,7 @@
 :root[data-motion="reduced"] .tb-card {
   transition: none;
 }
+
+.tb-views { display: grid; gap: 0.75rem; }
+.tb-viewtabs { display: inline-flex; gap: 0.25rem; justify-self: start; }
+.tb-viewtabs .tb-tab { display: inline-flex; }

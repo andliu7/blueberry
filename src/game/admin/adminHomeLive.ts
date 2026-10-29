@@ -16,7 +16,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { sampleAdminHome, type AdminHomeData, type FeedItem, type FunnelStage, type StatCell, type TodayBlock } from "./adminHomeData";
+import { sampleAdminHome, type AdminHomeData, type FeedItem, type FunnelStage, type Purchase, type StatCell, type TodayBlock } from "./adminHomeData";
 
 /* ------------------------------------------------------------------ period */
 
@@ -130,7 +130,8 @@ export function returningUsers(events: readonly EventLite[], p: Period): Set<str
   return new Set([...days].filter(([, s]) => s.size >= 2).map(([u]) => u));
 }
 
-const change = (now: number, before: number): number => (before === 0 ? (now === 0 ? 0 : 1) : now / before - 1);
+/** Fractional change, or null when the period before was empty (a percentage of nothing is not a number). */
+const change = (now: number, before: number): number | null => (before === 0 ? (now === 0 ? 0 : null) : now / before - 1);
 
 /** Pad or trim a daily series to the last `n` points, for the little line. */
 export function lastN(series: readonly number[], n: number): number[] {
@@ -236,7 +237,7 @@ export type LiveResult =
 const PAGE = 1000;
 const CAP = 8000;
 
-async function fetchAll<T>(make: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>): Promise<{ rows: T[]; error: boolean }> {
+export async function fetchAll<T>(make: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>): Promise<{ rows: T[]; error: boolean }> {
   const rows: T[] = [];
   for (let i = 0; i < CAP; i += PAGE) {
     const res = await make(i, i + PAGE - 1);
@@ -262,7 +263,7 @@ export async function fetchLive(supabase: SupabaseClient | null, period: Period,
       fetchAll<{ created_at: string }>((a, b) => supabase.from("profiles").select("created_at").gte("created_at", since).order("created_at", { ascending: false }).range(a, b)),
       fetchAll<EventLite>((a, b) => supabase.from("progress_events").select("user_id,kind,at,node:event->>nodeId").gte("at", since).order("at", { ascending: false }).range(a, b)),
       fetchAll<{ anon_id: string; occurred_at: string }>((a, b) => supabase.from("analytics_events").select("anon_id,occurred_at").eq("name", "screen_view").gte("occurred_at", since).range(a, b)),
-      fetchAll<{ user_id: string; status: string; created_at: string; access_until: string | null }>((a, b) => supabase.from("entitlements").select("user_id,status,created_at,access_until").range(a, b)),
+      fetchAll<{ id: string; user_id: string; kind: string; plan: string; status: string; created_at: string; access_until: string | null }>((a, b) => supabase.from("entitlements").select("id,user_id,kind,plan,status,created_at,access_until").order("created_at", { ascending: false }).range(a, b)),
     ]);
     if (profs.error && evs.error) return { ok: false, reason: "blocked" };
 
@@ -296,10 +297,17 @@ export async function fetchLive(supabase: SupabaseClient | null, period: Period,
       if (s.id === "active" && !evs.error) return { ...s, value: activeNow, delta: change(activeNow, activePrev), spark: activeSpark, hint: "Did a lesson in the chosen period" };
       if (s.id === "paying" && payingNow !== null) {
         live.push("stat:paying");
-        return { ...s, value: payingNow, delta: change(paidIn(period) ?? 0, paidIn(prev) ?? 0), spark: new Array<number>(14).fill(payingNow), hint: "On Pro right now" };
+        // No history of "paying right now" is stored, so no trend line and no change figure.
+        return { ...s, value: payingNow, delta: null, spark: [], hint: "On Pro right now" };
       }
       return s;
     });
+
+    // Real purchase rows (plan, status, date). Amounts live in Stripe and are never stored, so none are shown.
+    const purchases: Purchase[] = entsOk
+      ? ents.rows.slice(0, 20).map((r) => ({ id: r.id, plan: r.plan, kind: r.kind === "pass" ? "pass" : "subscription", status: r.status, at: r.created_at }))
+      : [];
+    if (entsOk) live.push("billing");
 
     const funnelOk = !profs.error && !evs.error;
     const fin = (p: Period): FunnelInput => ({
@@ -322,6 +330,7 @@ export async function fetchLive(supabase: SupabaseClient | null, period: Period,
       signups: profs.error ? sampleDays.signups : signupsNow,
       signupsBefore: profs.error ? sampleDays.signupsBefore : signupsPrev,
       stats,
+      purchases,
       funnel,
       today: evs.error ? base.today : buildToday(profTimes, events, now),
       feed: evs.error ? sampleDays.feed : buildFeed(profTimes, events, period, now),

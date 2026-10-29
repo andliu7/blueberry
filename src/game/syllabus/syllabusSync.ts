@@ -13,6 +13,14 @@
  * account: the old copy is stashed under STASH_PREFIX + its owner and the
  * device takes this account's row, or none.
  *
+ * SIGN-OUT. stop() runs on sign-out (and on an account change) and puts an
+ * account's plan aside the same way: stashed under its owner, cleared from
+ * the device, OWNER_KEY removed. A signed-out visitor's START and side quests
+ * are then their own, not the last account's. The next sign-in by that
+ * account takes its stash back at once, before the network, then compares
+ * with the account row as usual. A plan that never reached an account (no
+ * OWNER_KEY: signed out the whole time, or the table missing) stays put.
+ *
  * A MISSING TABLE (migration not applied), no Supabase, or any error sets
  * status "device" and stops. It never throws: the plan keeps working on the
  * device and the screen says where it is saved.
@@ -57,7 +65,7 @@ export interface SyllabusSyncOptions {
   readonly userId: string;
   readonly getClient: () => Promise<SupabaseClient | null>;
   readonly store?: SyllabusStore;
-  readonly storage?: Pick<Storage, "getItem" | "setItem">;
+  readonly storage?: Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
 }
 
 interface Row {
@@ -76,6 +84,14 @@ function safeGet(storage: SyllabusSyncOptions["storage"], key: string): string |
 function safeSet(storage: SyllabusSyncOptions["storage"], key: string, value: string): void {
   try {
     storage?.setItem(key, value);
+  } catch {
+    /* storage blocked */
+  }
+}
+
+function safeRemove(storage: SyllabusSyncOptions["storage"], key: string): void {
+  try {
+    storage?.removeItem?.(key);
   } catch {
     /* storage blocked */
   }
@@ -116,6 +132,22 @@ export function startSyllabusSync({ userId, getClient, store = syllabusStore, st
   };
 
   const run = async () => {
+    // This account's plan, put aside at its last sign-out: back at once, before the network.
+    const stashed = safeGet(storage, OWNER_KEY) === null && store.getSnapshot() === null ? safeGet(storage, STASH_PREFIX + userId) : null;
+    if (stashed !== null) {
+      let plan = null;
+      try {
+        plan = sanitisePlan(JSON.parse(stashed));
+      } catch {
+        plan = null;
+      }
+      if (plan !== null) {
+        adopting = true;
+        store.replace(plan, plan.updatedAt || undefined);
+        adopting = false;
+        safeSet(storage, OWNER_KEY, userId);
+      }
+    }
     setStatus("syncing");
     let client: SupabaseClient | null;
     try {
@@ -186,6 +218,14 @@ export function startSyllabusSync({ userId, getClient, store = syllabusStore, st
       stopped = true;
       unsubscribe?.();
       if (timer !== null) clearTimeout(timer);
+      // Signed out: an account's plan leaves the device with it (header, SIGN-OUT).
+      const owner = safeGet(storage, OWNER_KEY);
+      if (owner !== null) {
+        const local = safeGet(storage, SYLLABUS_KEY);
+        if (local !== null) safeSet(storage, STASH_PREFIX + owner, local);
+        safeRemove(storage, OWNER_KEY);
+        store.replace(null);
+      }
       setStatus("idle");
     },
   };

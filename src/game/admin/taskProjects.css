@@ -1,0 +1,46 @@
+/* Projects view of the task board: Blueberry tokens only, so both themes come for free. */
+.tp { display: grid; gap: 0.75rem; font-family: var(--font-display); color: var(--bb-foreground); }
+.tp-hint { margin: 0; color: var(--bb-muted-foreground); font-size: var(--text-scale-sm); }
+.tp-list { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.tp-project {
+  display: grid; gap: 0.375rem; width: 100%; padding: 1rem; text-align: left; cursor: pointer; font: inherit; color: inherit;
+  border: 1px solid var(--bb-border); border-radius: 1rem; background: var(--bb-card);
+}
+.tp-project:hover { border-color: var(--bb-primary); }
+.tp-project:focus-visible, .tp-back:focus-visible, .tp-node button:focus-visible, .tp-status:focus-visible, .tp-piece__title:focus-visible { outline: 2px solid var(--bb-primary); outline-offset: 2px; }
+.tp-tag { font-size: var(--text-scale-xs); font-weight: 800; color: var(--bb-primary); }
+.tp-sum, .tp-count { color: var(--bb-muted-foreground); font-size: var(--text-scale-sm); }
+.tp-bar { display: block; height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--bb-border) 40%, transparent); overflow: hidden; }
+.tp-bar i { display: block; height: 100%; background: var(--bb-primary); }
+.tp-back { justify-self: start; min-height: 44px; padding: 0 0.75rem; border: 1px solid var(--bb-border); border-radius: 0.625rem; background: var(--bb-background); color: inherit; font: inherit; font-weight: 700; cursor: pointer; }
+.tp-title { margin: 0; font-size: var(--text-scale-base); font-weight: 900; }
+
+.tp-path { display: flex; flex-wrap: wrap; align-items: stretch; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.tp-node { display: flex; align-items: center; gap: 0.5rem; }
+.tp-node button {
+  display: inline-flex; align-items: center; gap: 0.5rem; min-height: 44px; padding: 0 0.875rem; cursor: pointer; font: inherit; color: inherit;
+  border: 1px solid var(--bb-border); border-radius: 999px; background: var(--bb-card);
+}
+.tp-node.is-open button { border-color: var(--bb-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--bb-primary) 25%, transparent); }
+.tp-node__dot { display: inline-flex; }
+.tp-node__name { font-weight: 800; }
+.tp-node__count { color: var(--bb-muted-foreground); font-size: var(--text-scale-sm); }
+.tp-link { width: 1.25rem; height: 2px; background: var(--bb-border); }
+
+.tp-panel { display: grid; gap: 0.5rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--bb-border) 30%, transparent); border-radius: 1.25rem; background: var(--bb-card); }
+.tp-detail { margin: 0; color: var(--bb-muted-foreground); font-size: var(--text-scale-sm); }
+.tp-pieces { display: grid; gap: 0.25rem; margin: 0; padding: 0; list-style: none; }
+.tp-piece { border-radius: 0.75rem; }
+.tp-piece__row { display: flex; align-items: center; gap: 0.5rem; min-height: 44px; }
+.tp-status { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; }
+.tp-piece__title { flex: 1; min-height: 44px; padding: 0; border: 0; background: transparent; text-align: left; font: inherit; font-weight: 700; color: inherit; cursor: pointer; }
+.tp-state { color: var(--bb-muted-foreground); font-size: var(--text-scale-sm); white-space: nowrap; }
+.tp-piece.is-stuck .tp-state { color: #d9480f; }
+.tp-more { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 0.75rem; margin: 0 0 0.5rem 44px; padding: 0.75rem; border-radius: 0.75rem; background: var(--bb-background); font-size: var(--text-scale-sm); }
+.tp-more dt { color: var(--bb-muted-foreground); font-weight: 700; }
+.tp-more dd { margin: 0; }
+@media (max-width: 560px) {
+  .tp-link { display: none; }
+  .tp-path { flex-direction: column; }
+  .tp-more { grid-template-columns: 1fr; }
+}

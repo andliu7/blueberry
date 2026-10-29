@@ -952,3 +952,23 @@ html[data-motion="reduced"] .ah *::before {
     transition: none !important;
   }
 }
+
+.ah-nc {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ah-nc li {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--ah-line, rgba(90, 63, 216, 0.14));
+}
+.ah-nc li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.ah-nc__title {
+  margin: 0;
+  font-weight: 700;
+}

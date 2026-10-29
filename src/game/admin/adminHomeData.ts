@@ -1,7 +1,8 @@
 /**
  * The admin home page's sample data (#/app/admin/home) and the small pure helpers it uses.
  *
- * EVERY NUMBER HERE IS MADE UP. The page labels it "Sample data, not live". The real
+ * EVERY NUMBER HERE IS MADE UP. The page shows none of them as a figure: a part with no
+ * live source is a tile marked "No data, example" whose graph shows shape only. The real
  * source is a staff-only server function that does not exist yet (the analytics_* views
  * are revoked from the API roles on purpose); it must return one `AdminHomeData` with
  * source "live". Nothing in this file may ever be shown as real.
@@ -18,8 +19,8 @@ export interface StatCell {
   value: number;
   /** "money" shows dollars, "count" a plain number. */
   kind: "count" | "money";
-  /** Change versus the period before, as a fraction (0.12 is +12%). */
-  delta: number;
+  /** Change versus the period before, as a fraction (0.12 is +12%). Null when the period before had nothing to compare with. */
+  delta: number | null;
   /** 14 points for the little line. */
   spark: number[];
 }
@@ -70,6 +71,26 @@ export interface Invoice {
   status: InvoiceStatus;
 }
 
+/** One row of the entitlements table. Stripe holds the amounts; the app stores none. */
+export interface Purchase {
+  id: string;
+  plan: string;
+  kind: "subscription" | "pass";
+  status: string;
+  /** ISO date of purchase. */
+  at: string;
+}
+
+/** One row of the entitlements table. Stripe holds the amounts; the app stores none. */
+export interface Purchase {
+  id: string;
+  plan: string;
+  kind: "subscription" | "pass";
+  status: string;
+  /** ISO date of purchase. */
+  at: string;
+}
+
 export interface Payout {
   id: string;
   label: string;
@@ -106,6 +127,8 @@ export interface AdminHomeData {
   incidents: Incident[];
   invoices: Invoice[];
   payouts: Payout[];
+  /** Real purchase rows from the entitlements table (plan, status, date; no amounts, no names). Empty unless "billing" is a live part. */
+  purchases: Purchase[];
 }
 
 function wave(n: number, base: number, amp: number, seed: number, trend = 0): number[] {
@@ -115,10 +138,6 @@ function wave(n: number, base: number, amp: number, seed: number, trend = 0): nu
     out.push(Math.max(0, Math.round(base + trend * i + w * amp)));
   }
   return out;
-}
-
-function ticks(bad: number[]): boolean[] {
-  return Array.from({ length: 30 }, (_, i) => !bad.includes(i));
 }
 
 export const sampleAdminHome: AdminHomeData = {
@@ -182,30 +201,11 @@ export const sampleAdminHome: AdminHomeData = {
     { id: "f5", kind: "streak", text: "Longest live streak reached 61 days", minutesAgo: 210 },
     { id: "f6", kind: "paid", text: "A payment needs another try", minutesAgo: 380 },
   ],
-  services: [
-    { id: "api", name: "API", note: "Lessons, progress, shop", state: "up", days: ticks([]), lastIncident: null },
-    { id: "db", name: "Database", note: "Accounts and decks", state: "up", days: ticks([11]), lastIncident: "12 Oct, 8 min slow" },
-    { id: "auth", name: "Sign-in", note: "Email and Google", state: "up", days: ticks([]), lastIncident: null },
-    { id: "email", name: "Email", note: "Receipts and reminders", state: "slow", days: ticks([3, 27, 28]), lastIncident: "Today, delays of a few minutes" },
-  ],
-  incidents: [
-    { id: "i1", service: "Email", when: "Today, 07:10", text: "Receipts arrived a few minutes late. Watching.", minutes: 40 },
-    { id: "i2", service: "Email", when: "2 days ago", text: "A reminder batch went out twice.", minutes: 15 },
-    { id: "i3", service: "Database", when: "12 Oct", text: "Slow reads for a short stretch. Cleared on its own.", minutes: 8 },
-  ],
-  invoices: [
-    { id: "INV-1042", who: "Learner 0412", plan: "Pro, yearly", date: "28 Oct", cents: 4900, status: "paid" },
-    { id: "INV-1041", who: "Learner 0377", plan: "Pro, monthly", date: "27 Oct", cents: 700, status: "paid" },
-    { id: "INV-1040", who: "Learner 0291", plan: "Pro, monthly", date: "27 Oct", cents: 700, status: "failed" },
-    { id: "INV-1039", who: "Learner 0508", plan: "Pro, monthly", date: "26 Oct", cents: 700, status: "pending" },
-    { id: "INV-1038", who: "Learner 0116", plan: "Pro, yearly", date: "25 Oct", cents: 4900, status: "paid" },
-    { id: "INV-1037", who: "Learner 0233", plan: "Pro, monthly", date: "24 Oct", cents: 700, status: "paid" },
-  ],
-  payouts: [
-    { id: "p1", label: "Payout to bank", due: "Fri 30 Oct", cents: 38200, status: "scheduled" },
-    { id: "p2", label: "Payout to bank", due: "Fri 23 Oct", cents: 41150, status: "in transit" },
-    { id: "p3", label: "Payout to bank", due: "Fri 16 Oct", cents: 35900, status: "paid" },
-  ],
+  services: [],
+  incidents: [],
+  invoices: [],
+  payouts: [],
+  purchases: [],
 };
 
 /** "6 min ago", "3 h ago", "2 days ago". */

@@ -13,4 +13,5 @@
  * one drafted board still unplayed) is read by nothing but the suite yet:
  * see the header of pools.ts for why.
  */
+export { U6_NMR_PRODUCT_KEY, U6_NMR_PRODUCT_POOLS } from "./nmrProduct";
 export { U6_OPTION_TILES, U6_POOLS, U6_UNWIRED, U6_VISUALS } from "./pools";

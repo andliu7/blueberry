@@ -21,6 +21,7 @@
  */
 import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
+import TaskProjects from "./TaskProjects";
 import "./taskBoard.css";
 
 const Calendar = lazy(() => import("@/components/ui/calendar").then((m) => ({ default: m.Calendar })));
@@ -107,7 +108,45 @@ export const SEED_TASKS: Task[] = [
   seed(19, "t19", "Admin stats boards (sample data, labelled)", "Admin", "done", "Claude"),
   seed(20, "t20", "Focus timer inside the game", "Design", "done", "Claude"),
   seed(21, "t21", "One look for 404 and not-here screens", "Design", "done", "Claude"),
+  seed(22, "t22", "Site audit: pages, text, spacing, hierarchy, motion", "Design", "doing", "Claude", 2),
+  seed(23, "t23", "Radical animation: one unstable species, never splits", "Design", "todo", "Claude", 2),
+  seed(24, "t24", 'Admin numbers real, or labelled "No data, example"', "Admin", "todo", "Claude", 2),
+  seed(25, "t25", "Admin pathway slideshow: questions, cards, videos, algorithms", "Admin", "todo", "Claude", 2),
+  seed(26, "t26", "Finish Unit 1: questions, video slots, walk-throughs, context", "Lessons", "todo", "Claude", 2),
+  seed(27, "t27", "Units 2 and 3 on the Unit 1 style guide", "Lessons", "todo", "Claude", 2),
+  seed(28, "t28", "One lesson per reaction, with why it works", "Lessons", "todo", "Claude", 2),
+  seed(29, "t29", "Energy diagrams, Keq and pKa questions", "Lessons", "todo", "Claude", 2),
+  seed(30, "t30", "NMR and IR toolbar: range select, own image, zoom", "Lessons", "todo", "Claude", 2),
+  seed(31, "t31", "Difficulty rules (easier or harder next), tested", "Lessons", "todo", "Claude", 2),
 ];
+
+const SEEDED_KEY = "blueberry.admin.tasks.seeded.v1";
+/** Seed cards that existed before seeded ids were tracked; once deleted they stay deleted. */
+const FIRST_SEEDS = 21;
+
+/** Add seed cards this browser has not been given yet, never ones it deleted. New cards take the next free number. */
+export function withNewSeeds(tasks: Task[], seeded: readonly string[]): { tasks: Task[]; seeded: string[] } {
+  const have = new Set(tasks.map((t) => t.id));
+  let n = tasks.reduce((m, t) => Math.max(m, t.num ?? 0), 0);
+  const fresh = SEED_TASKS.filter((t) => !have.has(t.id) && !seeded.includes(t.id)).map((t) => ({ ...t, num: ++n }));
+  return { tasks: [...tasks, ...fresh], seeded: SEED_TASKS.map((t) => t.id) };
+}
+function seedCards(tasks: Task[]): Task[] {
+  let seeded: string[] = SEED_TASKS.slice(0, FIRST_SEEDS).map((t) => t.id);
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(SEEDED_KEY) ?? "null") as unknown;
+    if (Array.isArray(raw)) seeded = raw.filter((x): x is string => typeof x === "string");
+  } catch {
+    /* use the default */
+  }
+  const out = withNewSeeds(tasks, seeded);
+  try {
+    window.localStorage.setItem(SEEDED_KEY, JSON.stringify(out.seeded));
+  } catch {
+    /* blocked: the cards still show for this visit */
+  }
+  return out.tasks;
+}
 
 export function moveTask(tasks: readonly Task[], id: string, to: Column): Task[] {
   return tasks.map((t) => (t.id === id ? { ...t, column: to } : t));
@@ -156,7 +195,7 @@ function valid(parsed: unknown): Task[] | null {
 function load(): Task[] {
   try {
     const now = valid(JSON.parse(window.localStorage.getItem(KEY) ?? "null"));
-    if (now) return now;
+    if (now) return seedCards(now);
     // First open since the redesign: keep what the owner had, if anything.
     const old = valid(JSON.parse(window.localStorage.getItem(OLD_KEY) ?? "null"));
     if (old && old.length > 0) {
@@ -233,7 +272,7 @@ interface Drop {
   before: string | null;
 }
 
-export default function TaskBoard({ embedded = false, onDueDates }: { embedded?: boolean; onDueDates?: (dates: Date[]) => void }) {
+function TaskBoardCards({ embedded = false, onDueDates }: { embedded?: boolean; onDueDates?: (dates: Date[]) => void }) {
   const [tasks, setTasks] = useState<Task[]>(load);
   const [query, setQuery] = useState("");
   const [labelFilter, setLabelFilter] = useState<string | null>(null);
@@ -670,5 +709,24 @@ export default function TaskBoard({ embedded = false, onDueDates }: { embedded?:
         {said}
       </p>
     </section>
+  );
+}
+
+/** The board, plus a Projects view for the gauntlet loops. The card on the admin home stays the board alone. */
+export default function TaskBoard({ embedded = false, onDueDates }: { embedded?: boolean; onDueDates?: (dates: Date[]) => void }) {
+  const [view, setView] = useState<"board" | "projects">("board");
+  if (embedded) return <TaskBoardCards embedded onDueDates={onDueDates} />;
+  return (
+    <div className="tb-views">
+      <div className="tb-viewtabs" role="group" aria-label="Task views">
+        <button type="button" className="tb-tab" aria-pressed={view === "board"} onClick={() => setView("board")}>
+          Board
+        </button>
+        <button type="button" className="tb-tab" aria-pressed={view === "projects"} onClick={() => setView("projects")}>
+          Projects
+        </button>
+      </div>
+      {view === "board" ? <TaskBoardCards onDueDates={onDueDates} /> : <TaskProjects />}
+    </div>
   );
 }

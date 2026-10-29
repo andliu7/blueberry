@@ -8,14 +8,34 @@ import { resolve } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import StatsBoardPage, { AnalyticsBoard, sampleAdminStats } from "../admin/StatsBoard";
+import { AnalyticsBoard } from "../admin/StatsBoard";
+import type { LiveStats } from "../admin/statsLive";
 
-const html = renderToStaticMarkup(createElement(StatsBoardPage));
+const html = renderToStaticMarkup(createElement(AnalyticsBoard, { live: null }));
 const files = [
   "src/components/ui/analytics-bento.tsx",
   "src/game/admin/StatsBoard.tsx",
+  "src/game/admin/statsLive.ts",
+  "src/game/admin/honesty.tsx",
   "src/game/test/statsBoard.test.ts",
 ];
+
+const series = Array.from({ length: 30 }, (_, i) => ({ label: `d${i}`, value: i % 4 }));
+const hours = [new Array<number>(24).fill(1), new Array<number>(24).fill(2)];
+const liveStats: LiveStats = {
+  live: { users: true, signups: true, join: true, retention: true, device: true, sessions: true, attempts: false, seasonality: true, paying: false },
+  totalLearners: 321,
+  active7: 77,
+  paying: null,
+  signups: { series, previous: 20 },
+  join: { hour: 21, weekday: "Sunday", medianDays: 1 },
+  retention: { d1: 0.5, d7: null, d30: null },
+  device: { mobile: 0.7, desktop: 0.3 },
+  sessions: { desktop: hours, mobile: hours },
+  attempts: null,
+  seasonality: [{ year: 2026, values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }],
+};
+const liveHtml = renderToStaticMarkup(createElement(AnalyticsBoard, { live: liveStats }));
 
 describe("admin statistics board", () => {
   it("renders the four cards and the strip", () => {
@@ -25,12 +45,22 @@ describe("admin statistics board", () => {
     expect(html).toContain("Exam seasonality");
     expect(html).toContain("Acquisition cost (CAC)");
   });
-  it("labels sample data, and only sample data", () => {
-    expect(html).toContain("Sample data, not live");
-    const live = renderToStaticMarkup(
-      createElement(AnalyticsBoard, { data: { ...sampleAdminStats, source: "live" } }),
-    );
-    expect(live).not.toContain("Sample data, not live");
+  it("with nothing read, every tile says No data, example and prints no invented figure", () => {
+    expect(html).toContain("No data, example");
+    expect(html).not.toContain("Sample data");
+    expect(html).not.toContain("source-note");
+    expect(html).not.toContain(">640<");
+    expect(html).not.toContain("62%");
+  });
+  it("with real figures, a live tile prints its number and names its source", () => {
+    expect(liveHtml).toContain("321");
+    expect(liveHtml).toContain("Source: profiles");
+    expect(liveHtml).toContain("Live");
+  });
+  it("a part with no source stays an example even when others are live", () => {
+    expect(liveHtml).toContain("No data, example");
+    expect(liveHtml).toContain("Feeds from logged ad spend");
+    expect(liveHtml).not.toContain("sample-chip");
   });
   it("has no currency symbol and no Geist", () => {
     expect(html).not.toContain("$");

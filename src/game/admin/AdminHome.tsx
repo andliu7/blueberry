@@ -23,33 +23,30 @@ import type { DateRange } from "@/components/ui/calendar";
 import { hrefForAdmin, hrefForGallery, hrefForTab } from "../app/routes";
 import {
   formatMoney,
-  invoicesCsv,
   linePath,
   relativeTime,
   sampleAdminHome,
   stepRate,
-  uptimePercent,
   type AdminHomeData,
   type FeedKind,
-  type Invoice,
-  type InvoiceStatus,
-  type Service,
   type StatCell,
 } from "./adminHomeData";
 import { fetchLive, periodDays, periodLabel, PRESETS, presetPeriod, sampleView, type Period, type PresetId } from "./adminHomeLive";
+import { ExampleWash, LiveBadge, SOURCES, SourceNote } from "./honesty";
 import "./adminHome.css";
 import "./adminHomeExtra.css";
 
 const Calendar = lazy(() => import("@/components/ui/calendar").then((m) => ({ default: m.Calendar })));
 const TaskBoard = lazy(() => import("./TaskBoard"));
 
-/** A small tag on any card whose figures are made up while others on the page are real. */
+/** Is this part read from the database right now? Everything else is an example. */
+const isLive = (data: AdminHomeData, part: string): boolean => data.liveParts.includes(part);
+
+/** The tag on a card head: Live when read, "No data, example" when not. */
 function SampleTag({ data, part }: { data: AdminHomeData; part: string }) {
-  // On an all-sample page the one chip under the greeting says it once. Tags appear only
-  // when real and made-up figures sit side by side, so the reader can tell which is which.
-  if (data.source === "sample") return null;
-  if (data.liveParts.includes(part)) return <span className="ah-tag is-live">Live</span>;
-  return <span className="ah-tag is-sample">Sample data, not live</span>;
+  // Only live parts get a pill. An example card is already dashed and says "No data" in its body,
+  // and the one header chip says "No data, example" once for the screen.
+  return isLive(data, part) ? <LiveBadge /> : null;
 }
 
 /* ------------------------------------------------------------------ helpers */
@@ -81,7 +78,9 @@ function useCountUp(target: number, ms = 800): number {
   return value;
 }
 
-function Delta({ value, unit = "%", digits = 1 }: { value: number; unit?: "%" | "pt"; digits?: number }) {
+function Delta({ value, unit = "%", digits = 1 }: { value: number | null; unit?: "%" | "pt"; digits?: number }) {
+  // No earlier data to compare with: say so instead of inventing a percentage.
+  if (value === null) return <span className="ah-muted">No earlier data</span>;
   const up = value >= 0;
   const n = Math.abs(value * 100).toFixed(digits);
   return (
@@ -97,6 +96,7 @@ function Delta({ value, unit = "%", digits = 1 }: { value: number; unit?: "%" | 
 }
 
 function Sparkline({ points, label }: { points: number[]; label: string }) {
+  if (points.length < 2) return null;
   const w = 96;
   const h = 32;
   const max = Math.max(...points);
@@ -166,7 +166,7 @@ interface NavItem {
   jump?: boolean;
 }
 
-function SideNav({ data }: { data: AdminHomeData }) {
+export function SideNav({ current = "home" }: { current?: string }) {
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
       return window.localStorage.getItem("bb-admin-nav") === "collapsed";
@@ -184,23 +184,24 @@ function SideNav({ data }: { data: AdminHomeData }) {
       return !c;
     });
   };
-  const failed = data.invoices.filter((i) => i.status === "failed").length;
-  const slow = data.services.filter((s) => s.state !== "up").length;
+  // No badge counts: payments and system status have no data source, so there is nothing true to count.
   const overview: NavItem[] = [
     { id: "home", label: "Home", icon: "home", href: hrefForAdmin("home") },
     { id: "stats", label: "Learners", icon: "people", href: hrefForAdmin("stats") },
     { id: "activity", label: "Activity", icon: "pulse", href: hrefForAdmin("activity") },
-    { id: "lessons", label: "Lessons", icon: "book", href: hrefForAdmin() },
+    { id: "lessons", label: "Lessons", icon: "book", href: hrefForAdmin("lessons") },
+    { id: "tasks", label: "Tasks", icon: "check", href: hrefForAdmin("tasks") },
   ];
   const onPage: NavItem[] = [
     { id: "ah-today", label: "Today", icon: "pulse", href: "#ah-today", jump: true },
     { id: "ah-funnel", label: "Funnel", icon: "funnel", href: "#ah-funnel", jump: true },
-    { id: "ah-tasks", label: "Tasks", icon: "check", href: "#ah-tasks", jump: true },
-    { id: "ah-system", label: "System", icon: "server", href: "#ah-system", jump: true, badge: slow },
-    { id: "ah-billing", label: "Billing", icon: "card", href: "#ah-billing", jump: true, badge: failed },
+    { id: "ah-tasks", label: "Task board", icon: "check", href: "#ah-tasks", jump: true },
+    { id: "ah-system", label: "Not connected", icon: "server", href: "#ah-system", jump: true },
+    { id: "ah-billing", label: "Billing", icon: "card", href: "#ah-billing", jump: true },
   ];
   const account: NavItem[] = [
     { id: "bloom", label: "Bloom", icon: "star", href: hrefForGallery() },
+    { id: "app", label: "Open the app", icon: "home", href: hrefForTab("pathway") },
     { id: "me", label: "Back to Me", icon: "back", href: hrefForTab("me") },
   ];
 
@@ -219,7 +220,7 @@ function SideNav({ data }: { data: AdminHomeData }) {
             <a
               className="ah-nav__link"
               href={it.href}
-              aria-current={it.id === "home" ? "page" : undefined}
+              aria-current={it.id === current ? "page" : undefined}
               title={collapsed ? it.label : undefined}
               onClick={it.jump ? jumpTo(it.href) : undefined}
             >
@@ -246,7 +247,7 @@ function SideNav({ data }: { data: AdminHomeData }) {
         <span className="ah-nav__text ah-nav__name">Blueberry admin</span>
       </div>
       {group("Overview", overview)}
-      {group("On this page", onPage)}
+      {current === "home" ? group("On this page", onPage) : null}
       {group("Account", account)}
       <button type="button" className="ah-nav__hide" aria-pressed={collapsed} onClick={toggle}>
         <Icon name="chevrons" />
@@ -258,50 +259,38 @@ function SideNav({ data }: { data: AdminHomeData }) {
 
 /* ------------------------------------------------------------------ stat strip */
 
-function StatCellView({ cell, live, sampleOnly }: { cell: StatCell; live: boolean; sampleOnly: boolean }) {
+const STAT_SOURCE: Record<string, string> = { active: SOURCES.active, signups: SOURCES.signups, paying: SOURCES.paying };
+
+function StatCellView({ cell, live }: { cell: StatCell; live: boolean }) {
   const shown = useCountUp(cell.kind === "money" ? Math.round(cell.value) : cell.value);
   const text = cell.kind === "money" ? formatMoney(shown * 100) : shown.toLocaleString("en-US");
+  const source = STAT_SOURCE[cell.id] ?? SOURCES.money;
   return (
-    <li className="ah-stat">
-      <p className="ah-stat__label">{cell.label}{live || sampleOnly ? null : <span className="ah-tag is-sample">Sample</span>}</p>
-      <p className="ah-stat__row">
-        <span className="ah-stat__value">{text}</span>
-        <Delta value={cell.delta} />
+    <li className={`ah-stat${live ? "" : " is-example"}`}>
+      <p className="ah-stat__label">
+        {cell.label}
+        {live ? <LiveBadge /> : null}
       </p>
-      <Sparkline points={cell.spark} label={`${cell.label}, last 14 days`} />
-      <p className="ah-stat__hint">{cell.hint}. Compared with the period before.</p>
-    </li>
-  );
-}
-
-/* ------------------------------------------------------------------ hero number */
-
-/** The one number a solo founder opens the page for: money in. Biggest thing on screen, plain ink on white. */
-function Hero({ data, days }: { data: AdminHomeData; days: number }) {
-  const rev = data.stats.find((s) => s.id === "revenue");
-  const shown = useCountUp(rev ? Math.round(rev.value) : 0, 700);
-  if (!rev) return null;
-  const pts = rev.spark.length > 1 ? rev.spark : [0, 0];
-  const W = 320;
-  const H = 72;
-  const max = Math.max(...pts);
-  const min = Math.min(...pts);
-  const span = max - min || 1;
-  const xy = pts.map((p, i): [number, number] => [(i / (pts.length - 1)) * W, H - 6 - ((p - min) / span) * (H - 12)]);
-  return (
-    <section className="ah-hero" aria-label="Revenue">
-      <div className="ah-hero__text">
-        <p className="ah-hero__label">Revenue, {days === 1 ? "today" : `last ${days} days`}</p>
-        <p className="ah-hero__value">{formatMoney(shown * 100)}</p>
-        <p className="ah-hero__sub">
-          <Delta value={rev.delta} /> <span>compared with the period before</span>
+      {live ? (
+        <p className="ah-stat__row">
+          <span className="ah-stat__value">{text}</span>
+          <Delta value={cell.delta} />
         </p>
-      </div>
-      <svg className="ah-hero__spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label="Revenue per day, recent days">
-        <path d={`${linePath(xy)} L${W} ${H} L0 ${H} Z`} className="ah-spark__fill" />
-        <path d={linePath(xy)} className="ah-spark__line" vectorEffect="non-scaling-stroke" />
-      </svg>
-    </section>
+      ) : (
+        <p className="ah-stat__row">
+          <span className="ah-nodata">No data</span>
+        </p>
+      )}
+      {live ? (
+        <Sparkline points={cell.spark} label={`${cell.label}, last 14 days`} />
+      ) : (
+        <ExampleWash>
+          <Sparkline points={cell.spark} label={`Example graph for ${cell.label}`} />
+        </ExampleWash>
+      )}
+      <p className="ah-stat__hint">{cell.hint}.{live && cell.delta !== null ? " Compared with the period before." : ""}</p>
+      <SourceNote live={live} source={source} />
+    </li>
   );
 }
 
@@ -315,8 +304,9 @@ function GrowthChart({ data }: { data: AdminHomeData }) {
   const range = data.signups.length || 1;
   const total = cur.reduce((a, b) => a + b, 0);
   const totalPrev = prev.reduce((a, b) => a + b, 0);
-  const delta = totalPrev === 0 ? 0 : total / totalPrev - 1;
+  const delta = totalPrev === 0 ? null : total / totalPrev - 1;
   const shown = useCountUp(total, 600);
+  const live = isLive(data, "growth");
 
   const W = 600;
   const H = 220;
@@ -345,27 +335,34 @@ function GrowthChart({ data }: { data: AdminHomeData }) {
   return (
     <Card
       title="New sign-ups"
-      className="ah-growth"
+      className={`ah-growth${live ? "" : " is-example"}`}
       aside={<SampleTag data={data} part="growth" />}
     >
       <div className="ah-growth__top">
         <div>
-          <p className="ah-big">{shown.toLocaleString("en-US")}</p>
-          <p className="ah-muted">
-            <Delta value={delta} /> <span>vs the {range === 1 ? "day" : `${range} days`} before ({totalPrev.toLocaleString("en-US")})</span>
-          </p>
+          {live ? (
+            <>
+              <p className="ah-big">{shown.toLocaleString("en-US")}</p>
+              <p className="ah-muted">
+                <Delta value={delta} /> <span>vs the {range === 1 ? "day" : `${range} days`} before ({totalPrev.toLocaleString("en-US")})</span>
+              </p>
+            </>
+          ) : (
+            <p className="ah-big ah-nodata">No data</p>
+          )}
         </div>
-        <p className="ah-growth__read" aria-live="polite">
+        {live ? <p className="ah-growth__read" aria-live="polite">
           <strong>{cur[at]}</strong> {cur[at] === 1 ? "sign-up" : "sign-ups"}
           <span className="ah-muted"> {daysAgo === 0 ? "on the last day" : `${daysAgo} days before the end`}, before: {prev[at]}</span>
-        </p>
+        </p> : null}
       </div>
       <div
         ref={ref}
         className="ah-chart"
-        tabIndex={0}
+        tabIndex={live ? 0 : -1}
         role="img"
-        aria-label={`Sign-ups per day for the chosen ${range} days. ${total} in total. Use the arrow keys to read each day.`}
+        aria-label={live ? `Sign-ups per day for the chosen ${range} days. ${total} in total. Use the arrow keys to read each day.` : "Example graph, no data. Shape only."}
+        style={live ? undefined : { opacity: 0.5, pointerEvents: "none" }}
         onPointerMove={onMove}
         onPointerLeave={() => setHover(null)}
         onKeyDown={onKey}
@@ -393,6 +390,7 @@ function GrowthChart({ data }: { data: AdminHomeData }) {
       <p className="ah-legend">
         <span className="ah-legend__key is-now" /> This period <span className="ah-legend__key is-before" /> The period before
       </p>
+      <SourceNote live={live} source={SOURCES.signups} />
     </Card>
   );
 }
@@ -433,21 +431,43 @@ function worstStep(f: AdminHomeData["funnel"]): string {
 }
 
 function Funnel({ data }: { data: AdminHomeData }) {
+  const live = isLive(data, "funnel");
   const top = data.funnel[0]!.count;
   const first = data.funnel[0]!;
   const last = data.funnel[data.funnel.length - 1]!;
+  const sources = ["profiles", "progress_events", ...(data.funnel.some((f) => f.id === "visited") ? ["analytics_events (visits)"] : []), ...(data.funnel.some((f) => f.id === "paid") ? ["entitlements (Pro)"] : [])].join(", ");
   return (
-    <Card title="Learner funnel" id="ah-funnel" aside={<><SampleTag data={data} part="funnel" /><a className="ah-link" href={hrefForAdmin("stats")}>See learners</a></>}>
+    <Card title="Learner funnel" id="ah-funnel" className={live ? "" : "is-example"} aside={<><SampleTag data={data} part="funnel" /><a className="ah-link" href={hrefForAdmin("stats")}>See learners</a></>}>
       <p className="ah-muted ah-card__lede">
-        {data.funnel.length < 2 || first.count === 0
-          ? "No one in this period yet."
-          : `Of every 100 who ${first.id === "visited" ? "visited" : "signed up"}, about ${Math.round((last.count / first.count) * 100)} reach "${last.label}". The biggest drop is at "${worstStep(data.funnel)}".`}
+        {!live
+          ? "No data yet. The bars below show the shape of a funnel, not your learners."
+          : data.funnel.length < 2 || first.count === 0
+            ? "No one in this period yet."
+            : `Of every 100 who ${first.id === "visited" ? "visited" : "signed up"}, about ${Math.round((last.count / first.count) * 100)} reach "${last.label}". The biggest drop is at "${worstStep(data.funnel)}".`}
       </p>
-      <ol className="ah-funnel">
-        {data.funnel.map((s, i) => (
-          <FunnelRow key={s.id} label={s.label} count={s.count} top={top} rate={stepRate(s.count, data.funnel[i - 1]?.count)} delta={s.delta} index={i} last={i === data.funnel.length - 1} />
-        ))}
-      </ol>
+      {live ? (
+        <ol className="ah-funnel">
+          {data.funnel.map((s, i) => (
+            <FunnelRow key={s.id} label={s.label} count={s.count} top={top} rate={stepRate(s.count, data.funnel[i - 1]?.count)} delta={s.delta} index={i} last={i === data.funnel.length - 1} />
+          ))}
+        </ol>
+      ) : (
+        <ExampleWash>
+          <ol className="ah-funnel">
+            {data.funnel.map((s, i) => (
+              <li key={s.id} className="ah-fn">
+                <div className="ah-fn__text">
+                  <span className="ah-fn__label">{s.label}</span>
+                </div>
+                <div className="ah-fn__track" aria-hidden>
+                  <span className={`ah-fn__bar${i === data.funnel.length - 1 ? " is-last" : ""}`} style={{ width: `${Math.max(4, (s.count / top) * 100)}%`, ["--ah-step" as string]: i }} />
+                </div>
+              </li>
+            ))}
+          </ol>
+        </ExampleWash>
+      )}
+      <SourceNote live={live} source={sources} />
     </Card>
   );
 }
@@ -463,11 +483,13 @@ const FEED_ICON: Record<FeedKind, { icon: string; tone: string }> = {
 };
 
 function Feed({ data }: { data: AdminHomeData }) {
+  const live = isLive(data, "feed");
   return (
-    <Card title="Recent activity" id="ah-feed" aside={<><SampleTag data={data} part="feed" /><a className="ah-link" href={hrefForAdmin("activity")}>View all</a></>}>
-      {data.feed.length === 0 ? <p className="ah-empty">Nothing happened in this period.</p> : null}
+    <Card title="Recent activity" id="ah-feed" className={live ? "" : "is-example"} aside={<><SampleTag data={data} part="feed" /><a className="ah-link" href={hrefForAdmin("activity")}>View all</a></>}>
+      {!live ? <p className="ah-empty">No data, example. Events appear here once figures are read.</p> : null}
+      {live && data.feed.length === 0 ? <p className="ah-empty">Nothing happened in this period.</p> : null}
       <ul className="ah-feed">
-        {data.feed.map((f, i) => {
+        {(live ? data.feed : []).map((f, i) => {
           const m = FEED_ICON[f.kind];
           return (
             <li key={f.id} className="ah-feed__item" style={{ ["--ah-i" as string]: i }}>
@@ -480,157 +502,76 @@ function Feed({ data }: { data: AdminHomeData }) {
           );
         })}
       </ul>
+      <SourceNote live={live} source={SOURCES.feed} />
     </Card>
   );
 }
 
 /* ------------------------------------------------------------------ system status */
 
-function StateBadge({ state }: { state: Service["state"] }) {
-  const text = state === "up" ? "Working" : state === "slow" ? "Slow" : "Down";
-  return (
-    <span className={`ah-pill is-${state === "up" ? "good" : "warn"}`}>
-      <Icon name={state === "up" ? "check" : "clock"} />
-      {text}
-    </span>
-  );
-}
+const NOT_CONNECTED: Array<{ id: string; title: string; what: string; source: string }> = [
+  { id: "revenue", title: "Revenue", what: "Money in, per day and per month.", source: SOURCES.money },
+  { id: "payouts", title: "Payouts", what: "What Stripe sends to the bank, and when.", source: SOURCES.money },
+  { id: "status", title: "System status", what: "Uptime and incidents for the API, database, sign-in and email.", source: SOURCES.status },
+];
 
-function System({ data }: { data: AdminHomeData }) {
-  const [open, setOpen] = useState(false);
-  const allUp = data.services.every((s) => s.state === "up");
-  const panel = useId();
+/** One quiet card for everything with no data source yet. No figures, no graphs, no invented incidents. */
+function NotConnected() {
   return (
-    <Card title="System status" id="ah-system" aside={<StateBadge state={allUp ? "up" : "slow"} />}>
-      <ul className="ah-svc">
-        {data.services.map((s) => (
-          <li key={s.id} className="ah-svc__row">
-            <div className="ah-svc__top">
-              <span className="ah-svc__name">{s.name}</span>
-              <StateBadge state={s.state} />
-            </div>
-            <div className="ah-ticks" role="img" aria-label={`${s.name}: ${s.days.filter((d) => !d).length} rough days in the last 30`}>
-              {s.days.map((ok, i) => (
-                <span key={i} className={ok ? "is-ok" : "is-bad"} />
-              ))}
-            </div>
-            <p className="ah-svc__meta">
-              <span>{uptimePercent(s.days)}% over 30 days</span>
-              <span>{s.lastIncident ?? "No incidents"}</span>
+    <Card title="Not connected yet" id="ah-system" className="is-example">
+      <ul className="ah-nc" data-testid="not-connected">
+        {NOT_CONNECTED.map((n) => (
+          <li key={n.id}>
+            <p className="ah-nc__title">{n.title}</p>
+            <p className="ah-muted">{n.what}</p>
+            <p className="ah-source is-example" data-testid="example-note">
+              Feeds from {n.source} once connected.
             </p>
           </li>
         ))}
       </ul>
-      <button type="button" className="ah-more" aria-expanded={open} aria-controls={panel} onClick={() => setOpen((o) => !o)}>
-        {open ? "Hide" : "Show"} incident history
-      </button>
-      {open ? (
-        <ul id={panel} className="ah-incidents">
-          {data.incidents.map((i) => (
-            <li key={i.id}>
-              <p>
-                <strong>{i.service}</strong> <span className="ah-muted">{i.when}, {i.minutes} min</span>
-              </p>
-              <p className="ah-muted">{i.text}</p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
     </Card>
   );
 }
 
 /* ------------------------------------------------------------------ billing */
 
-const STATUS_FILTERS: Array<"all" | InvoiceStatus> = ["all", "paid", "pending", "failed"];
+const PLAN_LABEL: Record<string, string> = {};
 
 function Billing({ data }: { data: AdminHomeData }) {
-  const [filter, setFilter] = useState<"all" | InvoiceStatus>("all");
-  const rows: Invoice[] = data.invoices.filter((i) => filter === "all" || i.status === filter);
-  const download = () => {
-    const url = URL.createObjectURL(new Blob([invoicesCsv(rows)], { type: "text/csv" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "sample-invoices.csv";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const live = isLive(data, "billing");
   return (
-    <Card
-      title="Billing"
-      id="ah-billing"
-      aside={
-        <button type="button" className="ah-iconbtn" onClick={download} disabled={rows.length === 0} aria-label="Download these rows as a spreadsheet">
-          <Icon name="download" />
-          <span>Download</span>
-        </button>
-      }
-    >
-      <div className="ah-seg ah-seg--wide" role="group" aria-label="Show payments">
-        {STATUS_FILTERS.map((f) => (
-          <button key={f} type="button" aria-pressed={filter === f} onClick={() => setFilter(f)}>
-            {f === "all" ? "All" : f[0]!.toUpperCase() + f.slice(1)}
-          </button>
-        ))}
-      </div>
-      {rows.length === 0 ? (
-        <p className="ah-empty">Nothing here. That is a good sign.</p>
-      ) : (
+    <Card title="Purchases" id="ah-billing" aside={live ? <LiveBadge /> : undefined}>
+      {live ? (
         <div className="ah-tablewrap">
           <table className="ah-table">
             <thead>
               <tr>
-                <th scope="col">Learner</th>
-                <th scope="col" className="ah-hide-sm">Plan</th>
-                <th scope="col" className="ah-hide-sm">Date</th>
-                <th scope="col" className="ah-num">Amount</th>
+                <th scope="col">Plan</th>
+                <th scope="col" className="ah-hide-sm">Type</th>
+                <th scope="col">Date</th>
                 <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {data.purchases.map((r) => (
                 <tr key={r.id}>
-                  <th scope="row">
-                    {r.who}
-                    <span className="ah-sub">{r.id}</span>
-                  </th>
-                  <td className="ah-hide-sm">{r.plan}</td>
-                  <td className="ah-hide-sm">{r.date}</td>
-                  <td className="ah-num">{formatMoney(r.cents)}</td>
+                  <th scope="row">{PLAN_LABEL[r.plan] ?? r.plan}</th>
+                  <td className="ah-hide-sm">{r.kind === "pass" ? "One-off pass" : "Subscription"}</td>
+                  <td>{new Date(r.at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}</td>
                   <td>
-                    <span className={`ah-pill is-${r.status === "paid" ? "good" : r.status === "pending" ? "info" : "warn"}`}>{r.status === "failed" ? "Needs a retry" : r.status[0]!.toUpperCase() + r.status.slice(1)}</span>
+                    <span className={`ah-pill is-${["active", "trialing", "complete"].includes(r.status) ? "good" : "info"}`}>{r.status[0]!.toUpperCase() + r.status.slice(1).replace(/_/g, " ")}</span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      ) : (
+        <p className="ah-empty">No data, example. Purchases list here once figures are read and the staff read migration is applied.</p>
       )}
+      <SourceNote live={live} source="entitlements table, newest 20 rows, plan and status only; amounts are held by Stripe" why="Needs the staff read migration, applied once." />
     </Card>
-  );
-}
-
-/* ------------------------------------------------------------------ side column */
-
-function SideColumn({ data }: { data: AdminHomeData }) {
-  const next = data.payouts[0]!;
-  return (
-    <div className="ah-side">
-      <Card title="Payouts" aside={<SampleTag data={data} part="payouts" />}>
-        <p className="ah-muted">Next payout</p>
-        <p className="ah-big ah-big--sm">{formatMoney(next.cents)}</p>
-        <p className="ah-muted">{next.due}</p>
-        <ul className="ah-payouts">
-          {data.payouts.slice(1).map((p) => (
-            <li key={p.id}>
-              <span>{p.due}</span>
-              <span className="ah-num">{formatMoney(p.cents)}</span>
-              <span className={`ah-pill is-${p.status === "paid" ? "good" : "info"}`}>{p.status}</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-    </div>
   );
 }
 
@@ -645,20 +586,19 @@ interface Attention {
   action: string;
 }
 
-/** What wants a decision, worked out from the data so it never drifts from the cards below. */
+/** What wants a decision. Only parts read from the database count; an example tile never raises a flag. */
 function attentionItems(data: AdminHomeData): Attention[] {
   const out: Attention[] = [];
-  const failed = data.invoices.filter((i) => i.status === "failed").length;
-  if (failed > 0) out.push({ id: "pay", icon: "card", tone: "amber", text: `${failed} ${failed === 1 ? "payment needs" : "payments need"} another try`, to: "#ah-billing", action: "Open billing" });
-  const slow = data.services.filter((s) => s.state !== "up");
-  for (const s of slow) out.push({ id: `svc-${s.id}`, icon: "server", tone: "amber", text: `${s.name} is ${s.state === "slow" ? "a little slow" : "down"}`, to: "#ah-system", action: "See status" });
-  const flags = data.feed.filter((f) => f.kind === "flag").length;
-  if (flags > 0) out.push({ id: "flag", icon: "flag", tone: "blue", text: `${flags} flagged ${flags === 1 ? "question" : "questions"} to review`, to: "#ah-feed", action: "See activity" });
+  if (isLive(data, "feed")) {
+    const flags = data.feed.filter((f) => f.kind === "flag").length;
+    if (flags > 0) out.push({ id: "flag", icon: "flag", tone: "blue", text: `${flags} flagged ${flags === 1 ? "question" : "questions"} to review`, to: "#ah-feed", action: "See activity" });
+  }
   return out;
 }
 
 function NeedsYou({ data }: { data: AdminHomeData }) {
   const items = attentionItems(data);
+  const checked = isLive(data, "feed");
   const jump = (to: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     document.querySelector(to)?.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "start" });
@@ -666,8 +606,9 @@ function NeedsYou({ data }: { data: AdminHomeData }) {
   return (
     <section className={`ah-need${items.length === 0 ? " is-calm" : ""}`} aria-labelledby="ah-need-h" id="ah-need">
       <h2 id="ah-need-h" className="ah-need__title">
-        {items.length === 0 ? "All calm. Nothing needs you." : `${items.length} ${items.length === 1 ? "thing needs" : "things need"} you`}
+        {items.length === 0 ? (checked ? "All calm. Nothing needs you." : "Nothing to check yet.") : `${items.length} ${items.length === 1 ? "thing needs" : "things need"} you`}
       </h2>
+      <p className="ah-muted">{checked ? "Checked: sign-ups and lessons. Payments and system status are not connected, so they are not checked." : "Nothing is checked until figures are read. Payments and system status are not connected."}</p>
       {items.length > 0 ? (
         <ul className="ah-need__list">
           {items.map((i) => (
@@ -692,6 +633,39 @@ function NeedsYou({ data }: { data: AdminHomeData }) {
 function greeting(): string {
   const h = new Date().getHours();
   return h < 5 ? "Still up" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
+/* ------------------------------------------------------------------ connect banner */
+
+type FailReason = "no-supabase" | "signed-out" | "blocked" | "error";
+
+const CONNECT_COPY: Record<FailReason | "checking", { title: string; body: string }> = {
+  checking: { title: "Checking your session", body: "Reading your admin session. Real figures appear here when it is found." },
+  "signed-out": { title: "No admin session read", body: "Every number on this page comes from the database. Without an admin session, tiles show a dashed example, never a guess." },
+  blocked: { title: "This account cannot read the figures", body: "The server refused the read. Check that this account is staff, or apply the staff read migration." },
+  error: { title: "Figures did not load", body: "The read failed. Nothing below is real until it succeeds." },
+  "no-supabase": { title: "No database in this build", body: "This build has no Supabase connection, so nothing here can be real." },
+};
+
+/** The one place the page says why nothing is live, with the one action that fixes it. */
+function ConnectBanner({ reason, onRetry }: { reason: FailReason | "ok" | null; onRetry: () => void }) {
+  const key: FailReason | "checking" = reason === null || reason === "ok" ? "checking" : reason;
+  const c = CONNECT_COPY[key];
+  return (
+    <section className="ah-connect" aria-labelledby="ah-connect-h" data-testid="connect-banner">
+      <div>
+        <h2 id="ah-connect-h" className="ah-connect__title">
+          {c.title}
+        </h2>
+        <p className="ah-muted">{c.body}</p>
+      </div>
+      {key === "error" || key === "blocked" ? (
+        <button type="button" className="ah-connect__act" onClick={onRetry}>
+          Try again
+        </button>
+      ) : null}
+    </section>
+  );
 }
 
 /* ------------------------------------------------------------------ date selector */
@@ -767,7 +741,7 @@ export default function AdminHome({ data: injected }: { readonly data?: AdminHom
   const [now, setNow] = useState(() => new Date());
   const [period, setPeriod] = useState<Period>(() => presetPeriod("30", new Date()));
   const [preset, setPreset] = useState<PresetId | null>("30");
-  const [notice, setNotice] = useState<string>("");
+  const [reason, setReason] = useState<FailReason | "ok" | null>(null);
   const [live, setLive] = useState<AdminHomeData | null>(null);
 
   const sample = useMemo(() => sampleView(sampleAdminHome, period, now), [period, now]);
@@ -780,18 +754,10 @@ export default function AdminHome({ data: injected }: { readonly data?: AdminHom
     setNow(at);
     if (res.ok) {
       setLive(res.data);
-      setNotice("");
+      setReason("ok");
     } else {
       setLive(null);
-      setNotice(
-        res.reason === "signed-out"
-          ? "Sign in as an admin to see live figures. Showing sample data."
-          : res.reason === "no-supabase"
-            ? "This build has no Supabase connection. Showing sample data."
-            : res.reason === "blocked"
-              ? "The server did not let this account read the figures. Showing sample data."
-              : "Live figures did not load. Showing sample data.",
-      );
+      setReason(res.reason);
     }
   }, [period, injected]);
 
@@ -805,30 +771,35 @@ export default function AdminHome({ data: injected }: { readonly data?: AdminHom
   const days = periodDays(period);
   return (
     <div className="ah">
-      <SideNav data={data} />
+      <SideNav current="home" />
       <main className="ah-main" id="ah-main">
         <header className="ah-hello">
           <div>
             <h1 className="ah-hello__title">{greeting()}, Andrew</h1>
             <p className="ah-muted" id="ah-today">
-              {data.today.learningNow.toLocaleString("en-US")} learning right now, {data.today.activeToday.toLocaleString("en-US")} active today. Showing {days === 1 ? periodLabel(period, now).toLowerCase() : `${days} days`}.
+              {isLive(data, "today")
+                ? `${data.today.learningNow.toLocaleString("en-US")} learning right now, ${data.today.activeToday.toLocaleString("en-US")} active today. `
+                : "Nothing read yet. "}
+              Showing {days === 1 ? periodLabel(period, now).toLowerCase() : `${days} days`}.
+            </p>
+            <p className="ah-source" data-testid="today-source">
+              {isLive(data, "today") ? `Source: ${SOURCES.today}.` : "Live counts appear once figures are read."}
             </p>
           </div>
           {data.source === "sample" ? (
             <span className="ah-chip" role="note">
-              Sample data, not live
+              No data, example
             </span>
           ) : (
             <span className="ah-chip is-live" role="note">
-              Live where marked, the rest is sample. {data.asOf}
+              {data.liveParts.length} {data.liveParts.length === 1 ? "part" : "parts"} live. {data.asOf}
             </span>
           )}
+          <a className="ah-open" href={hrefForTab("pathway")}>
+            Open the app
+          </a>
         </header>
-        {notice ? (
-          <p className="ah-note" role="status">
-            {notice}
-          </p>
-        ) : null}
+        {data.liveParts.length === 0 ? <ConnectBanner reason={injected ? "signed-out" : reason} onRetry={() => void load()} /> : null}
 
         <PeriodBar
           period={period}
@@ -844,19 +815,16 @@ export default function AdminHome({ data: injected }: { readonly data?: AdminHom
           }}
         />
 
-        <Hero data={data} days={days} />
-
         <ul className="ah-strip" aria-label="The numbers that matter">
           {data.stats.filter((s) => s.id !== "revenue").map((s) => (
-            <StatCellView key={s.id} cell={s} live={data.liveParts.includes(`stat:${s.id}`)} sampleOnly={data.source === "sample"} />
+            <StatCellView key={s.id} cell={s} live={data.liveParts.includes(`stat:${s.id}`)} />
           ))}
         </ul>
 
         <NeedsYou data={data} />
 
-        <div className="ah-cols">
+        <div className="ah-cols ah-cols--solo">
           <GrowthChart data={data} />
-          <SideColumn data={data} />
         </div>
 
         <div className="ah-cols ah-cols--even">
@@ -869,9 +837,21 @@ export default function AdminHome({ data: injected }: { readonly data?: AdminHom
         </Suspense>
 
         <div className="ah-cols ah-cols--even">
-          <System data={data} />
           <Billing data={data} />
+          <NotConnected />
         </div>
+      </main>
+    </div>
+  );
+}
+
+/** The dashboard's frame (sidebar that hides, plus the page) around any other admin page. */
+export function AdminShell({ current, children }: { current: string; children: React.ReactNode }) {
+  return (
+    <div className="ah">
+      <SideNav current={current} />
+      <main className="ah-main" id="ah-main">
+        {children}
       </main>
     </div>
   );

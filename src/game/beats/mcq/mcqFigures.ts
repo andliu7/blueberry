@@ -79,6 +79,7 @@ import { U10_OPTION_TILES, U10_VISUALS } from "../../content/u10";
 // Unit 0 ("Start here") draft drawings, scripts/u0_pools.py (ADDED 2026-10-17).
 import { U0_OPTION_TILES, U0_VISUALS } from "../../content/u0";
 import { U2_OPTION_TILES, U2_VISUALS } from "../../content/u2";
+import { U2T_OPTION_TILES, U2T_VISUALS } from "../../content/u2tools";
 
 /* ------------------------------------------------------------------ */
 /* The three shapes                                                     */
@@ -715,7 +716,7 @@ export function mcqVisualFor(beatId: string): McqVisual | null {
   // Unit 1's draft pools carry their own drawings (content/u1), keyed by
   // their own beat ids; the keys below stay this table's, which the suite
   // holds to MCQ_BEATS. test/u1Pools.test.ts holds the pool tables.
-  return VISUALS[beatId] ?? U1_VISUALS[beatId] ?? U2_VISUALS[beatId] ?? U3_VISUALS[beatId] ?? U4_VISUALS[beatId] ?? U5_VISUALS[beatId] ?? U6_VISUALS[beatId] ?? U7_VISUALS[beatId] ?? U8_VISUALS[beatId] ?? U9_VISUALS[beatId] ?? U10_VISUALS[beatId] ?? U0_VISUALS[beatId] ?? null;
+  return VISUALS[beatId] ?? U1_VISUALS[beatId] ?? U2_VISUALS[beatId] ?? U2T_VISUALS[beatId] ?? U3_VISUALS[beatId] ?? U4_VISUALS[beatId] ?? U5_VISUALS[beatId] ?? U6_VISUALS[beatId] ?? U7_VISUALS[beatId] ?? U8_VISUALS[beatId] ?? U9_VISUALS[beatId] ?? U10_VISUALS[beatId] ?? U0_VISUALS[beatId] ?? null;
 }
 
 /** Every beat id the table draws, for the suite. */
@@ -860,7 +861,7 @@ export function mcqOptionTiles(
   beatId: string,
   optionIds: readonly string[],
 ): Readonly<Record<string, NamedFigure>> | null {
-  const table = OPTION_FIGURES[beatId] ?? U1_OPTION_TILES[beatId] ?? U2_OPTION_TILES[beatId] ?? U3_OPTION_TILES[beatId] ?? U4_OPTION_TILES[beatId] ?? U5_OPTION_TILES[beatId] ?? U6_OPTION_TILES[beatId] ?? U7_OPTION_TILES[beatId] ?? U8_OPTION_TILES[beatId] ?? U9_OPTION_TILES[beatId] ?? U10_OPTION_TILES[beatId] ?? U0_OPTION_TILES[beatId];
+  const table = OPTION_FIGURES[beatId] ?? U1_OPTION_TILES[beatId] ?? U2_OPTION_TILES[beatId] ?? U2T_OPTION_TILES[beatId] ?? U3_OPTION_TILES[beatId] ?? U4_OPTION_TILES[beatId] ?? U5_OPTION_TILES[beatId] ?? U6_OPTION_TILES[beatId] ?? U7_OPTION_TILES[beatId] ?? U8_OPTION_TILES[beatId] ?? U9_OPTION_TILES[beatId] ?? U10_OPTION_TILES[beatId] ?? U0_OPTION_TILES[beatId];
   if (table === undefined) return null;
   return optionIds.every((id) => table[id] !== undefined) ? table : null;
 }
