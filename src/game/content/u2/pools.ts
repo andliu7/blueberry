@@ -3353,6 +3353,319 @@ export const U2_POOLS: UnitPools = {
   ],
   "u2-nomen": [
     {
+      "id": "u2-nom-res-donor",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-res-donor",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Anisole's O lone pair spreads into the ring. Where does the negative charge land.",
+          "correctOptionId": "op",
+          "options": [
+            {
+              "id": "m",
+              "text": "Meta only",
+              "why": "Meta is two bonds from the OCH3 carbon. The charge moves in steps of one double bond, so it skips the meta carbons."
+            },
+            {
+              "id": "all",
+              "text": "Every ring carbon",
+              "why": "The charge moves along alternating bonds and cannot reach every carbon. Meta is left out."
+            },
+            {
+              "id": "op",
+              "text": "Ortho and para",
+              "why": "The pair moves a double bond over each time, so the charge lands one bond (ortho) and three bonds (para) from the OCH3 carbon."
+            }
+          ]
+        }
+      },
+      "explanation": "A donor like OCH3 or OH puts negative charge on the ortho and para carbons. That is why o and p are the positions that matter.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-res-wd",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-res-wd",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Nitro pulls electrons out of the ring. Which carbons turn electron poor.",
+          "correctOptionId": "op",
+          "options": [
+            {
+              "id": "m",
+              "text": "Meta",
+              "why": "Meta is two bonds from the nitro carbon, so the positive charge skips it. Meta is the least electron poor carbon."
+            },
+            {
+              "id": "op",
+              "text": "Ortho and para",
+              "why": "Pulling the pair toward N moves a double bond over each time, so the positive charge lands one and three bonds from the nitro carbon."
+            },
+            {
+              "id": "all",
+              "text": "All five carbons",
+              "why": "The charge alternates round the ring. It never lands on meta, so meta stays out."
+            }
+          ]
+        }
+      },
+      "explanation": "An acceptor like NO2 makes the ortho and para carbons electron poor. Meta is left as the least poor position.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-eas-donor",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-eas-donor",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "CH3 donates electrons. Nitrating toluene puts NO2 mainly where.",
+          "correctOptionId": "op",
+          "options": [
+            {
+              "id": "eq",
+              "text": "An equal mix of o, m and p",
+              "why": "A donor steers the attack. The ortho and para carbons are richer in electrons, so they win."
+            },
+            {
+              "id": "m",
+              "text": "Meta (3-nitrotoluene)",
+              "why": "Meta is the carbon the donor does not enrich. It is the minor product."
+            },
+            {
+              "id": "op",
+              "text": "Ortho and para (2- and 4-)",
+              "why": "The donor makes ortho and para the most electron rich carbons, so the electrophile adds there."
+            }
+          ]
+        }
+      },
+      "explanation": "Donors direct electrophilic substitution to ortho and para. The products are named 2- or o-nitrotoluene and 4- or p-nitrotoluene.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-eas-wd",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-eas-wd",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "NO2 pulls electrons. Brominating nitrobenzene gives mainly which product.",
+          "correctOptionId": "m",
+          "options": [
+            {
+              "id": "o",
+              "text": "1-Bromo-2-nitrobenzene",
+              "why": "Ortho is one of the electron poor carbons, so the electrophile avoids it."
+            },
+            {
+              "id": "p",
+              "text": "1-Bromo-4-nitrobenzene",
+              "why": "Para is one of the electron poor carbons, so the electrophile avoids it."
+            },
+            {
+              "id": "m",
+              "text": "1-Bromo-3-nitrobenzene",
+              "why": "Meta is the least electron poor carbon, so the electrophile adds there. The 1,3 pattern is m-bromonitrobenzene."
+            }
+          ]
+        }
+      },
+      "explanation": "Acceptors direct electrophilic substitution to meta. The product is 1-bromo-3-nitrobenzene, m-bromonitrobenzene.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-eas-halogen",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-eas-halogen",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Cl pulls electrons but has lone pairs. Nitrating chlorobenzene puts NO2 where.",
+          "correctOptionId": "op",
+          "options": [
+            {
+              "id": "m",
+              "text": "Meta",
+              "why": "Cl does have lone pairs to share with the ring. They put charge on ortho and para, so meta is not where it steers."
+            },
+            {
+              "id": "none",
+              "text": "Nowhere, the ring will not react",
+              "why": "Cl slows the reaction but does not stop it. It still reacts, only more slowly than benzene."
+            },
+            {
+              "id": "op",
+              "text": "Ortho and para",
+              "why": "Cl's lone pairs put charge on the ortho and para carbons, so it steers there even though it slows the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "Halogens are the exception. They slow the ring down (deactivating) but still direct ortho and para, because their lone pairs share into the ring.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-rate",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-rate",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "NO2+ attacks a ring. Pick the ring that nitrates fastest.",
+          "correctOptionId": "tol",
+          "options": [
+            {
+              "id": "nb",
+              "text": "Nitrobenzene",
+              "why": "NO2 pulls electrons out, so this ring is the poorest at attacking. It nitrates slowest."
+            },
+            {
+              "id": "bz",
+              "text": "Benzene",
+              "why": "Benzene is the baseline. A donor on the ring makes it react faster than this."
+            },
+            {
+              "id": "tol",
+              "text": "Toluene",
+              "why": "CH3 donates electrons, so the ring is richer than benzene and nitrates fastest."
+            }
+          ]
+        }
+      },
+      "explanation": "Donors activate the ring, so it reacts faster than benzene. Acceptors deactivate it, so it reacts slower. Fastest to slowest here: toluene, benzene, nitrobenzene.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-snar",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-snar",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "A nucleophile replaces Cl only if NO2 can hold the charge. Pick the ring that reacts.",
+          "brief": "NO2 must be ortho or para to the Cl",
+          "correctOptionId": "p",
+          "options": [
+            {
+              "id": "cl",
+              "text": "Chlorobenzene",
+              "why": "No group on the ring to take the negative charge, so it does not react."
+            },
+            {
+              "id": "p",
+              "text": "1-Chloro-4-nitrobenzene",
+              "why": "NO2 sits para to Cl. It can take the negative charge that builds up, so this ring reacts."
+            },
+            {
+              "id": "m",
+              "text": "1-Chloro-3-nitrobenzene",
+              "why": "NO2 is meta to Cl. The negative charge skips the meta carbon, so NO2 cannot help."
+            }
+          ]
+        }
+      },
+      "explanation": "In nucleophilic aromatic substitution an acceptor must be ortho or para to the leaving group. Meta does not help.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-why-numbers",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-why-numbers",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "This name is 4-chloro-2-nitrotoluene. Why numbers and not o, m or p.",
+          "correctOptionId": "three",
+          "options": [
+            {
+              "id": "cl",
+              "text": "Halogens always take numbers",
+              "why": "Halogens take o, m or p in a two group name like p-dichlorobenzene. The group count decides here."
+            },
+            {
+              "id": "no",
+              "text": "Nitro groups always take numbers",
+              "why": "Nitro can be o, m or p too, as in m-dinitrobenzene. The group count decides here."
+            },
+            {
+              "id": "three",
+              "text": "Three groups are on the ring",
+              "why": "o, m and p compare exactly two groups. With three or more, number the ring."
+            }
+          ]
+        }
+      },
+      "explanation": "Use o, m or p only when two groups are on the ring. With three or more, give each group a number.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
       "id": "u2-nom-xylene",
       "item": {
         "kind": "mcq",
@@ -3388,7 +3701,7 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "Ortho is 1,2 (next door), meta is 1,3 (one carbon between), para is 1,4 (across the ring).",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3427,46 +3740,7 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "Count the ring bonds between the two groups: one is ortho, two is meta, three is para.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u2-nom-para",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u2-nom-para",
-          "node": "u2-nomen",
-          "conceptIds": [
-            "iupac_nomenclature"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick p-dichlorobenzene.",
-          "correctOptionId": "p",
-          "options": [
-            {
-              "id": "o",
-              "text": "1,2-Dichlorobenzene",
-              "why": "Neighbouring carbons, 1,2: that is ortho."
-            },
-            {
-              "id": "m",
-              "text": "1,3-Dichlorobenzene",
-              "why": "One carbon between, 1,3: that is meta."
-            },
-            {
-              "id": "p",
-              "text": "1,4-Dichlorobenzene",
-              "why": "Straight across the ring, 1,4: para."
-            }
-          ]
-        }
-      },
-      "explanation": "Para is the 1,4 pattern, the two groups straight across the ring.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3505,85 +3779,7 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "Phenol is benzene with OH, aniline with NH2, anisole with OCH3.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u2-nom-acetophenone",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u2-nom-acetophenone",
-          "node": "u2-nomen",
-          "conceptIds": [
-            "iupac_nomenclature"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Pick acetophenone.",
-          "correctOptionId": "ket",
-          "options": [
-            {
-              "id": "acid",
-              "text": "Benzoic acid",
-              "why": "Benzoic acid has COOH on the ring. Acetophenone is a ketone."
-            },
-            {
-              "id": "ket",
-              "text": "Acetophenone",
-              "why": "A C=O between the ring and a methyl group: a methyl ketone on benzene, acetophenone."
-            },
-            {
-              "id": "ald",
-              "text": "Benzaldehyde",
-              "why": "Benzaldehyde has CHO, an H on the carbonyl carbon. Acetophenone has a methyl there."
-            }
-          ]
-        }
-      },
-      "explanation": "Benzaldehyde is CHO on benzene, acetophenone is COCH3, benzoic acid is COOH.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
-      "placeholder": true
-    },
-    {
-      "id": "u2-nom-styrene",
-      "item": {
-        "kind": "mcq",
-        "beat": {
-          "kind": "mcq",
-          "id": "u2-nom-styrene",
-          "node": "u2-nomen",
-          "conceptIds": [
-            "iupac_nomenclature"
-          ],
-          "levels": [
-            1
-          ],
-          "prompt": "Name this compound.",
-          "correctOptionId": "sty",
-          "options": [
-            {
-              "id": "tol",
-              "text": "Toluene",
-              "why": "Toluene has a single CH3 on the ring. This group has two carbons and a C=C."
-            },
-            {
-              "id": "eth",
-              "text": "Ethylbenzene",
-              "why": "Ethylbenzene's two carbons are joined by a single bond. Here they share a double bond."
-            },
-            {
-              "id": "sty",
-              "text": "Styrene",
-              "why": "A vinyl group, CH=CH2, on benzene is styrene."
-            }
-          ]
-        }
-      },
-      "explanation": "Toluene is methylbenzene, ethylbenzene has CH2CH3, styrene has CH=CH2.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3622,16 +3818,16 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "COOH on benzene is benzoic acid. Read what sits on the carbonyl carbon: H, CH3 or OH.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-nom-anthracene",
+      "id": "u2-nom-benzyl",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-nom-anthracene",
+          "id": "u2-nom-benzyl",
           "node": "u2-nomen",
           "conceptIds": [
             "iupac_nomenclature"
@@ -3639,38 +3835,38 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Pick anthracene.",
-          "correctOptionId": "ant",
+          "prompt": "Benzyl is C6H5CH2. Pick benzyl chloride.",
+          "correctOptionId": "bn",
           "options": [
             {
-              "id": "phe",
-              "text": "Phenanthrene",
-              "why": "Phenanthrene's three rings bend at the middle ring, like an elbow."
+              "id": "cb",
+              "text": "Chlorobenzene",
+              "why": "Cl sits straight on the ring here, with no CH2 in between. That is not benzyl."
             },
             {
-              "id": "nap",
-              "text": "Naphthalene",
-              "why": "Naphthalene has only two fused rings."
+              "id": "ct",
+              "text": "2-Chlorotoluene",
+              "why": "Cl is on the ring and the CH3 is a separate group. Benzyl has Cl on the CH2."
             },
             {
-              "id": "ant",
-              "text": "Anthracene",
-              "why": "Three rings fused in a straight row: anthracene."
+              "id": "bn",
+              "text": "Benzyl chloride",
+              "why": "The ring carries a CH2, and the Cl is on that CH2. Ring plus CH2 is benzyl."
             }
           ]
         }
       },
-      "explanation": "Naphthalene has two fused rings. Anthracene has three in a line; phenanthrene has three with a bend.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Phenyl is the ring itself as a branch, C6H5. Benzyl is the ring plus one CH2, C6H5CH2.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-nom-phenanthrene",
+      "id": "u2-nom-phenyl",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-nom-phenanthrene",
+          "id": "u2-nom-phenyl",
           "node": "u2-nomen",
           "conceptIds": [
             "iupac_nomenclature"
@@ -3678,29 +3874,224 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Name this fused ring system.",
-          "correctOptionId": "phe",
+          "prompt": "Name this compound. The ring is a branch.",
+          "correctOptionId": "pe",
           "options": [
             {
-              "id": "ant",
-              "text": "Anthracene",
-              "why": "Anthracene's three rings run in a straight line. These bend at the middle ring."
+              "id": "pe",
+              "text": "2-Phenylethanol",
+              "why": "Phenyl is the ring as a branch. Two CH2 carbons carry the OH, so ethanol is the parent."
             },
             {
-              "id": "phe",
-              "text": "Phenanthrene",
-              "why": "Three fused rings with a bend at the middle one: phenanthrene."
+              "id": "bo",
+              "text": "Benzyl alcohol",
+              "why": "Benzyl alcohol has only one CH2 between the ring and the OH. This one has two."
             },
             {
-              "id": "nap",
-              "text": "Naphthalene",
-              "why": "Naphthalene has two rings. Count again: there are three here."
+              "id": "ph",
+              "text": "Phenol",
+              "why": "Phenol has OH straight on the ring. Here CH2CH2 sits between them."
             }
           ]
         }
       },
-      "explanation": "Three fused rings: straight is anthracene, bent is phenanthrene.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "explanation": "When the chain is the parent, the ring is a phenyl branch. Number the chain from the OH end.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-benzoic-subs",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-benzoic-subs",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound. COOH sets the parent.",
+          "correctOptionId": "b",
+          "options": [
+            {
+              "id": "a",
+              "text": "4-Bromo-3-methylbenzoic acid",
+              "why": "The groups are swapped. The Br is the one meta to COOH, the CH3 the one para."
+            },
+            {
+              "id": "b",
+              "text": "3-Bromo-4-methylbenzoic acid",
+              "why": "COOH carbon is C1. Br is two bonds round at C3, CH3 is straight across at C4."
+            },
+            {
+              "id": "c",
+              "text": "2-Bromo-4-methylbenzoic acid",
+              "why": "That name puts the Br right next to the COOH carbon. In the drawing one carbon sits between them."
+            }
+          ]
+        }
+      },
+      "explanation": "The principal group (COOH) takes C1. Then number the short way round to give the lowest locants, and list prefixes alphabetically.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-dinitrophenol",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-dinitrophenol",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound.",
+          "correctOptionId": "c",
+          "options": [
+            {
+              "id": "c",
+              "text": "2,4-Dinitrophenol",
+              "why": "OH is C1. One NO2 is next door at C2 and the other is straight across at C4."
+            },
+            {
+              "id": "a",
+              "text": "2,5-Dinitrophenol",
+              "why": "The second NO2 is straight across from the OH, which is C4, not C5."
+            },
+            {
+              "id": "b",
+              "text": "3,5-Dinitrophenol",
+              "why": "Both NO2 would be meta to the OH. The drawing has one right next door."
+            }
+          ]
+        }
+      },
+      "explanation": "Phenol's OH carbon is C1. Number toward the nearest group to get the lowest locants: 2,4.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-nitroaniline",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-nitroaniline",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound. Nitro is only a prefix.",
+          "correctOptionId": "a",
+          "options": [
+            {
+              "id": "c",
+              "text": "4-Aminonitrobenzene",
+              "why": "NH2 outranks NO2, so the amine sets the parent. Nitro is always just a prefix."
+            },
+            {
+              "id": "b",
+              "text": "3-Nitroaniline",
+              "why": "The groups are straight across the ring, 1,4. Meta would be 1,3."
+            },
+            {
+              "id": "a",
+              "text": "4-Nitroaniline",
+              "why": "NH2 makes the parent, aniline, and its carbon is C1. NO2 is straight across at C4."
+            }
+          ]
+        }
+      },
+      "explanation": "Aniline is benzene with NH2. The amine outranks nitro, so it is the parent and nitro is a numbered prefix.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-anisole",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-anisole",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound.",
+          "correctOptionId": "an",
+          "options": [
+            {
+              "id": "tol",
+              "text": "Toluene",
+              "why": "Toluene has CH3 on the ring. This group has an O between the ring and the CH3."
+            },
+            {
+              "id": "ph",
+              "text": "Phenol",
+              "why": "Phenol is OH on the ring. This O carries a CH3, not an H."
+            },
+            {
+              "id": "an",
+              "text": "Anisole",
+              "why": "Methoxy (OCH3) on benzene is anisole."
+            }
+          ]
+        }
+      },
+      "explanation": "Anisole is benzene with OCH3. Phenol has OH, toluene has CH3.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-benzaldehyde",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-benzaldehyde",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound.",
+          "correctOptionId": "ald",
+          "options": [
+            {
+              "id": "ald",
+              "text": "Benzaldehyde",
+              "why": "CHO on benzene, with an H on the carbonyl carbon, is benzaldehyde."
+            },
+            {
+              "id": "ket",
+              "text": "Acetophenone",
+              "why": "Acetophenone has a CH3 on the carbonyl carbon. This one has an H."
+            },
+            {
+              "id": "acid",
+              "text": "Benzoic acid",
+              "why": "Benzoic acid has an OH on the carbonyl carbon. This one has an H."
+            }
+          ]
+        }
+      },
+      "explanation": "Read what sits on the carbonyl carbon: H is benzaldehyde, CH3 is acetophenone, OH is benzoic acid.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3739,7 +4130,7 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "When the parent is phenol, the OH carbon is C1 and the other group gets the lowest number from there.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -3778,16 +4169,16 @@ export const U2_POOLS: UnitPools = {
         }
       },
       "explanation": "With toluene as the parent, the CH3 carbon is C1.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
-      "id": "u2-nom-iupac-xylene",
+      "id": "u2-nom-tribromo",
       "item": {
         "kind": "mcq",
         "beat": {
           "kind": "mcq",
-          "id": "u2-nom-iupac-xylene",
+          "id": "u2-nom-tribromo",
           "node": "u2-nomen",
           "conceptIds": [
             "iupac_nomenclature"
@@ -3795,29 +4186,68 @@ export const U2_POOLS: UnitPools = {
           "levels": [
             1
           ],
-          "prompt": "Pick the IUPAC name for m-xylene.",
-          "correctOptionId": "13",
+          "prompt": "Name this compound.",
+          "correctOptionId": "246",
           "options": [
             {
-              "id": "12",
-              "text": "1,2-Dimethylbenzene",
-              "why": "1,2 is next door: ortho, o-xylene."
+              "id": "345",
+              "text": "3,4,5-Tribromotoluene",
+              "why": "Nothing in this name sits next to the CH3 carbon. The drawing has two Br groups beside it."
             },
             {
-              "id": "14",
-              "text": "1,4-Dimethylbenzene",
-              "why": "1,4 is straight across: para, p-xylene."
+              "id": "246",
+              "text": "2,4,6-Tribromotoluene",
+              "why": "CH3 carbon is C1. Both neighbours (C2, C6) and the carbon across (C4) carry Br."
             },
             {
-              "id": "13",
-              "text": "1,3-Dimethylbenzene",
-              "why": "Meta is 1,3, one carbon between the two methyls."
+              "id": "245",
+              "text": "2,4,5-Tribromotoluene",
+              "why": "Both carbons beside the CH3 carbon hold Br here, so the numbers are 2 and 6, not 2 and 5."
             }
           ]
         }
       },
-      "explanation": "Each prefix has a number pattern: ortho 1,2, meta 1,3, para 1,4.",
-      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "explanation": "Toluene is the parent, so the CH3 carbon is C1. Then number the way that gives the lowest locants: 2,4,6.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u2-nom-alphabetical",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u2-nom-alphabetical",
+          "node": "u2-nomen",
+          "conceptIds": [
+            "iupac_nomenclature"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Name this compound. Neither group is a parent name.",
+          "correctOptionId": "a",
+          "options": [
+            {
+              "id": "b",
+              "text": "2-Ethyl-1-methylbenzene",
+              "why": "The locants are right but the order is not. Alphabetical order gives ethyl the lower number."
+            },
+            {
+              "id": "c",
+              "text": "1-Ethyl-3-methylbenzene",
+              "why": "That puts the groups meta. The drawing has them next door."
+            },
+            {
+              "id": "a",
+              "text": "1-Ethyl-2-methylbenzene",
+              "why": "Lowest locants are 1,2 either way. Ethyl comes before methyl alphabetically, so ethyl is C1."
+            }
+          ]
+        }
+      },
+      "explanation": "Take the lowest locants. If they tie, the group that comes first alphabetically gets the lower number.",
+      "provenance": "scripts/u2_pools.py: names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance. OpenStax Organic Chemistry 15.1 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
   ],
@@ -8460,6 +8890,594 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "the ppm scale: more shielded is further right"
   },
+  "u2-nom-res-donor": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 58.0,
+          "x2": 30.8,
+          "y2": 68.8
+        },
+        {
+          "x1": 41.2,
+          "y1": 68.8,
+          "x2": 60.0,
+          "y2": 57.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 57.9,
+          "x2": 84.0,
+          "y2": 71.6,
+          "order": 2
+        },
+        {
+          "x1": 84.0,
+          "y1": 71.6,
+          "x2": 108.0,
+          "y2": 57.7
+        },
+        {
+          "x1": 108.0,
+          "y1": 57.7,
+          "x2": 107.9,
+          "y2": 30.0,
+          "order": 2
+        },
+        {
+          "x1": 107.9,
+          "y1": 30.0,
+          "x2": 83.9,
+          "y2": 16.2
+        },
+        {
+          "x1": 83.9,
+          "y1": 16.2,
+          "x2": 59.9,
+          "y2": 30.1,
+          "order": 2
+        },
+        {
+          "x1": 59.9,
+          "y1": 30.1,
+          "x2": 60.0,
+          "y2": 57.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 36.0,
+          "y": 76.8,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "anisole"
+  },
+  "u2-nom-res-wd": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 50.8,
+          "y1": 18.0,
+          "x2": 54.8,
+          "y2": 20.3
+        },
+        {
+          "x1": 65.2,
+          "y1": 20.3,
+          "x2": 69.1,
+          "y2": 18.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 29.3,
+          "x2": 60.0,
+          "y2": 39.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.9,
+          "x2": 74.4,
+          "y2": 48.1,
+          "order": 2
+        },
+        {
+          "x1": 74.4,
+          "y1": 48.1,
+          "x2": 74.4,
+          "y2": 64.7
+        },
+        {
+          "x1": 74.4,
+          "y1": 64.7,
+          "x2": 60.1,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 60.1,
+          "y1": 73.0,
+          "x2": 45.7,
+          "y2": 64.7
+        },
+        {
+          "x1": 45.7,
+          "y1": 64.7,
+          "x2": 45.7,
+          "y2": 48.2,
+          "order": 2
+        },
+        {
+          "x1": 45.7,
+          "y1": 48.2,
+          "x2": 60.0,
+          "y2": 39.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 45.6,
+          "y": 20.1,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 55.6,
+          "y": 19.6,
+          "t": "−",
+          "size": 15
+        },
+        {
+          "x": 60.0,
+          "y": 28.3,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 70.0,
+          "y": 27.8,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 74.3,
+          "y": 20.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "nitrobenzene"
+  },
+  "u2-nom-eas-donor": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 22.3,
+          "y1": 73.0,
+          "x2": 47.4,
+          "y2": 58.5
+        },
+        {
+          "x1": 47.4,
+          "y1": 58.5,
+          "x2": 47.5,
+          "y2": 29.5,
+          "order": 2
+        },
+        {
+          "x1": 47.5,
+          "y1": 29.5,
+          "x2": 72.6,
+          "y2": 15.0
+        },
+        {
+          "x1": 72.6,
+          "y1": 15.0,
+          "x2": 97.7,
+          "y2": 29.5,
+          "order": 2
+        },
+        {
+          "x1": 97.7,
+          "y1": 29.5,
+          "x2": 97.7,
+          "y2": 58.5
+        },
+        {
+          "x1": 97.7,
+          "y1": 58.5,
+          "x2": 72.5,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 72.5,
+          "y1": 73.0,
+          "x2": 47.4,
+          "y2": 58.5
+        }
+      ]
+    },
+    "name": "toluene"
+  },
+  "u2-nom-eas-wd": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 50.8,
+          "y1": 18.0,
+          "x2": 54.8,
+          "y2": 20.3
+        },
+        {
+          "x1": 65.2,
+          "y1": 20.3,
+          "x2": 69.1,
+          "y2": 18.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 29.3,
+          "x2": 60.0,
+          "y2": 39.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 39.9,
+          "x2": 74.4,
+          "y2": 48.1,
+          "order": 2
+        },
+        {
+          "x1": 74.4,
+          "y1": 48.1,
+          "x2": 74.4,
+          "y2": 64.7
+        },
+        {
+          "x1": 74.4,
+          "y1": 64.7,
+          "x2": 60.1,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 60.1,
+          "y1": 73.0,
+          "x2": 45.7,
+          "y2": 64.7
+        },
+        {
+          "x1": 45.7,
+          "y1": 64.7,
+          "x2": 45.7,
+          "y2": 48.2,
+          "order": 2
+        },
+        {
+          "x1": 45.7,
+          "y1": 48.2,
+          "x2": 60.0,
+          "y2": 39.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 45.6,
+          "y": 20.1,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 55.6,
+          "y": 19.6,
+          "t": "−",
+          "size": 15
+        },
+        {
+          "x": 60.0,
+          "y": 28.3,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 70.0,
+          "y": 27.8,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 74.3,
+          "y": 20.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "nitrobenzene"
+  },
+  "u2-nom-eas-halogen": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 27.5,
+          "y1": 70.0,
+          "x2": 47.4,
+          "y2": 58.5
+        },
+        {
+          "x1": 47.4,
+          "y1": 58.5,
+          "x2": 47.5,
+          "y2": 29.5,
+          "order": 2
+        },
+        {
+          "x1": 47.5,
+          "y1": 29.5,
+          "x2": 72.6,
+          "y2": 15.0
+        },
+        {
+          "x1": 72.6,
+          "y1": 15.0,
+          "x2": 97.7,
+          "y2": 29.5,
+          "order": 2
+        },
+        {
+          "x1": 97.7,
+          "y1": 29.5,
+          "x2": 97.7,
+          "y2": 58.5
+        },
+        {
+          "x1": 97.7,
+          "y1": 58.5,
+          "x2": 72.5,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 72.5,
+          "y1": 73.0,
+          "x2": 47.4,
+          "y2": 58.5
+        }
+      ],
+      "labels": [
+        {
+          "x": 22.3,
+          "y": 78.0,
+          "t": "Cl",
+          "size": 13
+        }
+      ]
+    },
+    "name": "chlorobenzene"
+  },
+  "u2-nom-rate": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 34.0,
+          "y1": 44.0,
+          "x2": 54.0,
+          "y2": 44.0,
+          "order": 2
+        },
+        {
+          "x1": 66.0,
+          "y1": 44.0,
+          "x2": 86.0,
+          "y2": 44.0,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 28.0,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 60.0,
+          "y": 49.0,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 70.0,
+          "y": 48.5,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 92.0,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "NO2+, the attacking group"
+  },
+  "u2-nom-snar": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 34.9,
+          "y1": 58.5,
+          "x2": 34.9,
+          "y2": 29.5
+        },
+        {
+          "x1": 34.9,
+          "y1": 29.5,
+          "x2": 60.0,
+          "y2": 15.0,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 15.0,
+          "x2": 85.1,
+          "y2": 29.5
+        },
+        {
+          "x1": 85.1,
+          "y1": 29.5,
+          "x2": 85.1,
+          "y2": 58.5,
+          "order": 2
+        },
+        {
+          "x1": 85.1,
+          "y1": 58.5,
+          "x2": 60.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 73.0,
+          "x2": 34.9,
+          "y2": 58.5,
+          "order": 2
+        }
+      ]
+    },
+    "name": "benzene, the parent ring"
+  },
+  "u2-nom-why-numbers": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 85.1,
+          "y1": 73.0,
+          "x2": 68.4,
+          "y2": 63.3
+        },
+        {
+          "x1": 68.4,
+          "y1": 63.3,
+          "x2": 51.6,
+          "y2": 73.0
+        },
+        {
+          "x1": 51.6,
+          "y1": 73.0,
+          "x2": 34.9,
+          "y2": 63.3,
+          "order": 2
+        },
+        {
+          "x1": 34.9,
+          "y1": 63.3,
+          "x2": 34.9,
+          "y2": 44.0
+        },
+        {
+          "x1": 34.9,
+          "y1": 44.0,
+          "x2": 23.3,
+          "y2": 37.3
+        },
+        {
+          "x1": 34.9,
+          "y1": 44.0,
+          "x2": 51.6,
+          "y2": 34.3,
+          "order": 2
+        },
+        {
+          "x1": 51.6,
+          "y1": 34.3,
+          "x2": 68.4,
+          "y2": 44.0
+        },
+        {
+          "x1": 68.4,
+          "y1": 44.0,
+          "x2": 79.9,
+          "y2": 37.3
+        },
+        {
+          "x1": 85.1,
+          "y1": 28.3,
+          "x2": 85.1,
+          "y2": 21.0,
+          "order": 2
+        },
+        {
+          "x1": 90.3,
+          "y1": 37.3,
+          "x2": 96.7,
+          "y2": 41.0
+        },
+        {
+          "x1": 68.4,
+          "y1": 44.0,
+          "x2": 68.4,
+          "y2": 63.3,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 18.1,
+          "y": 39.3,
+          "t": "Cl",
+          "size": 13
+        },
+        {
+          "x": 85.1,
+          "y": 39.3,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 95.1,
+          "y": 38.8,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 85.1,
+          "y": 20.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 101.9,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 111.9,
+          "y": 48.5,
+          "t": "−",
+          "size": 15
+        }
+      ]
+    },
+    "name": "4-chloro-2-nitrotoluene"
+  },
   "u2-nom-xylene": {
     "kind": "structure",
     "figure": {
@@ -8592,53 +9610,6 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "a disubstituted benzene"
   },
-  "u2-nom-para": {
-    "kind": "structure",
-    "figure": {
-      "bonds": [
-        {
-          "x1": 34.9,
-          "y1": 58.5,
-          "x2": 34.9,
-          "y2": 29.5
-        },
-        {
-          "x1": 34.9,
-          "y1": 29.5,
-          "x2": 60.0,
-          "y2": 15.0,
-          "order": 2
-        },
-        {
-          "x1": 60.0,
-          "y1": 15.0,
-          "x2": 85.1,
-          "y2": 29.5
-        },
-        {
-          "x1": 85.1,
-          "y1": 29.5,
-          "x2": 85.1,
-          "y2": 58.5,
-          "order": 2
-        },
-        {
-          "x1": 85.1,
-          "y1": 58.5,
-          "x2": 60.0,
-          "y2": 73.0
-        },
-        {
-          "x1": 60.0,
-          "y1": 73.0,
-          "x2": 34.9,
-          "y2": 58.5,
-          "order": 2
-        }
-      ]
-    },
-    "name": "benzene, the parent ring"
-  },
   "u2-nom-phenol": {
     "kind": "structure",
     "figure": {
@@ -8696,113 +9667,6 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
           "t": "HO",
           "size": 13,
           "anchor": "end"
-        }
-      ]
-    },
-    "name": "a monosubstituted benzene"
-  },
-  "u2-nom-acetophenone": {
-    "kind": "structure",
-    "figure": {
-      "bonds": [
-        {
-          "x1": 34.9,
-          "y1": 58.5,
-          "x2": 34.9,
-          "y2": 29.5
-        },
-        {
-          "x1": 34.9,
-          "y1": 29.5,
-          "x2": 60.0,
-          "y2": 15.0,
-          "order": 2
-        },
-        {
-          "x1": 60.0,
-          "y1": 15.0,
-          "x2": 85.1,
-          "y2": 29.5
-        },
-        {
-          "x1": 85.1,
-          "y1": 29.5,
-          "x2": 85.1,
-          "y2": 58.5,
-          "order": 2
-        },
-        {
-          "x1": 85.1,
-          "y1": 58.5,
-          "x2": 60.0,
-          "y2": 73.0
-        },
-        {
-          "x1": 60.0,
-          "y1": 73.0,
-          "x2": 34.9,
-          "y2": 58.5,
-          "order": 2
-        }
-      ]
-    },
-    "name": "benzene, the parent ring"
-  },
-  "u2-nom-styrene": {
-    "kind": "structure",
-    "figure": {
-      "bonds": [
-        {
-          "x1": 12.0,
-          "y1": 58.0,
-          "x2": 36.0,
-          "y2": 71.8,
-          "order": 2
-        },
-        {
-          "x1": 36.0,
-          "y1": 71.8,
-          "x2": 60.0,
-          "y2": 57.9
-        },
-        {
-          "x1": 60.0,
-          "y1": 57.9,
-          "x2": 84.0,
-          "y2": 71.6,
-          "order": 2
-        },
-        {
-          "x1": 84.0,
-          "y1": 71.6,
-          "x2": 108.0,
-          "y2": 57.7
-        },
-        {
-          "x1": 108.0,
-          "y1": 57.7,
-          "x2": 107.9,
-          "y2": 30.0,
-          "order": 2
-        },
-        {
-          "x1": 107.9,
-          "y1": 30.0,
-          "x2": 83.9,
-          "y2": 16.2
-        },
-        {
-          "x1": 83.9,
-          "y1": 16.2,
-          "x2": 59.9,
-          "y2": 30.1,
-          "order": 2
-        },
-        {
-          "x1": 59.9,
-          "y1": 30.1,
-          "x2": 60.0,
-          "y2": 57.9
         }
       ]
     },
@@ -8889,7 +9753,7 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "a monosubstituted benzene"
   },
-  "u2-nom-anthracene": {
+  "u2-nom-benzyl": {
     "kind": "structure",
     "figure": {
       "bonds": [
@@ -8936,116 +9800,583 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "benzene, the parent ring"
   },
-  "u2-nom-phenanthrene": {
+  "u2-nom-phenyl": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 95.9,
-          "y1": 23.3,
-          "x2": 81.6,
-          "y2": 15.0,
+          "x1": 17.2,
+          "y1": 63.3,
+          "x2": 31.2,
+          "y2": 55.2
+        },
+        {
+          "x1": 31.2,
+          "y1": 55.2,
+          "x2": 50.4,
+          "y2": 66.2
+        },
+        {
+          "x1": 50.4,
+          "y1": 66.2,
+          "x2": 69.6,
+          "y2": 55.0
+        },
+        {
+          "x1": 69.6,
+          "y1": 55.0,
+          "x2": 88.8,
+          "y2": 66.0,
           "order": 2
         },
         {
-          "x1": 81.6,
+          "x1": 88.8,
+          "y1": 66.0,
+          "x2": 108.0,
+          "y2": 54.9
+        },
+        {
+          "x1": 108.0,
+          "y1": 54.9,
+          "x2": 107.9,
+          "y2": 32.7,
+          "order": 2
+        },
+        {
+          "x1": 107.9,
+          "y1": 32.7,
+          "x2": 88.7,
+          "y2": 21.7
+        },
+        {
+          "x1": 88.7,
+          "y1": 21.7,
+          "x2": 69.5,
+          "y2": 32.8,
+          "order": 2
+        },
+        {
+          "x1": 69.5,
+          "y1": 32.8,
+          "x2": 69.6,
+          "y2": 55.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 16.5,
+          "y": 71.3,
+          "t": "HO",
+          "size": 13,
+          "anchor": "end"
+        }
+      ]
+    },
+    "name": "a phenyl branch on a chain"
+  },
+  "u2-nom-benzoic-subs": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 91.4,
+          "y1": 29.5,
+          "x2": 78.8,
+          "y2": 36.8
+        },
+        {
+          "x1": 78.8,
+          "y1": 36.8,
+          "x2": 78.8,
+          "y2": 51.3
+        },
+        {
+          "x1": 78.8,
+          "y1": 51.3,
+          "x2": 66.3,
+          "y2": 58.5,
+          "order": 2
+        },
+        {
+          "x1": 66.3,
+          "y1": 58.5,
+          "x2": 53.7,
+          "y2": 51.3
+        },
+        {
+          "x1": 53.7,
+          "y1": 51.3,
+          "x2": 41.1,
+          "y2": 58.5
+        },
+        {
+          "x1": 41.1,
+          "y1": 58.5,
+          "x2": 33.8,
+          "y2": 54.2,
+          "order": 2
+        },
+        {
+          "x1": 41.1,
+          "y1": 58.5,
+          "x2": 41.1,
+          "y2": 67.0
+        },
+        {
+          "x1": 53.7,
+          "y1": 51.3,
+          "x2": 53.7,
+          "y2": 36.7,
+          "order": 2
+        },
+        {
+          "x1": 53.7,
+          "y1": 36.7,
+          "x2": 66.3,
+          "y2": 29.5
+        },
+        {
+          "x1": 66.3,
+          "y1": 29.5,
+          "x2": 66.3,
+          "y2": 21.0
+        },
+        {
+          "x1": 66.3,
+          "y1": 29.5,
+          "x2": 78.8,
+          "y2": 36.8,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 28.6,
+          "y": 56.2,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 41.1,
+          "y": 78.0,
+          "t": "OH",
+          "size": 13
+        },
+        {
+          "x": 66.3,
+          "y": 20.0,
+          "t": "Br",
+          "size": 13
+        }
+      ]
+    },
+    "name": "a bromomethylbenzoic acid"
+  },
+  "u2-nom-dinitrophenol": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 86.8,
+          "y1": 68.7,
+          "x2": 76.0,
+          "y2": 62.5
+        },
+        {
+          "x1": 76.0,
+          "y1": 62.5,
+          "x2": 60.0,
+          "y2": 71.7
+        },
+        {
+          "x1": 60.0,
+          "y1": 71.7,
+          "x2": 44.0,
+          "y2": 62.5,
+          "order": 2
+        },
+        {
+          "x1": 44.0,
+          "y1": 62.5,
+          "x2": 44.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 44.0,
+          "y1": 44.0,
+          "x2": 33.2,
+          "y2": 37.7
+        },
+        {
+          "x1": 28.0,
+          "y1": 28.7,
+          "x2": 28.0,
+          "y2": 22.3,
+          "order": 2
+        },
+        {
+          "x1": 22.8,
+          "y1": 37.7,
+          "x2": 17.2,
+          "y2": 41.0
+        },
+        {
+          "x1": 44.0,
+          "y1": 44.0,
+          "x2": 60.0,
+          "y2": 34.8,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
+          "y1": 34.8,
+          "x2": 76.0,
+          "y2": 44.0
+        },
+        {
+          "x1": 76.0,
+          "y1": 44.0,
+          "x2": 86.8,
+          "y2": 37.8
+        },
+        {
+          "x1": 92.0,
+          "y1": 28.8,
+          "x2": 92.0,
+          "y2": 22.3,
+          "order": 2
+        },
+        {
+          "x1": 97.2,
+          "y1": 37.8,
+          "x2": 102.8,
+          "y2": 41.0
+        },
+        {
+          "x1": 76.0,
+          "y1": 44.0,
+          "x2": 76.0,
+          "y2": 62.5,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 87.5,
+          "y": 76.7,
+          "t": "OH",
+          "size": 13,
+          "anchor": "start"
+        },
+        {
+          "x": 28.0,
+          "y": 39.7,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 38.0,
+          "y": 39.2,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 28.0,
+          "y": 21.3,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 12.0,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 22.0,
+          "y": 48.5,
+          "t": "−",
+          "size": 15
+        },
+        {
+          "x": 92.0,
+          "y": 39.8,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 102.0,
+          "y": 39.3,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 92.0,
+          "y": 21.3,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 108.0,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 118.0,
+          "y": 48.5,
+          "t": "−",
+          "size": 15
+        }
+      ]
+    },
+    "name": "a dinitrophenol"
+  },
+  "u2-nom-nitroaniline": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 23.3,
+          "y1": 18.0,
+          "x2": 34.9,
+          "y2": 24.7
+        },
+        {
+          "x1": 34.9,
+          "y1": 24.7,
+          "x2": 51.6,
+          "y2": 15.0
+        },
+        {
+          "x1": 51.6,
           "y1": 15.0,
-          "x2": 67.2,
-          "y2": 23.3
+          "x2": 68.4,
+          "y2": 24.7,
+          "order": 2
         },
         {
-          "x1": 67.2,
+          "x1": 68.4,
+          "y1": 24.7,
+          "x2": 68.4,
+          "y2": 44.0
+        },
+        {
+          "x1": 68.4,
+          "y1": 44.0,
+          "x2": 79.9,
+          "y2": 50.7
+        },
+        {
+          "x1": 90.3,
+          "y1": 50.7,
+          "x2": 96.7,
+          "y2": 47.0,
+          "order": 2
+        },
+        {
+          "x1": 85.1,
+          "y1": 59.7,
+          "x2": 85.2,
+          "y2": 67.0
+        },
+        {
+          "x1": 68.4,
+          "y1": 44.0,
+          "x2": 51.6,
+          "y2": 53.7,
+          "order": 2
+        },
+        {
+          "x1": 51.6,
+          "y1": 53.7,
+          "x2": 34.9,
+          "y2": 44.0
+        },
+        {
+          "x1": 34.9,
+          "y1": 44.0,
+          "x2": 34.9,
+          "y2": 24.7,
+          "order": 2
+        }
+      ],
+      "labels": [
+        {
+          "x": 22.6,
+          "y": 20.0,
+          "t": "H_2N",
+          "size": 13,
+          "anchor": "end"
+        },
+        {
+          "x": 85.1,
+          "y": 58.7,
+          "t": "N",
+          "size": 13
+        },
+        {
+          "x": 95.1,
+          "y": 58.2,
+          "t": "+",
+          "size": 15
+        },
+        {
+          "x": 101.9,
+          "y": 49.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 85.2,
+          "y": 78.0,
+          "t": "O",
+          "size": 13
+        },
+        {
+          "x": 95.2,
+          "y": 77.5,
+          "t": "−",
+          "size": 15
+        }
+      ]
+    },
+    "name": "a nitro amine on benzene"
+  },
+  "u2-nom-anisole": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 12.0,
+          "y1": 58.0,
+          "x2": 30.8,
+          "y2": 68.8
+        },
+        {
+          "x1": 41.2,
+          "y1": 68.8,
+          "x2": 60.0,
+          "y2": 57.9
+        },
+        {
+          "x1": 60.0,
+          "y1": 57.9,
+          "x2": 84.0,
+          "y2": 71.6,
+          "order": 2
+        },
+        {
+          "x1": 84.0,
+          "y1": 71.6,
+          "x2": 108.0,
+          "y2": 57.7
+        },
+        {
+          "x1": 108.0,
+          "y1": 57.7,
+          "x2": 107.9,
+          "y2": 30.0,
+          "order": 2
+        },
+        {
+          "x1": 107.9,
+          "y1": 30.0,
+          "x2": 83.9,
+          "y2": 16.2
+        },
+        {
+          "x1": 83.9,
+          "y1": 16.2,
+          "x2": 59.9,
+          "y2": 30.1,
+          "order": 2
+        },
+        {
+          "x1": 59.9,
+          "y1": 30.1,
+          "x2": 60.0,
+          "y2": 57.9
+        }
+      ],
+      "labels": [
+        {
+          "x": 36.0,
+          "y": 76.8,
+          "t": "O",
+          "size": 13
+        }
+      ]
+    },
+    "name": "a monosubstituted benzene"
+  },
+  "u2-nom-benzaldehyde": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 69.2,
+          "y1": 18.0,
+          "x2": 60.0,
+          "y2": 23.3,
+          "order": 2
+        },
+        {
+          "x1": 60.0,
           "y1": 23.3,
-          "x2": 67.2,
-          "y2": 39.8,
-          "order": 2
-        },
-        {
-          "x1": 67.2,
-          "y1": 39.8,
-          "x2": 81.5,
-          "y2": 48.2
-        },
-        {
-          "x1": 81.5,
-          "y1": 48.2,
-          "x2": 95.9,
-          "y2": 39.9,
-          "order": 2
-        },
-        {
-          "x1": 81.5,
-          "y1": 48.2,
-          "x2": 81.5,
-          "y2": 64.7
-        },
-        {
-          "x1": 81.5,
-          "y1": 64.7,
-          "x2": 67.1,
-          "y2": 73.0,
-          "order": 2
-        },
-        {
-          "x1": 67.1,
-          "y1": 73.0,
-          "x2": 52.8,
-          "y2": 64.7
-        },
-        {
-          "x1": 52.8,
-          "y1": 64.7,
-          "x2": 38.4,
-          "y2": 72.9,
-          "order": 2
-        },
-        {
-          "x1": 38.4,
-          "y1": 72.9,
-          "x2": 24.1,
-          "y2": 64.6
-        },
-        {
-          "x1": 24.1,
-          "y1": 64.6,
-          "x2": 24.1,
-          "y2": 48.0,
-          "order": 2
-        },
-        {
-          "x1": 24.1,
-          "y1": 48.0,
-          "x2": 38.5,
+          "x2": 60.0,
           "y2": 39.8
         },
         {
-          "x1": 38.5,
+          "x1": 60.0,
           "y1": 39.8,
-          "x2": 52.8,
+          "x2": 45.6,
           "y2": 48.1,
           "order": 2
         },
         {
-          "x1": 95.9,
-          "y1": 39.9,
-          "x2": 95.9,
-          "y2": 23.3
-        },
-        {
-          "x1": 52.8,
+          "x1": 45.6,
           "y1": 48.1,
-          "x2": 52.8,
+          "x2": 45.6,
           "y2": 64.7
         },
         {
-          "x1": 52.8,
-          "y1": 48.1,
-          "x2": 67.2,
+          "x1": 45.6,
+          "y1": 64.7,
+          "x2": 59.9,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 59.9,
+          "y1": 73.0,
+          "x2": 74.3,
+          "y2": 64.7
+        },
+        {
+          "x1": 74.3,
+          "y1": 64.7,
+          "x2": 74.3,
+          "y2": 48.2,
+          "order": 2
+        },
+        {
+          "x1": 74.3,
+          "y1": 48.2,
+          "x2": 60.0,
           "y2": 39.8
+        }
+      ],
+      "labels": [
+        {
+          "x": 74.4,
+          "y": 20.0,
+          "t": "O",
+          "size": 13
         }
       ]
     },
-    "name": "a fused ring system"
+    "name": "a monosubstituted benzene"
   },
   "u2-nom-chlorophenol": {
     "kind": "structure",
@@ -9188,64 +10519,161 @@ export const U2_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "a chlorotoluene"
   },
-  "u2-nom-iupac-xylene": {
+  "u2-nom-tribromo": {
     "kind": "structure",
     "figure": {
       "bonds": [
         {
-          "x1": 34.9,
-          "y1": 73.0,
-          "x2": 51.6,
-          "y2": 63.3
+          "x1": 93.5,
+          "y1": 34.4,
+          "x2": 76.7,
+          "y2": 44.0
         },
         {
-          "x1": 51.6,
-          "y1": 63.3,
-          "x2": 68.4,
-          "y2": 73.0
-        },
-        {
-          "x1": 68.4,
-          "y1": 73.0,
-          "x2": 85.1,
+          "x1": 76.7,
+          "y1": 44.0,
+          "x2": 76.7,
           "y2": 63.3,
           "order": 2
         },
         {
-          "x1": 85.1,
+          "x1": 76.7,
           "y1": 63.3,
-          "x2": 85.1,
+          "x2": 88.3,
+          "y2": 70.0
+        },
+        {
+          "x1": 76.7,
+          "y1": 63.3,
+          "x2": 60.0,
+          "y2": 73.0
+        },
+        {
+          "x1": 60.0,
+          "y1": 73.0,
+          "x2": 43.3,
+          "y2": 63.3,
+          "order": 2
+        },
+        {
+          "x1": 43.3,
+          "y1": 63.3,
+          "x2": 31.7,
+          "y2": 70.0
+        },
+        {
+          "x1": 43.3,
+          "y1": 63.3,
+          "x2": 43.3,
           "y2": 44.0
         },
         {
-          "x1": 85.1,
+          "x1": 43.3,
           "y1": 44.0,
-          "x2": 68.4,
+          "x2": 60.0,
           "y2": 34.3,
           "order": 2
         },
         {
-          "x1": 68.4,
+          "x1": 60.0,
           "y1": 34.3,
-          "x2": 68.4,
-          "y2": 15.0
+          "x2": 60.0,
+          "y2": 21.0
         },
         {
-          "x1": 68.4,
+          "x1": 60.0,
           "y1": 34.3,
-          "x2": 51.6,
+          "x2": 76.7,
           "y2": 44.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 93.5,
+          "y": 78.0,
+          "t": "Br",
+          "size": 13
         },
         {
-          "x1": 51.6,
-          "y1": 44.0,
-          "x2": 51.6,
-          "y2": 63.3,
-          "order": 2
+          "x": 26.5,
+          "y": 77.9,
+          "t": "Br",
+          "size": 13
+        },
+        {
+          "x": 60.0,
+          "y": 20.0,
+          "t": "Br",
+          "size": 13
         }
       ]
     },
-    "name": "m-xylene"
+    "name": "a tribromotoluene"
+  },
+  "u2-nom-alphabetical": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 81.6,
+          "y1": 15.0,
+          "x2": 67.2,
+          "y2": 23.3
+        },
+        {
+          "x1": 67.2,
+          "y1": 23.3,
+          "x2": 67.2,
+          "y2": 39.8
+        },
+        {
+          "x1": 67.2,
+          "y1": 39.8,
+          "x2": 81.5,
+          "y2": 48.2,
+          "order": 2
+        },
+        {
+          "x1": 81.5,
+          "y1": 48.2,
+          "x2": 81.5,
+          "y2": 64.7
+        },
+        {
+          "x1": 81.5,
+          "y1": 64.7,
+          "x2": 67.1,
+          "y2": 73.0,
+          "order": 2
+        },
+        {
+          "x1": 67.1,
+          "y1": 73.0,
+          "x2": 52.7,
+          "y2": 64.7
+        },
+        {
+          "x1": 52.7,
+          "y1": 64.7,
+          "x2": 52.8,
+          "y2": 48.1,
+          "order": 2
+        },
+        {
+          "x1": 52.8,
+          "y1": 48.1,
+          "x2": 38.4,
+          "y2": 39.8
+        },
+        {
+          "x1": 52.8,
+          "y1": 48.1,
+          "x2": 67.2,
+          "y2": 39.8
+        }
+      ]
+    },
+    "name": "an ethylmethylbenzene"
   }
 };
 
@@ -13090,8 +14518,534 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
       "name": "cyclohexa-1,3-diene"
     }
   },
-  "u2-nom-para": {
+  "u2-nom-eas-wd": {
     "o": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 76.3,
+            "y1": 18.0,
+            "x2": 72.4,
+            "y2": 20.3
+          },
+          {
+            "x1": 62.0,
+            "y1": 20.3,
+            "x2": 58.0,
+            "y2": 18.0,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 29.3,
+            "x2": 67.1,
+            "y2": 39.9
+          },
+          {
+            "x1": 67.1,
+            "y1": 39.9,
+            "x2": 81.5,
+            "y2": 48.2,
+            "order": 2
+          },
+          {
+            "x1": 81.5,
+            "y1": 48.2,
+            "x2": 81.4,
+            "y2": 64.7
+          },
+          {
+            "x1": 81.4,
+            "y1": 64.7,
+            "x2": 67.1,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 67.1,
+            "y1": 73.0,
+            "x2": 52.8,
+            "y2": 64.7
+          },
+          {
+            "x1": 52.8,
+            "y1": 64.7,
+            "x2": 52.8,
+            "y2": 48.1,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 48.1,
+            "x2": 43.6,
+            "y2": 42.8
+          },
+          {
+            "x1": 52.8,
+            "y1": 48.1,
+            "x2": 67.1,
+            "y2": 39.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 81.5,
+            "y": 20.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 91.5,
+            "y": 19.6,
+            "t": "−",
+            "size": 15
+          },
+          {
+            "x": 67.2,
+            "y": 28.3,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 77.2,
+            "y": 27.8,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 52.9,
+            "y": 20.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 38.5,
+            "y": 44.8,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-2-nitrobenzene"
+    },
+    "p": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 85.2,
+            "y1": 67.0,
+            "x2": 85.1,
+            "y2": 59.7
+          },
+          {
+            "x1": 90.3,
+            "y1": 50.7,
+            "x2": 96.7,
+            "y2": 47.0,
+            "order": 2
+          },
+          {
+            "x1": 79.9,
+            "y1": 50.7,
+            "x2": 68.4,
+            "y2": 44.0
+          },
+          {
+            "x1": 68.4,
+            "y1": 44.0,
+            "x2": 68.4,
+            "y2": 24.7
+          },
+          {
+            "x1": 68.4,
+            "y1": 24.7,
+            "x2": 51.6,
+            "y2": 15.0,
+            "order": 2
+          },
+          {
+            "x1": 51.6,
+            "y1": 15.0,
+            "x2": 34.9,
+            "y2": 24.7
+          },
+          {
+            "x1": 34.9,
+            "y1": 24.7,
+            "x2": 23.3,
+            "y2": 18.0
+          },
+          {
+            "x1": 34.9,
+            "y1": 24.7,
+            "x2": 34.9,
+            "y2": 44.0,
+            "order": 2
+          },
+          {
+            "x1": 34.9,
+            "y1": 44.0,
+            "x2": 51.6,
+            "y2": 53.7
+          },
+          {
+            "x1": 51.6,
+            "y1": 53.7,
+            "x2": 68.4,
+            "y2": 44.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 85.2,
+            "y": 78.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 95.2,
+            "y": 77.5,
+            "t": "−",
+            "size": 15
+          },
+          {
+            "x": 85.1,
+            "y": 58.7,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 95.1,
+            "y": 58.2,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 101.9,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 18.1,
+            "y": 20.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-4-nitrobenzene"
+    },
+    "m": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 76.4,
+            "y1": 18.0,
+            "x2": 72.4,
+            "y2": 20.3
+          },
+          {
+            "x1": 62.0,
+            "y1": 20.3,
+            "x2": 58.1,
+            "y2": 18.0,
+            "order": 2
+          },
+          {
+            "x1": 67.2,
+            "y1": 29.3,
+            "x2": 67.2,
+            "y2": 39.9
+          },
+          {
+            "x1": 67.2,
+            "y1": 39.9,
+            "x2": 81.5,
+            "y2": 48.2,
+            "order": 2
+          },
+          {
+            "x1": 81.5,
+            "y1": 48.2,
+            "x2": 81.5,
+            "y2": 64.7
+          },
+          {
+            "x1": 81.5,
+            "y1": 64.7,
+            "x2": 67.1,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 67.1,
+            "y1": 73.0,
+            "x2": 52.8,
+            "y2": 64.7
+          },
+          {
+            "x1": 52.8,
+            "y1": 64.7,
+            "x2": 43.6,
+            "y2": 70.0
+          },
+          {
+            "x1": 52.8,
+            "y1": 64.7,
+            "x2": 52.8,
+            "y2": 48.1,
+            "order": 2
+          },
+          {
+            "x1": 52.8,
+            "y1": 48.1,
+            "x2": 67.2,
+            "y2": 39.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 81.6,
+            "y": 20.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 91.6,
+            "y": 19.6,
+            "t": "−",
+            "size": 15
+          },
+          {
+            "x": 67.2,
+            "y": 28.3,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 77.2,
+            "y": 27.8,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 52.9,
+            "y": 20.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 38.4,
+            "y": 77.9,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromo-3-nitrobenzene"
+    }
+  },
+  "u2-nom-rate": {
+    "tol": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 22.3,
+            "y1": 73.0,
+            "x2": 47.4,
+            "y2": 58.5
+          },
+          {
+            "x1": 47.4,
+            "y1": 58.5,
+            "x2": 47.5,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 47.5,
+            "y1": 29.5,
+            "x2": 72.6,
+            "y2": 15.0
+          },
+          {
+            "x1": 72.6,
+            "y1": 15.0,
+            "x2": 97.7,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 97.7,
+            "y1": 29.5,
+            "x2": 97.7,
+            "y2": 58.5
+          },
+          {
+            "x1": 97.7,
+            "y1": 58.5,
+            "x2": 72.5,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 72.5,
+            "y1": 73.0,
+            "x2": 47.4,
+            "y2": 58.5
+          }
+        ]
+      },
+      "name": "toluene"
+    },
+    "bz": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 34.9,
+            "y1": 58.5,
+            "x2": 34.9,
+            "y2": 29.5
+          },
+          {
+            "x1": 34.9,
+            "y1": 29.5,
+            "x2": 60.0,
+            "y2": 15.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 15.0,
+            "x2": 85.1,
+            "y2": 29.5
+          },
+          {
+            "x1": 85.1,
+            "y1": 29.5,
+            "x2": 85.1,
+            "y2": 58.5,
+            "order": 2
+          },
+          {
+            "x1": 85.1,
+            "y1": 58.5,
+            "x2": 60.0,
+            "y2": 73.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 73.0,
+            "x2": 34.9,
+            "y2": 58.5,
+            "order": 2
+          }
+        ]
+      },
+      "name": "benzene"
+    },
+    "nb": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 50.8,
+            "y1": 18.0,
+            "x2": 54.8,
+            "y2": 20.3
+          },
+          {
+            "x1": 65.2,
+            "y1": 20.3,
+            "x2": 69.1,
+            "y2": 18.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 29.3,
+            "x2": 60.0,
+            "y2": 39.9
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.9,
+            "x2": 74.4,
+            "y2": 48.1,
+            "order": 2
+          },
+          {
+            "x1": 74.4,
+            "y1": 48.1,
+            "x2": 74.4,
+            "y2": 64.7
+          },
+          {
+            "x1": 74.4,
+            "y1": 64.7,
+            "x2": 60.1,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 60.1,
+            "y1": 73.0,
+            "x2": 45.7,
+            "y2": 64.7
+          },
+          {
+            "x1": 45.7,
+            "y1": 64.7,
+            "x2": 45.7,
+            "y2": 48.2,
+            "order": 2
+          },
+          {
+            "x1": 45.7,
+            "y1": 48.2,
+            "x2": 60.0,
+            "y2": 39.9
+          }
+        ],
+        "labels": [
+          {
+            "x": 45.6,
+            "y": 20.1,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 55.6,
+            "y": 19.6,
+            "t": "−",
+            "size": 15
+          },
+          {
+            "x": 60.0,
+            "y": 28.3,
+            "t": "N",
+            "size": 13
+          },
+          {
+            "x": 70.0,
+            "y": 27.8,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 74.3,
+            "y": 20.0,
+            "t": "O",
+            "size": 13
+          }
+        ]
+      },
+      "name": "nitrobenzene"
+    }
+  },
+  "u2-nom-snar": {
+    "cl": {
       "figure": {
         "bonds": [
           {
@@ -13103,32 +15057,6 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x1": 47.4,
             "y1": 58.5,
-            "x2": 72.5,
-            "y2": 73.0,
-            "order": 2
-          },
-          {
-            "x1": 72.5,
-            "y1": 73.0,
-            "x2": 97.6,
-            "y2": 58.5
-          },
-          {
-            "x1": 97.6,
-            "y1": 58.5,
-            "x2": 97.7,
-            "y2": 29.5,
-            "order": 2
-          },
-          {
-            "x1": 97.7,
-            "y1": 29.5,
-            "x2": 72.6,
-            "y2": 15.0
-          },
-          {
-            "x1": 72.6,
-            "y1": 15.0,
             "x2": 47.5,
             "y2": 29.5,
             "order": 2
@@ -13136,12 +15064,32 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x1": 47.5,
             "y1": 29.5,
-            "x2": 27.6,
-            "y2": 18.0
+            "x2": 72.6,
+            "y2": 15.0
           },
           {
-            "x1": 47.5,
+            "x1": 72.6,
+            "y1": 15.0,
+            "x2": 97.7,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 97.7,
             "y1": 29.5,
+            "x2": 97.7,
+            "y2": 58.5
+          },
+          {
+            "x1": 97.7,
+            "y1": 58.5,
+            "x2": 72.5,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 72.5,
+            "y1": 73.0,
             "x2": 47.4,
             "y2": 58.5
           }
@@ -13152,172 +15100,239 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
             "y": 78.0,
             "t": "Cl",
             "size": 13
-          },
-          {
-            "x": 22.4,
-            "y": 20.0,
-            "t": "Cl",
-            "size": 13
           }
         ]
       },
-      "name": "1,2-dichlorobenzene"
+      "name": "chlorobenzene"
     },
     "m": {
       "figure": {
         "bonds": [
           {
-            "x1": 40.1,
-            "y1": 70.0,
-            "x2": 51.6,
-            "y2": 63.3
+            "x1": 72.6,
+            "y1": 21.0,
+            "x2": 72.6,
+            "y2": 29.5
           },
           {
-            "x1": 51.6,
-            "y1": 63.3,
-            "x2": 68.4,
-            "y2": 73.0
-          },
-          {
-            "x1": 68.4,
-            "y1": 73.0,
+            "x1": 72.6,
+            "y1": 29.5,
             "x2": 85.1,
-            "y2": 63.3,
+            "y2": 36.8
+          },
+          {
+            "x1": 85.1,
+            "y1": 36.8,
+            "x2": 85.1,
+            "y2": 51.3,
             "order": 2
           },
           {
             "x1": 85.1,
-            "y1": 63.3,
-            "x2": 85.1,
-            "y2": 44.0
+            "y1": 51.3,
+            "x2": 72.5,
+            "y2": 58.5
           },
           {
-            "x1": 85.1,
-            "y1": 44.0,
-            "x2": 68.4,
-            "y2": 34.3,
+            "x1": 72.5,
+            "y1": 58.5,
+            "x2": 60.0,
+            "y2": 51.3,
             "order": 2
           },
           {
-            "x1": 68.4,
-            "y1": 34.3,
-            "x2": 68.4,
-            "y2": 21.0
+            "x1": 60.0,
+            "y1": 51.3,
+            "x2": 52.6,
+            "y2": 55.5
           },
           {
-            "x1": 68.4,
-            "y1": 34.3,
-            "x2": 51.6,
-            "y2": 44.0
+            "x1": 42.2,
+            "y1": 55.5,
+            "x2": 40.1,
+            "y2": 54.2,
+            "order": 2
           },
           {
-            "x1": 51.6,
-            "y1": 44.0,
-            "x2": 51.6,
-            "y2": 63.3,
+            "x1": 47.4,
+            "y1": 64.5,
+            "x2": 47.4,
+            "y2": 67.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 51.3,
+            "x2": 60.0,
+            "y2": 36.7
+          },
+          {
+            "x1": 60.0,
+            "y1": 36.7,
+            "x2": 72.6,
+            "y2": 29.5,
             "order": 2
           }
         ],
         "labels": [
           {
-            "x": 34.9,
-            "y": 78.0,
+            "x": 72.6,
+            "y": 20.0,
             "t": "Cl",
             "size": 13
           },
           {
-            "x": 68.4,
-            "y": 20.0,
-            "t": "Cl",
+            "x": 47.4,
+            "y": 63.5,
+            "t": "N",
             "size": 13
+          },
+          {
+            "x": 57.4,
+            "y": 63.0,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 34.9,
+            "y": 56.2,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 47.4,
+            "y": 78.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 57.4,
+            "y": 77.5,
+            "t": "−",
+            "size": 15
           }
         ]
       },
-      "name": "1,3-dichlorobenzene"
+      "name": "1-chloro-3-nitrobenzene"
     },
     "p": {
       "figure": {
         "bonds": [
           {
-            "x1": 17.2,
-            "y1": 68.7,
-            "x2": 36.0,
-            "y2": 57.8
+            "x1": 23.3,
+            "y1": 18.0,
+            "x2": 34.9,
+            "y2": 24.7
           },
           {
-            "x1": 36.0,
-            "y1": 57.8,
-            "x2": 36.0,
-            "y2": 30.1
+            "x1": 34.9,
+            "y1": 24.7,
+            "x2": 51.6,
+            "y2": 15.0
           },
           {
-            "x1": 36.0,
-            "y1": 30.1,
-            "x2": 60.0,
-            "y2": 16.3,
+            "x1": 51.6,
+            "y1": 15.0,
+            "x2": 68.4,
+            "y2": 24.7,
             "order": 2
           },
           {
-            "x1": 60.0,
-            "y1": 16.3,
-            "x2": 84.0,
-            "y2": 30.2
+            "x1": 68.4,
+            "y1": 24.7,
+            "x2": 68.4,
+            "y2": 44.0
           },
           {
-            "x1": 84.0,
-            "y1": 30.2,
-            "x2": 102.8,
-            "y2": 19.3
+            "x1": 68.4,
+            "y1": 44.0,
+            "x2": 79.9,
+            "y2": 50.7
           },
           {
-            "x1": 84.0,
-            "y1": 30.2,
-            "x2": 84.0,
-            "y2": 57.9,
+            "x1": 90.3,
+            "y1": 50.7,
+            "x2": 96.7,
+            "y2": 47.0,
             "order": 2
           },
           {
-            "x1": 84.0,
-            "y1": 57.9,
-            "x2": 60.0,
-            "y2": 71.7
+            "x1": 85.1,
+            "y1": 59.7,
+            "x2": 85.2,
+            "y2": 67.0
           },
           {
-            "x1": 60.0,
-            "y1": 71.7,
-            "x2": 36.0,
-            "y2": 57.8,
+            "x1": 68.4,
+            "y1": 44.0,
+            "x2": 51.6,
+            "y2": 53.7,
+            "order": 2
+          },
+          {
+            "x1": 51.6,
+            "y1": 53.7,
+            "x2": 34.9,
+            "y2": 44.0
+          },
+          {
+            "x1": 34.9,
+            "y1": 44.0,
+            "x2": 34.9,
+            "y2": 24.7,
             "order": 2
           }
         ],
         "labels": [
           {
-            "x": 12.0,
-            "y": 76.7,
+            "x": 18.1,
+            "y": 20.0,
             "t": "Cl",
             "size": 13
           },
           {
-            "x": 108.0,
-            "y": 21.3,
-            "t": "Cl",
+            "x": 85.1,
+            "y": 58.7,
+            "t": "N",
             "size": 13
+          },
+          {
+            "x": 95.1,
+            "y": 58.2,
+            "t": "+",
+            "size": 15
+          },
+          {
+            "x": 101.9,
+            "y": 49.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 85.2,
+            "y": 78.0,
+            "t": "O",
+            "size": 13
+          },
+          {
+            "x": 95.2,
+            "y": 77.5,
+            "t": "−",
+            "size": 15
           }
         ]
       },
-      "name": "1,4-dichlorobenzene"
+      "name": "1-chloro-4-nitrobenzene"
     }
   },
-  "u2-nom-acetophenone": {
-    "ald": {
+  "u2-nom-benzyl": {
+    "bn": {
       "figure": {
         "bonds": [
           {
             "x1": 69.2,
             "y1": 18.0,
             "x2": 60.0,
-            "y2": 23.3,
-            "order": 2
+            "y2": 23.3
           },
           {
             "x1": 60.0,
@@ -13369,465 +15384,138 @@ export const U2_OPTION_TILES: Readonly<Record<string, Readonly<Record<string, Na
           {
             "x": 74.4,
             "y": 20.0,
-            "t": "O",
+            "t": "Cl",
             "size": 13
           }
         ]
       },
-      "name": "benzaldehyde"
+      "name": "benzyl chloride"
     },
-    "ket": {
+    "cb": {
       "figure": {
         "bonds": [
           {
-            "x1": 26.5,
-            "y1": 44.0,
-            "x2": 43.2,
-            "y2": 34.3
+            "x1": 27.5,
+            "y1": 70.0,
+            "x2": 47.4,
+            "y2": 58.5
           },
           {
-            "x1": 43.2,
-            "y1": 34.3,
-            "x2": 43.2,
-            "y2": 21.0,
+            "x1": 47.4,
+            "y1": 58.5,
+            "x2": 47.5,
+            "y2": 29.5,
             "order": 2
           },
           {
-            "x1": 43.2,
-            "y1": 34.3,
-            "x2": 60.0,
-            "y2": 44.0
+            "x1": 47.5,
+            "y1": 29.5,
+            "x2": 72.6,
+            "y2": 15.0
           },
           {
-            "x1": 60.0,
-            "y1": 44.0,
-            "x2": 60.0,
-            "y2": 63.3,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 63.3,
-            "x2": 76.8,
-            "y2": 73.0
-          },
-          {
-            "x1": 76.8,
-            "y1": 73.0,
-            "x2": 93.5,
-            "y2": 63.3,
-            "order": 2
-          },
-          {
-            "x1": 93.5,
-            "y1": 63.3,
-            "x2": 93.5,
-            "y2": 44.0
-          },
-          {
-            "x1": 93.5,
-            "y1": 44.0,
-            "x2": 76.7,
-            "y2": 34.3,
-            "order": 2
-          },
-          {
-            "x1": 76.7,
-            "y1": 34.3,
-            "x2": 60.0,
-            "y2": 44.0
-          }
-        ],
-        "labels": [
-          {
-            "x": 43.2,
-            "y": 20.0,
-            "t": "O",
-            "size": 13
-          }
-        ]
-      },
-      "name": "acetophenone"
-    },
-    "acid": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 50.8,
-            "y1": 18.0,
-            "x2": 60.0,
-            "y2": 23.3
-          },
-          {
-            "x1": 60.0,
-            "y1": 23.3,
-            "x2": 69.1,
-            "y2": 18.0,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 23.3,
-            "x2": 60.0,
-            "y2": 39.9
-          },
-          {
-            "x1": 60.0,
-            "y1": 39.9,
-            "x2": 74.4,
-            "y2": 48.1,
-            "order": 2
-          },
-          {
-            "x1": 74.4,
-            "y1": 48.1,
-            "x2": 74.4,
-            "y2": 64.7
-          },
-          {
-            "x1": 74.4,
-            "y1": 64.7,
-            "x2": 60.1,
-            "y2": 73.0,
-            "order": 2
-          },
-          {
-            "x1": 60.1,
-            "y1": 73.0,
-            "x2": 45.7,
-            "y2": 64.7
-          },
-          {
-            "x1": 45.7,
-            "y1": 64.7,
-            "x2": 45.7,
-            "y2": 48.2,
-            "order": 2
-          },
-          {
-            "x1": 45.7,
-            "y1": 48.2,
-            "x2": 60.0,
-            "y2": 39.9
-          }
-        ],
-        "labels": [
-          {
-            "x": 50.1,
-            "y": 20.1,
-            "t": "HO",
-            "size": 13,
-            "anchor": "end"
-          },
-          {
-            "x": 74.3,
-            "y": 20.0,
-            "t": "O",
-            "size": 13
-          }
-        ]
-      },
-      "name": "benzoic acid"
-    }
-  },
-  "u2-nom-anthracene": {
-    "nap": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 12.0,
-            "y1": 30.1,
-            "x2": 12.0,
-            "y2": 57.8,
-            "order": 2
-          },
-          {
-            "x1": 12.0,
-            "y1": 57.8,
-            "x2": 36.0,
-            "y2": 71.7
-          },
-          {
-            "x1": 36.0,
-            "y1": 71.7,
-            "x2": 60.0,
-            "y2": 57.9,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 57.9,
-            "x2": 84.0,
-            "y2": 71.7
-          },
-          {
-            "x1": 84.0,
-            "y1": 71.7,
-            "x2": 108.0,
-            "y2": 57.9,
-            "order": 2
-          },
-          {
-            "x1": 108.0,
-            "y1": 57.9,
-            "x2": 108.0,
-            "y2": 30.2
-          },
-          {
-            "x1": 108.0,
-            "y1": 30.2,
-            "x2": 84.0,
-            "y2": 16.3,
-            "order": 2
-          },
-          {
-            "x1": 84.0,
-            "y1": 16.3,
-            "x2": 60.0,
-            "y2": 30.1
-          },
-          {
-            "x1": 60.0,
-            "y1": 30.1,
-            "x2": 36.0,
-            "y2": 16.3,
-            "order": 2
-          },
-          {
-            "x1": 36.0,
-            "y1": 16.3,
-            "x2": 12.0,
-            "y2": 30.1
-          },
-          {
-            "x1": 60.0,
-            "y1": 30.1,
-            "x2": 60.0,
-            "y2": 57.9
-          }
-        ]
-      },
-      "name": "naphthalene"
-    },
-    "ant": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 12.0,
-            "y1": 34.7,
-            "x2": 12.0,
-            "y2": 53.2,
-            "order": 2
-          },
-          {
-            "x1": 12.0,
-            "y1": 53.2,
-            "x2": 28.0,
-            "y2": 62.4
-          },
-          {
-            "x1": 28.0,
-            "y1": 62.4,
-            "x2": 44.0,
-            "y2": 53.2,
-            "order": 2
-          },
-          {
-            "x1": 44.0,
-            "y1": 53.2,
-            "x2": 60.0,
-            "y2": 62.5
-          },
-          {
-            "x1": 60.0,
-            "y1": 62.5,
-            "x2": 76.0,
-            "y2": 53.2,
-            "order": 2
-          },
-          {
-            "x1": 76.0,
-            "y1": 53.2,
-            "x2": 92.0,
-            "y2": 62.5
-          },
-          {
-            "x1": 92.0,
-            "y1": 62.5,
-            "x2": 108.0,
-            "y2": 53.3,
-            "order": 2
-          },
-          {
-            "x1": 108.0,
-            "y1": 53.3,
-            "x2": 108.0,
-            "y2": 34.8
-          },
-          {
-            "x1": 108.0,
-            "y1": 34.8,
-            "x2": 92.0,
-            "y2": 25.6,
-            "order": 2
-          },
-          {
-            "x1": 92.0,
-            "y1": 25.6,
-            "x2": 76.0,
-            "y2": 34.8
-          },
-          {
-            "x1": 76.0,
-            "y1": 34.8,
-            "x2": 60.0,
-            "y2": 25.5,
-            "order": 2
-          },
-          {
-            "x1": 60.0,
-            "y1": 25.5,
-            "x2": 44.0,
-            "y2": 34.8
-          },
-          {
-            "x1": 44.0,
-            "y1": 34.8,
-            "x2": 28.0,
-            "y2": 25.5,
-            "order": 2
-          },
-          {
-            "x1": 28.0,
-            "y1": 25.5,
-            "x2": 12.0,
-            "y2": 34.7
-          },
-          {
-            "x1": 44.0,
-            "y1": 34.8,
-            "x2": 44.0,
-            "y2": 53.2
-          },
-          {
-            "x1": 76.0,
-            "y1": 34.8,
-            "x2": 76.0,
-            "y2": 53.2
-          }
-        ]
-      },
-      "name": "anthracene"
-    },
-    "phe": {
-      "figure": {
-        "bonds": [
-          {
-            "x1": 95.9,
-            "y1": 23.3,
-            "x2": 81.6,
-            "y2": 15.0,
-            "order": 2
-          },
-          {
-            "x1": 81.6,
+            "x1": 72.6,
             "y1": 15.0,
-            "x2": 67.2,
-            "y2": 23.3
-          },
-          {
-            "x1": 67.2,
-            "y1": 23.3,
-            "x2": 67.2,
-            "y2": 39.8,
+            "x2": 97.7,
+            "y2": 29.5,
             "order": 2
           },
           {
-            "x1": 67.2,
-            "y1": 39.8,
-            "x2": 81.5,
-            "y2": 48.2
+            "x1": 97.7,
+            "y1": 29.5,
+            "x2": 97.7,
+            "y2": 58.5
           },
           {
-            "x1": 81.5,
-            "y1": 48.2,
-            "x2": 95.9,
-            "y2": 39.9,
-            "order": 2
-          },
-          {
-            "x1": 81.5,
-            "y1": 48.2,
-            "x2": 81.5,
-            "y2": 64.7
-          },
-          {
-            "x1": 81.5,
-            "y1": 64.7,
-            "x2": 67.1,
+            "x1": 97.7,
+            "y1": 58.5,
+            "x2": 72.5,
             "y2": 73.0,
             "order": 2
           },
           {
-            "x1": 67.1,
+            "x1": 72.5,
             "y1": 73.0,
-            "x2": 52.8,
-            "y2": 64.7
-          },
+            "x2": 47.4,
+            "y2": 58.5
+          }
+        ],
+        "labels": [
           {
-            "x1": 52.8,
-            "y1": 64.7,
-            "x2": 38.4,
-            "y2": 72.9,
-            "order": 2
-          },
-          {
-            "x1": 38.4,
-            "y1": 72.9,
-            "x2": 24.1,
-            "y2": 64.6
-          },
-          {
-            "x1": 24.1,
-            "y1": 64.6,
-            "x2": 24.1,
-            "y2": 48.0,
-            "order": 2
-          },
-          {
-            "x1": 24.1,
-            "y1": 48.0,
-            "x2": 38.5,
-            "y2": 39.8
-          },
-          {
-            "x1": 38.5,
-            "y1": 39.8,
-            "x2": 52.8,
-            "y2": 48.1,
-            "order": 2
-          },
-          {
-            "x1": 95.9,
-            "y1": 39.9,
-            "x2": 95.9,
-            "y2": 23.3
-          },
-          {
-            "x1": 52.8,
-            "y1": 48.1,
-            "x2": 52.8,
-            "y2": 64.7
-          },
-          {
-            "x1": 52.8,
-            "y1": 48.1,
-            "x2": 67.2,
-            "y2": 39.8
+            "x": 22.3,
+            "y": 78.0,
+            "t": "Cl",
+            "size": 13
           }
         ]
       },
-      "name": "phenanthrene"
+      "name": "chlorobenzene"
+    },
+    "ct": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 22.3,
+            "y1": 73.0,
+            "x2": 47.4,
+            "y2": 58.5
+          },
+          {
+            "x1": 47.4,
+            "y1": 58.5,
+            "x2": 72.5,
+            "y2": 73.0,
+            "order": 2
+          },
+          {
+            "x1": 72.5,
+            "y1": 73.0,
+            "x2": 97.6,
+            "y2": 58.5
+          },
+          {
+            "x1": 97.6,
+            "y1": 58.5,
+            "x2": 97.7,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 97.7,
+            "y1": 29.5,
+            "x2": 72.6,
+            "y2": 15.0
+          },
+          {
+            "x1": 72.6,
+            "y1": 15.0,
+            "x2": 47.5,
+            "y2": 29.5,
+            "order": 2
+          },
+          {
+            "x1": 47.5,
+            "y1": 29.5,
+            "x2": 27.6,
+            "y2": 18.0
+          },
+          {
+            "x1": 47.5,
+            "y1": 29.5,
+            "x2": 47.4,
+            "y2": 58.5
+          }
+        ],
+        "labels": [
+          {
+            "x": 22.4,
+            "y": 20.0,
+            "t": "Cl",
+            "size": 13
+          }
+        ]
+      },
+      "name": "2-chlorotoluene"
     }
   }
 };

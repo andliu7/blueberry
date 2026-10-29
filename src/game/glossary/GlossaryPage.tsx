@@ -17,7 +17,7 @@
  */
 import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
-import { hrefForGlossary, hrefForTab } from "../app/routes";
+import { hrefForGlossary, hrefForNaming, hrefForTab } from "../app/routes";
 import { navigate } from "../app/useHashRoute";
 import { GuideMol } from "../guide/GuideMol";
 import type { GuideFigure } from "../guide/types";
@@ -296,6 +296,9 @@ export default function GlossaryPage({
             </svg>
           </button>
           <h1 className="gl-bar__title">Glossary</h1>
+          <a className="gl-naming-link" href={hrefForNaming()}>
+            Naming rules
+          </a>
         </div>
       </div>
 

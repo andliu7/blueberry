@@ -34,9 +34,73 @@ import type { BerryLook, BerryMood } from "../mascot/berryMood";
 import { pressClassName } from "../app/ui/Press";
 import { bumpHudDiamonds, holdHudDiamonds, hudDiamondsRect } from "../app/ui/hudTargets";
 import { playGem } from "../sound/gameSound";
-import { ChestArt, GemArt } from "./ChestArt";
+import { ChestArt, CoinArt, GemArt, StoneArt, type StoneTone } from "./ChestArt";
 import "./chestOpening.css";
 import { GEM_COUNT, TAPS_TO_OPEN, counterSteps, paidHeadline, tapChest, tapHint, type OpenResult, type PlayRequest } from "./chestFlow";
+
+/** The loose loot that sprays out of the box: decorative, the diamonds are what is counted. */
+const SPRAY: readonly ("coin" | StoneTone)[] = Array.from({ length: 30 }, (_unused, i) =>
+  i % 7 === 2 ? "ruby" : i % 7 === 5 ? "emerald" : i % 11 === 8 ? "sapphire" : "coin",
+);
+
+/**
+ * One piece of loot thrown from the box, as keyframes of a real arc: it leaves
+ * with a speed, gravity pulls it down, it hits the floor and bounces with less
+ * each time, then lies there and fades. Sampled, so the Web Animations API can
+ * play it with no per-frame React work.
+ */
+function arcFrames(vx: number, vy: number, floor: number, spin: number, place: (x: number, y: number, r: number, k: number) => string): Keyframe[] {
+  const g = 2600;
+  const frames: { t: number; x: number; y: number }[] = [];
+  let x = 0;
+  let y = 0;
+  let v = vy;
+  let t = 0;
+  const dt = 1 / 30;
+  let bounces = 0;
+  while (t < 1.9 && bounces < 3) {
+    v += g * dt;
+    x += vx * dt;
+    y += v * dt;
+    t += dt;
+    if (y >= floor && v > 0) {
+      y = floor;
+      v = -v * 0.42;
+      bounces += 1;
+    }
+    frames.push({ t, x, y });
+  }
+  const total = frames[frames.length - 1]!.t;
+  return [
+    { transform: place(0, 0, 0, 0.3), opacity: 0, offset: 0 },
+    ...frames.map((f): Keyframe => {
+      // Loot stays where it lands: no fade, the heap is the payoff.
+      return { transform: place(f.x, f.y, spin * (f.t / total), 1 + 0.12 * Math.sin(Math.min(f.t, 0.5) * 4)), opacity: 1, offset: Math.min(1, f.t / total) };
+    }),
+  ];
+}
+
+/** Counts a number up from 1 to `target` with an ease out; at once when motion is reduced. */
+function useCountUp(target: number, run: boolean, reducedMotion: boolean, duration = 750): number {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!run || target <= 0) return;
+    if (reducedMotion) {
+      setValue(target);
+      return;
+    }
+    const start = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      setValue(Math.max(1, Math.round(target * (1 - (1 - t) ** 3))));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, run, reducedMotion, duration]);
+  return run ? value : 0;
+}
 
 type Phase = "tapping" | "bursting" | "flying" | "done";
 
@@ -51,8 +115,8 @@ const LOOK_AT_COUNTER: BerryLook = { x: 1, y: -1 };
 const LEAN_AGAIN: readonly BerryBehaviour[] = ["leanIn"];
 
 /** Half a diamond's box, so a translate puts its centre on a point. */
-const GEM_HALF_W = 24;
-const GEM_HALF_H = 22;
+const GEM_HALF_W = 44;
+const GEM_HALF_H = 40;
 
 function at(x: number, y: number, scale = 1): string {
   return `translate(${x - GEM_HALF_W}px, ${y - GEM_HALF_H}px) scale(${scale})`;
@@ -74,6 +138,9 @@ export default function ChestOpening({
   const [shake, setShake] = useState(0);
   const [paid, setPaid] = useState<OpenResult | null>(null);
   const [gems, setGems] = useState(0);
+  // True once the loot has left the box: the heap and the light go, the open box stays.
+  const [emptied, setEmptied] = useState(false);
+  const sprayRefs = useRef<(HTMLSpanElement | null)[]>([]);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const chestRef = useRef<HTMLButtonElement>(null);
@@ -147,6 +214,9 @@ export default function ChestOpening({
     setGems(count);
     setPhase("bursting");
     document.documentElement.setAttribute(LIFT_ATTR, "");
+    // The loot pieces mount with this render; give React a beat before they are moved.
+    await wait(30);
+    if (!alive.current) return;
 
     const chest = chestRef.current?.getBoundingClientRect();
     const cx = chest === undefined ? window.innerWidth / 2 : chest.left + chest.width / 2;
@@ -166,7 +236,33 @@ export default function ChestOpening({
         { duration: 1500, easing: "cubic-bezier(.19, 1, .22, 1)", fill: "forwards" },
       );
     }
-    await wait(900);
+    // The fountain: coins and stones thrown up out of the heap in waves, each
+    // on its own arc with gravity, bouncing on the floor beside the box. The
+    // heap empties as they leave.
+    const floor = Math.min(window.innerHeight - cy - 190, 150);
+    sprayRefs.current.forEach((el, i) => {
+      if (el === null) return;
+      const dir = i % 2 === 0 ? 1 : -1;
+      const reach = Math.min(170, window.innerWidth / 2 - 30);
+      const vx = dir * (95 + ((i * 37) % 100) * 1.1) * (reach / 170);
+      const peak = Math.min(340, Math.max(110, cy - 90)) * (0.55 + (((i * 53) % 100) / 100) * 0.45);
+      const vy = -Math.sqrt(2 * 2600 * peak);
+      const spin = (i % 3 === 0 ? -1 : 1) * (200 + i * 30);
+      const big = i % 6 === 0 ? 1.7 : 1;
+      const place = (x: number, y: number, r: number, k: number) => `translate(${cx + x - 29}px, ${cy - 30 + y - 29}px) rotate(${r}deg) scale(${k * big})`;
+      animate(el, arcFrames(vx, vy, floor + 30 - (i % 5) * 9 + (i % 2) * 6, spin, place), {
+        duration: 1900,
+        delay: 80 + Math.floor(i / 4) * 55,
+        easing: "linear",
+        fill: "forwards",
+      });
+      // Once it has landed it stops flipping and lies flat, crisp, in the heap.
+      timers.current.push(window.setTimeout(() => el.classList.add("is-landed"), 80 + Math.floor(i / 4) * 55 + 1000));
+    });
+    await wait(450);
+    if (!alive.current) return;
+    setEmptied(true);
+    await wait(450);
     if (!alive.current) return;
 
     const els = gemRefs.current.slice(0, count).filter((el): el is HTMLSpanElement => el !== null);
@@ -178,7 +274,7 @@ export default function ChestOpening({
 
     // Drop in from above the screen to a shallow arc over the chest, kept
     // inside the viewport on a narrow phone.
-    const gap = Math.min(62, (window.innerWidth - 64) / Math.max(1, els.length - 1));
+    const gap = Math.min(92, (window.innerWidth - 100) / Math.max(1, els.length - 1));
     const slots = els.map((_el, i) => {
       const o = i - (els.length - 1) / 2;
       return { x: cx + o * gap, y: Math.max(120, cy - 150) + Math.abs(o) * 22 };
@@ -197,7 +293,7 @@ export default function ChestOpening({
     await wait(1000);
     if (!alive.current) return;
     for (const el of els) el.firstElementChild?.classList.add("is-hover");
-    await wait(650);
+    await wait(950);
     if (!alive.current) return;
 
     setPhase("flying");
@@ -250,6 +346,7 @@ export default function ChestOpening({
     if (!next.opens) return;
     if (reducedMotion) {
       setPaid(request.open());
+      setEmptied(true);
       setPhase("done");
       playGem();
       return;
@@ -263,9 +360,14 @@ export default function ChestOpening({
     );
   };
 
+  const finalPaid = phase === "done" ? paid : null;
+  const countD = useCountUp(finalPaid?.diamonds ?? 0, finalPaid !== null, reducedMotion);
+  const countX = useCountUp(finalPaid?.xp ?? 0, finalPaid !== null, reducedMotion);
   const open = phase !== "tapping";
+  const tallyOn = (phase === "bursting" || phase === "flying") && (paid?.diamonds ?? 0) > 0;
+  const tally = useCountUp(paid?.diamonds ?? 0, tallyOn && !reducedMotion, reducedMotion, 1500);
   // How bright the light behind the box is: grows per tap, full at the burst.
-  const light = phase === "tapping" ? taps * 0.35 : phase === "bursting" ? 1 : 0.6;
+  const light = phase === "tapping" ? taps * 0.35 : phase === "bursting" ? (emptied ? 0.3 : 1) : phase === "flying" ? 0.2 : 0;
   const swing = phase === "tapping" ? `${taps * 4}deg` : "12deg";
   const bloomBehaviour: BerryBehaviour =
     phase === "tapping" ? (shake > 0 ? "wideEyed" : "leanIn") : phase === "bursting" ? "bounce" : "idle";
@@ -300,11 +402,12 @@ export default function ChestOpening({
         aria-label={open ? "Treasure chest, open" : `Treasure chest. Tap ${TAPS_TO_OPEN - taps} more ${TAPS_TO_OPEN - taps === 1 ? "time" : "times"} to open it`}
         aria-disabled={open}
       >
+        <span className="chest-open__beam" aria-hidden />
         <span className="chest-open__glow" aria-hidden />
         <span className="chest-open__rays" aria-hidden>
           <i />
         </span>
-        <ChestArt open={open && paid !== null} />
+        <ChestArt open={open && paid !== null} empty={emptied} />
       </button>
       </div>
 
@@ -317,7 +420,30 @@ export default function ChestOpening({
         ))}
       </span>
 
+      {tallyOn && !reducedMotion ? (
+        <p className="chest-open__tally" aria-hidden>
+          <span className="chest-open__tally-gem">
+            <GemArt />
+          </span>
+          <span>+{tally}</span>
+        </p>
+      ) : null}
+
       <span ref={floodRef} className="chest-open__flood" aria-hidden />
+
+      {Array.from({ length: paid === null || reducedMotion ? 0 : SPRAY.length }, (_unused, i) => (
+        <span
+          key={`s${i}`}
+          ref={(el) => {
+            sprayRefs.current[i] = el;
+          }}
+          className="chest-spray"
+          style={{ opacity: 0 }}
+          aria-hidden
+        >
+          {SPRAY[i] === "coin" ? <CoinArt /> : <StoneArt tone={SPRAY[i] as StoneTone} />}
+        </span>
+      ))}
 
       {Array.from({ length: gems }, (_unused, i) => (
         <span
@@ -339,7 +465,9 @@ export default function ChestOpening({
 
       {phase === "done" && paid !== null ? (
         <div className="chest-open__result" role="status">
-          <h2 className="chest-open__amount">{paidHeadline(paid)}</h2>
+          <h2 className="chest-open__amount" aria-label={paidHeadline(paid)}>
+            <span aria-hidden>{paidHeadline({ diamonds: countD, xp: countX })}</span>
+          </h2>
           <p className="chest-open__detail">{request.detail}</p>
           <button ref={continueRef} type="button" className={pressClassName({ block: true, size: "lg" })} onClick={close} data-chest-continue>
             Continue

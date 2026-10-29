@@ -213,7 +213,7 @@ const STAGES: readonly GuideStage[] = [
   {
     id: "c",
     label: "Stage C",
-    title: "Naming benzene rings",
+    title: "Why position matters, then naming",
     optional: true,
     checkpoint: null,
     lessons: [
@@ -221,20 +221,57 @@ const STAGES: readonly GuideStage[] = [
         node: "u2-nomen",
         ideas: [
           {
+            text: "A donor like OCH₃ or OH puts negative charge on the ortho and para carbons.",
+            mark: "ortho and para",
+            source: "u2-nom-res-donor",
+            quote: "A donor like OCH3 or OH puts negative charge on the ortho and para carbons.",
+          },
+          {
+            text: "An acceptor like NO₂ makes the ortho and para carbons electron poor. Meta is left as the least poor position.",
+            mark: "Meta",
+            source: "u2-nom-res-wd",
+            quote: "An acceptor like NO2 makes the ortho and para carbons electron poor. Meta is left as the least poor position.",
+          },
+          {
+            text: "Halogens are the exception: they slow the ring (deactivating) but still direct ortho and para.",
+            mark: "exception",
+            source: "u2-nom-eas-halogen",
+            quote: "Halogens are the exception. They slow the ring down (deactivating) but still direct ortho and para, because their lone pairs share into the ring.",
+          },
+          {
+            text: "Donors make the ring react faster than benzene, acceptors slower: toluene, benzene, nitrobenzene.",
+            mark: "faster",
+            source: "u2-nom-rate",
+            quote: "Donors activate the ring, so it reacts faster than benzene.",
+          },
+          {
             text: "Ortho is 1,2 (next door), meta is 1,3 (one carbon between), para is 1,4 (across the ring).",
             mark: "Ortho is 1,2",
             source: "u2-nom-xylene",
             quote: "Ortho is 1,2 (next door), meta is 1,3 (one carbon between), para is 1,4 (across the ring).",
           },
           {
+            text: "Use o, m or p only when two groups are on the ring. With three or more, give each group a number.",
+            mark: "two groups",
+            source: "u2-nom-why-numbers",
+            quote: "Use o, m or p only when two groups are on the ring. With three or more, give each group a number.",
+          },
+          {
+            text: "Phenyl is the ring as a branch, C6H5. Benzyl is the ring plus one CH2.",
+            mark: "Benzyl",
+            source: "u2-nom-benzyl",
+            quote: "Phenyl is the ring itself as a branch, C6H5. Benzyl is the ring plus one CH2, C6H5CH2.",
+          },
+          {
+            text: "The principal group (COOH, OH, NH₂) takes C1. Nitro and halogens are only prefixes.",
+            mark: "principal group",
+            source: "u2-nom-benzoic-subs",
+            quote: "The principal group (COOH) takes C1.",
+          },
+          {
             text: "Phenol is benzene with OH, aniline with NH₂, anisole with OCH₃.",
             source: "u2-nom-phenol",
             quote: "Phenol is benzene with OH, aniline with NH2, anisole with OCH3.",
-          },
-          {
-            text: "Three fused rings: straight is anthracene, bent is phenanthrene.",
-            source: "u2-nom-phenanthrene",
-            quote: "Three fused rings: straight is anthracene, bent is phenanthrene.",
           },
         ],
         example: { source: "u2-nom-meta", quote: "Count the ring bonds between the two groups: one is ortho, two is meta, three is para." },
@@ -242,22 +279,40 @@ const STAGES: readonly GuideStage[] = [
     ],
     mistakes: [
       {
+        mistake: "Sending the next group meta after a donor.",
+        fix: "Donors direct to ortho and para. Acceptors direct to meta.",
+        source: "u2-nom-eas-donor",
+        quote: "Donors direct electrophilic substitution to ortho and para.",
+      },
+      {
+        mistake: "Calling a halogen a meta director because it deactivates.",
+        fix: "Halogens deactivate but direct ortho and para.",
+        source: "u2-nom-eas-halogen",
+        quote: "Halogens are the exception.",
+      },
+      {
+        mistake: "Naming 4-nitroaniline as an aminonitrobenzene.",
+        fix: "NH2 outranks NO2, so aniline is the parent.",
+        source: "u2-nom-nitroaniline",
+        quote: "The amine outranks nitro, so it is the parent",
+      },
+      {
         mistake: "Mixing up meta and para.",
         fix: "Count the ring bonds: two is meta, three is para.",
         source: "u2-nom-meta",
         quote: "two is meta, three is para",
       },
       {
+        mistake: "Using o, m or p on a ring with three groups.",
+        fix: "o, m and p compare exactly two groups. Number the ring instead.",
+        source: "u2-nom-why-numbers",
+        quote: "o, m and p compare exactly two groups.",
+      },
+      {
         mistake: "Numbering a chlorophenol from the Cl.",
         fix: "When the parent is phenol, the OH carbon is C1.",
         source: "u2-nom-chlorophenol",
         quote: "When the parent is phenol, the OH carbon is C1",
-      },
-      {
-        mistake: "Calling three fused rings with a bend anthracene.",
-        fix: "Anthracene is a straight row; the bent one is phenanthrene.",
-        source: "u2-nom-anthracene",
-        quote: "Anthracene has three in a line; phenanthrene has three with a bend.",
       },
     ],
   },

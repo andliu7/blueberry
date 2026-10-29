@@ -60,8 +60,9 @@
 }
 .chest-open__chest {
   position: relative;
-  width: 12rem;
-  height: 10.5rem;
+  width: min(17rem, 62vw);
+  aspect-ratio: 120 / 104;
+  height: auto;
   padding: 0;
   border: 0;
   border-radius: 1rem;
@@ -183,9 +184,9 @@
   left: 0;
   top: 0;
   z-index: 80;
-  width: 3rem;
-  height: 2.75rem;
-  perspective: 220px;
+  width: 5.5rem;
+  height: 5rem;
+  perspective: 300px;
   pointer-events: none;
 }
 .chest-gem__bob.is-hover {
@@ -199,7 +200,7 @@
   width: 100%;
   height: 100%;
   animation: chest-gem-spin 1300ms ease-in-out infinite alternate;
-  filter: drop-shadow(0 4px 0 rgba(3, 60, 110, 0.25));
+  filter: drop-shadow(0 5px 0 rgba(3, 60, 110, 0.3)) drop-shadow(0 0 18px rgba(120, 210, 255, 0.9));
 }
 @keyframes chest-gem-spin {
   from { transform: rotateY(-42deg) rotateZ(-6deg); }
@@ -220,9 +221,10 @@
   align-items: center;
   gap: 0.25rem;
   padding: 1.25rem 1rem 1rem;
-  border: 2px solid var(--bb-border);
+  border: 3px solid #ffd23f;
   border-radius: 1.5rem;
-  background: var(--bb-card);
+  background: #1f1559;
+  box-shadow: 0 0 40px rgba(255, 210, 63, 0.45);
   animation: chest-result-in 420ms var(--bb-ease-spring);
 }
 @keyframes chest-result-in {
@@ -233,14 +235,21 @@
   text-align: center;
   text-wrap: balance;
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1.2;
+  font-size: 2.5rem;
+  line-height: 1.1;
   font-weight: 900;
-  color: var(--hud-ink-diamond, #0369a1);
+  color: #ffe27a;
+  text-shadow: 0 3px 0 rgba(90, 50, 0, 0.6);
+  animation: chest-amount-pop 650ms var(--bb-ease-spring);
+}
+@keyframes chest-amount-pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.18); }
+  100% { transform: none; }
 }
 .chest-open__detail {
   margin: 0 0 0.75rem;
-  color: var(--bb-muted-foreground);
+  color: #d9d2ff;
   font-size: 0.9375rem;
   font-weight: 700;
 }
@@ -254,7 +263,94 @@
   .chest-open__rays i,
   .chest-open__chest.is-shaking,
   .chest-open__chest.is-burst,
-  .chest-open__result {
+  .chest-open__result,
+  .chest-open__amount,
+  .chest-open__beam,
+  .chest-spray .coin-art,
+  .chest-open__tally {
     animation: none;
   }
+}
+
+/* A coin or stone thrown out of the box. Fixed so it can fly past the card. */
+.chest-spray {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 79;
+  width: 3.6rem;
+  height: 3.6rem;
+  perspective: 160px;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 0 rgba(60, 28, 0, 0.55));
+}
+.chest-spray .coin-art {
+  animation: chest-coin-flip 520ms linear infinite;
+}
+.chest-spray.is-landed .coin-art {
+  animation: none;
+  transform: rotateX(28deg);
+}
+@keyframes chest-coin-flip {
+  to { transform: rotateY(360deg); }
+}
+
+/* The running total while the loot flies: big, over the chest, popping. */
+.chest-open__tally {
+  position: fixed;
+  z-index: 78;
+  left: 0;
+  right: 0;
+  top: calc(env(safe-area-inset-top, 0px) + 6.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 4.75rem;
+  line-height: 1;
+  font-weight: 900;
+  color: #ffe27a;
+  text-shadow: 0 5px 0 rgba(90, 50, 0, 0.7), 0 0 28px rgba(255, 214, 90, 0.9);
+  pointer-events: none;
+  animation: chest-tally-in 380ms var(--bb-ease-spring);
+}
+.chest-open__tally-gem {
+  display: block;
+  width: 4.5rem;
+  height: 4.1rem;
+}
+@keyframes chest-tally-in {
+  from { opacity: 0; transform: scale(0.5); }
+}
+
+/* The beam: a column of light that shoots up out of the box as the lid goes. */
+.chest-open__beam {
+  position: absolute;
+  left: 50%;
+  bottom: 45%;
+  width: 11rem;
+  height: 90vh;
+  margin-left: -5.5rem;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  background: linear-gradient(to top, rgba(255, 250, 220, 1), rgba(255, 220, 110, 0.75) 40%, rgba(255, 220, 110, 0));
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
+}
+.chest-open[data-chest-phase="bursting"] .chest-open__beam {
+  animation: chest-beam 1500ms cubic-bezier(.19, 1, .22, 1) forwards;
+}
+@keyframes chest-beam {
+  0% { opacity: 0; transform: scaleY(0) scaleX(0.4); }
+  18% { opacity: 1; transform: scaleY(1) scaleX(1.5); }
+  70% { opacity: 0.9; transform: scaleY(1) scaleX(1); }
+  100% { opacity: 0; transform: scaleY(1) scaleX(0.6); }
+}
+.chest-open[data-chest-phase="bursting"] .chest-open__rays {
+  transform: scale(1.9);
+  opacity: 1;
 }

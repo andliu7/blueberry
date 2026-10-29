@@ -1059,3 +1059,69 @@
 .spage[data-reduced="true"] .spage-berry {
   animation: none;
 }
+
+.spage-goal-track {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+.spage-goal-track .spage-goal-bar {
+  flex: 1;
+  margin-top: 0;
+}
+.spage-goal-end {
+  flex: none;
+  min-width: 2.1rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.6rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 900;
+  color: var(--bb-muted-foreground);
+  background: var(--bb-card);
+  box-shadow: inset 0 0 0 2px var(--bb-border);
+}
+.spage-goal-end[data-reached="true"] {
+  color: var(--streak);
+  box-shadow: inset 0 0 0 2px var(--streak);
+}
+
+/* round 3 (streak-start-feed): the hero scales with the viewport height so the week row and the
+   goal card sit in the first view, above the dock, at 705px tall. --st is the stage height. */
+.spage {
+  --st: clamp(8rem, 25vh, 15rem);
+}
+.spage-hero {
+  padding-top: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+.spage-bubble {
+  font-size: clamp(1rem, 2.4vh, 1.25rem);
+  padding: 0.5rem 0.9rem;
+}
+.spage-stage {
+  height: var(--st);
+}
+.spage-hero-flame {
+  width: calc(var(--st) * 0.97);
+  left: calc(50% - var(--st) * 0.3);
+}
+.spage-berry {
+  width: calc(var(--st) * 0.6);
+  left: calc(50% - var(--st) * 0.67);
+}
+.spage-count {
+  font-size: calc(var(--st) * 0.6);
+}
+.spage-count-unit {
+  font-size: clamp(1.25rem, 3.4vh, 2rem);
+}
+.spage-week {
+  margin-top: 0.25rem;
+  padding-top: 0.6rem;
+}
+.spage-goal {
+  margin-top: 0.6rem;
+  padding: 0.8rem 1rem 0.9rem;
+}

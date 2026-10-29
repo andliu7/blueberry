@@ -50,14 +50,17 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { deriveEconomy, type EconomySnapshot } from "@blueberry/economy";
-import { Berry } from "../mascot/Berry";
+import { ElixirBerry } from "../elixir/ElixirBloom";
+import { ElixirBar } from "../elixir/ElixirVial";
+import { DRINK_MS, elixirFraction, elixirTier } from "../elixir/elixirModel";
+import "../elixir/elixir.css";
 import { ChargeMark, DiamondMark } from "../app/ui/HudIcons";
 import { economyOptions, progress } from "../app/progress";
 import { useProgress } from "../app/hooks";
 import { navigate } from "../app/useHashRoute";
 import { hrefForReview } from "../app/routes";
 import { chargeMeterModel, type ChargeMeterModel } from "./chargeMeterModel";
-import { chargeEntryOf, chargeGateModel, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
+import { chargeEntryOf, chargeGateModel, xpRewardOf, type ChargeGateModel, type ChargeGateNode } from "./chargeGateModel";
 import "./charge.css";
 import "./startpop.css";
 import { closeOnBackdrop } from "../app/ui/dismiss";
@@ -195,6 +198,10 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
   const [frozen, setFrozen] = useState<ChargeGateModel | null>(null);
   const [frozenMeter, setFrozenMeter] = useState<ChargeMeterModel | null>(null);
   const timer = useRef<number | null>(null);
+  /** Bumped by a top-up: Bloom drinks the elixir and the bar slides full. */
+  const [drink, setDrink] = useState(0);
+  const [drinking, setDrinking] = useState(false);
+  const drinkTimer = useRef<number | null>(null);
   /**
    * Where the tapped node was, read off the element that held focus when the
    * sheet opened. The card hangs under that node with a notch pointing at it,
@@ -252,7 +259,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
   const cardKey = model === null ? "" : `${model.state}${meter === null ? 0 : 1}${model.topUp === null ? 0 : 1}`;
   useLayoutEffect(() => {
     const card = cardRef.current;
-    if (anchor === null || card === null || window.innerWidth >= 768) {
+    if (anchor === null || card === null) {
       setPlace(null);
       return;
     }
@@ -295,6 +302,7 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
   useEffect(
     () => () => {
       if (timer.current !== null) window.clearTimeout(timer.current);
+      if (drinkTimer.current !== null) window.clearTimeout(drinkTimer.current);
     },
     [],
   );
@@ -331,6 +339,10 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
     // A spend, journalled like any other. The meter it refills is derived from
     // the same journal one line later, so the sheet updates itself.
     progress.spend("charge_topup", model.topUp.cost, model.node.id);
+    setDrink((k) => k + 1);
+    setDrinking(true);
+    if (drinkTimer.current !== null) window.clearTimeout(drinkTimer.current);
+    drinkTimer.current = window.setTimeout(() => setDrinking(false), DRINK_MS);
   };
 
   return (
@@ -353,13 +365,14 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
         >
           {place === null ? null : <span className="sp-notch" aria-hidden />}
           <div className="sp-bloom" aria-hidden>
-            <Berry
-              state="charged"
-              chargeLevel={
-                model.state === "exam" ? 1 : model.cap <= 0 ? 0 : (phase === "spending" ? model.after : model.before) / model.cap
+            <ElixirBerry
+              phase={drinking ? "drinking" : "awake"}
+              tier={
+                model.state === "exam"
+                  ? "full"
+                  : elixirTier(elixirFraction(phase === "spending" ? model.after : model.before, model.cap))
               }
-              mood={model.state === "empty" ? "sleepy" : "happy"}
-              behaviour={model.state === "empty" ? "sleepy" : phase === "spending" ? "celebrate" : "wave"}
+              jumpKey={drink}
               reducedMotion={reducedMotion}
               sizePx={116}
             />
@@ -373,9 +386,27 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
             </button>
           </div>
 
+          {model.state !== "empty" || model.cap <= 0 ? null : (
+            <div className="elx-sheet-elixir" data-phase={drinking ? "drinking" : "awake"} data-motion={reducedMotion ? "still" : "live"}>
+              <ElixirBar
+                compact
+                current={phase === "spending" ? model.after : model.before}
+                cap={model.cap}
+                reducedMotion={reducedMotion}
+              />
+            </div>
+          )}
           <div className="sp-words">
             <h2 className="sp-ask">{askOf(model.state)}</h2>
             <p className="sp-name">{model.node.title}</p>
+            {model.node.place === undefined ? null : <p className="sp-place">{model.node.place}</p>}
+            {meter === null || model.state !== "ready" || model.cost <= 0 ? null : (
+              <p className="sp-cost" data-sp-cost>
+                <ChargeMark className="sp-cost-bolt" />
+                <span>{`Costs ${model.cost} energy`}</span>
+                <span className="sp-cost-left">{`${Math.max(0, model.before - model.cost)} left after`}</span>
+              </p>
+            )}
             {meter === null || model.state !== "ready" ? null : (
               <span className="sr-only">{`Charge ${model.before} of ${model.cap}, ${model.cost} to start`}</span>
             )}
@@ -407,11 +438,8 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
             ) : (
               <>
                 <span>{goLabel(model)}</span>
-                {model.state === "ready" ? (
-                  <span className="sp-cost">
-                    <ChargeMark className="sp-bolt" />
-                    {model.cost}
-                  </span>
+                {model.state !== "empty" && xpRewardOf(model.node) > 0 ? (
+                  <span className="sp-reward" data-sp-reward>{`+${xpRewardOf(model.node)} XP`}</span>
                 ) : null}
               </>
             )}
@@ -434,6 +462,14 @@ export function ChargeGate({ node, onClose, reducedMotion, onStarted, restartSav
               {model.dismissLabel}
             </button>
           )}
+
+          {phase === "spending" && model.state === "ready" && model.cost > 0 && !reducedMotion ? (
+            <span className="sp-spend" aria-hidden>
+              <ChargeMark className="sp-bolt" />
+              <span>{`−${model.cost}`}</span>
+              <span className="sp-spend-word">energy</span>
+            </span>
+          ) : null}
         </div>
       )}
     </dialog>

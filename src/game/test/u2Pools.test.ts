@@ -45,7 +45,7 @@ const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u2-hetero": 15,
   "u2-charged": 17,
   "u2-nmr": 7,
-  "u2-nomen": 12,
+  "u2-nomen": 23,
 };
 
 // CHANGED 2026-10-17 (round 4): five lessons now, was Hückel and NMR only. Nomenclature stays the in-a-row set.

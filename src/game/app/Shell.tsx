@@ -84,7 +84,9 @@ import "./ui/tabs.css";
 import "../settings/groundTheme";
 
 const TrainerTab = lazy(() => import("../tabs/trainer/TrainerTab").then((m) => ({ default: m.TrainerTab })));
+import { ChallengesPath, PathSideTabs } from "../tabs/pathway/PathwaySideTabs";
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
+const ShopPage = lazy(() => import("../shop/ShopPage"));
 const CardsTab = lazy(() => import("../tabs/cards/CardsTab"));
 const FeedTab = lazy(() => import("../tabs/feed/FeedTab"));
 const MeTab = lazy(() => import("../tabs/me/MeTab"));
@@ -144,7 +146,24 @@ function Outlet({
     case "trainer":
       return <TrainerTab reducedMotion={reducedMotion} />;
     case "pathway":
-      return <PathwayTab reducedMotion={reducedMotion} />;
+      return rest[0] === "challenges" ? (
+        <>
+          <PathSideTabs active="challenges" />
+          <ChallengesPath />
+        </>
+      ) : rest[0] === "shop" ? (
+        <>
+          <PathSideTabs active="shop" />
+          <Suspense fallback={<TabSkeleton label="the shop" />}>
+            <ShopPage reducedMotion={reducedMotion} embedded />
+          </Suspense>
+        </>
+      ) : (
+        <>
+          <PathSideTabs active="path" />
+          <PathwayTab reducedMotion={reducedMotion} />
+        </>
+      );
     case "cards":
       return <CardsTab onImmersiveChange={onImmersiveChange} />;
     case "feed":

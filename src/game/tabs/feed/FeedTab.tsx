@@ -91,8 +91,8 @@ import "../social/social.css";
 import { activityFeed, type ActivityKind } from "./activityModel";
 import { FeedBackdrop } from "./FeedBackdrop";
 import { dailyQuestRows, feedModel, feedReminders, welcomeCard, welcomesBack, type DailyQuestRow, type WelcomeCard } from "./feedModel";
-import { NudgeCard, PostCard, TipCard, useCheers } from "./PostCards";
-import { FriendCards } from "./FriendCards";
+import { NudgeCard, PostCard, RivalCard, TipCard, WeekCard, useCheers } from "./PostCards";
+import { weekModel } from "./weekModel";
 import "./feed.css";
 
 /**
@@ -574,8 +574,8 @@ function QuestsHeader({ done, total }: { readonly done: number; readonly total: 
 function FirstWin({ lesson, name }: { readonly lesson: string | null; readonly name: string | null }) {
   const first = firstNameOf(name);
   return (
-    <div className="feed-first-win flex flex-col items-center gap-3 text-center">
-      <svg viewBox="0 0 64 64" className="size-28" aria-hidden="true" focusable="false">
+    <div className="feed-first-win flex flex-col items-center gap-2 text-center">
+      <svg viewBox="0 0 64 64" className="size-16" aria-hidden="true" focusable="false">
         <circle cx="32" cy="34" r="27" fill="#2f7d33" />
         <circle cx="32" cy="30" r="27" fill="var(--progress)" />
         <path d="M20 31 28 39 44 22" fill="none" stroke="var(--progress-ink)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
@@ -680,6 +680,7 @@ export default function FeedTab() {
   // Re-read the clock when the journal moves, not on a timer: the bars are
   // day totals, and the one thing that changes them mid visit is an event.
   const model = useMemo(() => feedModel(snapshot.journal, new Date().toISOString()), [snapshot.journal]);
+  const week = useMemo(() => weekModel(snapshot.journal, new Date().toISOString()), [snapshot.journal]);
   const activity = useMemo(() => activityFeed(snapshot.journal, titleFor, new Date().toISOString()), [snapshot.journal]);
   // The owner's daily quests (20 Oct), straight from the economy's snapshot.
   const quests = useMemo(() => dailyQuestRows(snapshot.economy), [snapshot.economy]);
@@ -726,7 +727,9 @@ export default function FeedTab() {
           )}
           <section aria-label="Your feed" className="flex flex-col">
             <ul className="fp-stream">
-              <FriendCards afterFirst={<NudgeCard counted={model.snapshot.streak.todayCounted} streak={model.snapshot.streak.current} />} />
+              <NudgeCard counted={model.snapshot.streak.todayCounted} streak={model.snapshot.streak.current} week={week} />
+              <RivalCard xpToday={model.snapshot.xp.today} avatar={<BlueberryAvatar />} />
+              <WeekCard week={week} />
               {activity.length === 0 ? <TipCard dayIndex={dayIndex} art={tipArt} /> : null}
               {activity.map((item, index) => (
                 <Fragment key={item.key}>
@@ -759,14 +762,6 @@ export default function FeedTab() {
         </div>
 
         <aside className="social-rail" aria-label="Friends and more">
-          {/* Friends' encouragement needs real accounts, and social is not open
-              until its server tables exist. One honest line, no pretend people. */}
-          <section className="flex flex-col gap-2" aria-label="From friends">
-            <h2 className="feed-heading">From friends</h2>
-            <p className="m-0 text-[0.9375rem] font-semibold text-bb-muted-foreground">
-              Cheers from friends will show up here once friend accounts open.
-            </p>
-          </section>
           <section className="flex flex-col gap-3" aria-label="More">
             <h2 className="feed-heading">More</h2>
             <ul className="flex flex-col gap-2">

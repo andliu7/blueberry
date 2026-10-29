@@ -154,6 +154,15 @@ function PlainFront({ card }: { readonly card: Card }) {
       {/* A premade section card draws its guide row (sections/SectionFigure.tsx). */}
       <SectionFigure card={card} side="front" size="big" />
       <p className="whitespace-pre-line text-scale-lg font-semibold leading-snug">{card.front}</p>
+      {card.quiz?.options !== undefined && (
+        <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-scale-base" aria-label={card.quiz.kind === "multi" ? "Pick every right option" : "Pick one"}>
+          {card.quiz.options.map((option, i) => (
+            <li key={i} className="rounded-xl border-2 border-bb-border px-3 py-2">
+              {option}
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

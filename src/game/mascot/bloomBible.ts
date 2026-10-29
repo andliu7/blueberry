@@ -85,7 +85,7 @@ export const BIBLE_ROWS: readonly BibleRow[] = Object.freeze([
   row("E. Costumes", "Goggles and lab coat", "Reaction lessons; goggles down while working.", { mood: "focused", costume: "labcoat" }),
   row("E. Costumes", "Tweed and pointer", "Concept lessons.", { mood: "curious", costume: "tweed" }),
   row("E. Costumes", "Trench and loupe", "Spectroscopy and structure lessons.", { mood: "thinking", costume: "trench" }),
-  row("E. Costumes", "Backpack and map", "Branch lessons off the spine.", { mood: "happy", costume: "backpack" }),
+  row("E. Costumes", "Waist bag", "Branch lessons off the spine.", { mood: "happy", costume: "backpack" }),
   row("E. Costumes", "Whistle and stripes", "Unit quizzes and test-out; cheers only at the end.", { mood: "focused", costume: "referee" }),
   row("E. Costumes", "Cape", "The leaderboard, only when the student places.", { mood: "proud", costume: "cape" }),
   row("E. Costumes", "Nightcap", "Notification art only, never in app.", { mood: "sleepy", costume: "nightcap" }),

@@ -90,12 +90,7 @@ function CostumeDefs({ clipId }: { readonly clipId: string }) {
 function CostumeBehind({ costume }: { readonly costume: BerryCostume }) {
   switch (costume) {
     case "backpack":
-      return (
-        <g className="bb-costume">
-          <rect x="41" y="23" width="19" height="26" rx="6" fill={PACK} />
-          <rect x="41" y="31" width="19" height="7" rx="2.5" fill="#7c3d06" />
-        </g>
-      );
+      return null;
     case "cape":
       return (
         <g className="bb-costume">
@@ -194,18 +189,25 @@ function CostumeFront({ costume, goggles, clipId }: { readonly costume: BerryCos
         </g>
       );
     case "backpack":
+      // A waist bag on the viewer's right hip (Bloom's left). A thin dark
+      // belt crosses the belly low, clipped to the body, and runs into a whole
+      // pouch drawn on top and NOT clipped, so the pouch hangs off the body
+      // edge like a sticker mascot's bag. Everything is at or below y 50
+      // (the smile ends by y 47), so no eye or smile is ever covered.
       return (
         <g className="bb-costume">
           <g clipPath={`url(#${clipId})`}>
-            <path
-              d="M21 12 Q27 32 24 58"
-              fill="none"
-              stroke={PACK}
-              strokeWidth="4.4"
-              strokeLinecap="round"
-            />
+            {/* The strap: a pale band with a dark edge, sagging low across the belly to the pouch on the right. */}
+            <path d="M4 50.5 Q22 61 46 56" fill="none" stroke="#3b1d06" strokeWidth="7.4" strokeLinecap="butt" />
+            <path d="M4 50.5 Q22 61 46 56" fill="none" stroke="#e8c38a" strokeWidth="5" strokeLinecap="butt" />
+            <path d="M4 49.3 Q22 59.6 46 54.6" fill="none" stroke="#fff3d6" strokeWidth="0.9" opacity="0.8" />
+            <path d="M4 52 Q22 62.4 46 57.4" fill="none" stroke="#8a4a14" strokeWidth="0.9" strokeDasharray="2 1.6" />
           </g>
-          <rect x="21" y="37" width="6.4" height="4.4" rx="1.2" fill="#7c3d06" />
+          <path d="M38 53 Q38 50.4 41 50.4 H55 Q58 50.4 58 53 V60 Q58 63.4 54.6 63.4 H41.4 Q38 63.4 38 60 Z" fill={PACK} stroke="#3b1d06" strokeWidth="1.6" strokeLinejoin="round" />
+          <path d="M39 53 Q39 51.4 41 51.4 H55 Q57 51.4 57 53 V55.4 Q48 59 39 55.4 Z" fill="#d9792a" />
+          <path d="M39 55.4 Q48 59 57 55.4" fill="none" stroke="#3b1d06" strokeWidth="1.3" strokeLinecap="round" />
+          <rect x="45" y="56.2" width="6" height="5" rx="1.2" fill={WHISTLE} stroke="#3b1d06" strokeWidth="1" />
+          <circle cx="48" cy="58.7" r="0.9" fill="#3b1d06" />
         </g>
       );
     case "referee":

@@ -200,7 +200,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u2-hetero", kind: "gate", role: "video", title: "Heterocycles", blurb: "Pyridine's lone pair sits out; pyrrole's joins in.", playable: { kind: "beat", id: "u2-hetero" } },
       { id: "u2-nmr", kind: "gate", role: "video", title: "Ring-current NMR signature", blurb: "Deshields outside, shields inside. Links to Unit 6.", playable: { kind: "beat", id: "u2-nmr" } },
       // A side quest off the first lesson: naming benzene rings needs only what Hückel teaches, not the NMR lesson.
-      { id: "u2-nomen", kind: "branch", role: "practice", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics.", playable: { kind: "beat", id: "u2-nomen" }, after: ["u2-huckel"] },
+      { id: "u2-nomen", kind: "branch", role: "practice", title: "Nomenclature review", blurb: "o/m/p, common names, polycyclics.", playable: { kind: "beat", id: "u2-nomen" }, after: [] }, // Unit 2 is all gates, so this side quest is the first thing drawn: it waits for nothing, or the first lesson on screen shows locked (owner, 28 Oct).
     ],
   },
   {

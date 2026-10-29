@@ -33,6 +33,13 @@ export type ViewMode = "admin" | "student";
 const AdminActivity = lazy(() => import("./AdminActivity"));
 // The two statistics boards (#/app/admin/stats), lazy for the same reason.
 const BoardsPage = lazy(() => import("./BoardsPage"));
+// The admin home (#/app/admin/home): the page the owner lands on.
+const AdminHome = lazy(() => import("./AdminHome"));
+// The task board (#/app/admin/tasks), lazy like the rest.
+const TaskBoardPage = lazy(() => import("./TaskBoardPage"));
+
+/** Nodes that are staff pages, not lesson ids. */
+const isPage = (node: string | null): boolean => node === "home" || node === "activity" || node === "stats" || node === "tasks";
 
 const KIND_LABEL: Readonly<Record<Slide["kind"], string>> = {
   mcq: "Multiple choice",
@@ -284,26 +291,32 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
             <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <p className="av-bar__title">{node === "activity" || node === "stats" ? "Admin" : "Lesson viewer"}</p>
+        <p className="av-bar__title">{isPage(node) ? "Admin" : "Lesson viewer"}</p>
         {/* Bloom's every state and reaction, for checking the mascot by eye (BLOOM-STATES-SPEC.md). */}
         <a className="av-bar__lessons" href={hrefForGallery()}>
           Bloom
         </a>
-        {node === "activity" || node === "stats" ? (
+        {isPage(node) ? (
           <a className="av-bar__lessons" href={hrefForAdmin()}>
             Lessons
           </a>
         ) : (
           <>
+            <a className="av-bar__lessons" href={hrefForAdmin("home")}>
+              Home
+            </a>
             <a className="av-bar__lessons" href={hrefForAdmin("activity")}>
               Activity
             </a>
             <a className="av-bar__lessons" href={hrefForAdmin("stats")}>
               Stats
             </a>
+            <a className="av-bar__lessons" href={hrefForAdmin("tasks")}>
+              Tasks
+            </a>
           </>
         )}
-        {node === "activity" || node === "stats" ? null : (
+        {isPage(node) ? null : (
           <button
             type="button"
             className="av-bar__lessons"
@@ -315,7 +328,15 @@ export default function AdminViewer({ node }: { readonly node: string | null }) 
         )}
       </div>
 
-      {node === "stats" ? (
+      {node === "home" ? (
+        <Suspense fallback={<p className="av-empty">Loading the admin home...</p>}>
+          <AdminHome />
+        </Suspense>
+      ) : node === "tasks" ? (
+        <Suspense fallback={<p className="av-empty">Loading the task board...</p>}>
+          <TaskBoardPage />
+        </Suspense>
+      ) : node === "stats" ? (
         <Suspense fallback={<p className="av-empty">Loading the boards...</p>}>
           <BoardsPage />
         </Suspense>

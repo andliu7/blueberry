@@ -1691,7 +1691,7 @@
      OrgoMapTrack; the fallback is 0 so the bar still sticks (behind the
      header) if the measurement has not landed, rather than scrolling away.
      z-index 5 is under the header's 10 and over the chips. */
-  top: var(--path-rail-top, 0px);
+  top: calc(var(--path-rail-top, 0px) + var(--pside-h, 0px));
   z-index: 5;
   display: flex;
   align-items: center;

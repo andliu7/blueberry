@@ -2526,6 +2526,29 @@ def node_nmr() -> None:
 # u2-nomen (practice, branch side quest, 12)
 # ---------------------------------------------------------------------------
 
+def ring_distance(smi: str, group_smarts: str) -> dict[int, int]:
+    """Graph distance (bonds) from the ring carbon that holds the first match of `group_smarts` to every ring atom."""
+    m = mol(smi)
+    ring = set(m.GetRingInfo().AtomRings()[0])
+    hit = m.GetSubstructMatch(Chem.MolFromSmarts(group_smarts))
+    if not hit:
+        fail(f"no {group_smarts} in {smi}")
+    ipso = [n.GetIdx() for n in m.GetAtomWithIdx(hit[0]).GetNeighbors() if n.GetIdx() in ring]
+    if len(ipso) != 1:
+        fail(f"{group_smarts} does not sit on the ring in {smi}")
+    return {i: (0 if i == ipso[0] else len(Chem.GetShortestPath(m, ipso[0], i)) - 1) for i in ring}
+
+
+def charge_sites(smi: str, group_smarts: str) -> set[str]:
+    """
+    Where a pi donor puts negative charge, or a pi acceptor takes positive charge:
+    the ring carbons an ODD number of bonds from the carbon holding the group
+    (the arrow pushing alternates round the ring). 1 bond is ortho, 3 is para.
+    """
+    names = {1: "ortho", 2: "meta", 3: "para"}
+    return {names[d] for d in ring_distance(smi, group_smarts).values() if d % 2 == 1}
+
+
 def node_nomen() -> None:
     node = "u2-nomen"
     conc = ("iupac_nomenclature",)
@@ -2540,9 +2563,101 @@ def node_nomen() -> None:
         for o, (s, n) in (names or {}).items():
             check_name(s, n, f"{id}::{o}")
         mcq(node, id, prompt, options, derived, correct, expl,
-            prov("names checked by OPSIN round trip; o/m/p from ring path distance", page, []),
+            prov("names checked by OPSIN round trip; o/m/p from ring path distance; charge sites from ring distance", page, []),
             visual, [], tiles=tiles, brief=brief, concepts=conc)
 
+    def pos_key(sites: set[str]) -> str | None:
+        return {frozenset({"ortho", "para"}): "op", frozenset({"meta"}): "m"}.get(frozenset(sites))
+
+    # ---- context first: why the position matters (resonance, donors, acceptors, SNAr) ----
+    anisole = "COc1ccccc1"
+    nmcq("u2-nom-res-donor", "Anisole's O lone pair spreads into the ring. Where does the negative charge land.",
+         [("m", "Meta only", "Meta is two bonds from the OCH3 carbon. The charge moves in steps of one double bond, so it skips the meta carbons."),
+          ("all", "Every ring carbon", "The charge moves along alternating bonds and cannot reach every carbon. Meta is left out."),
+          ("op", "Ortho and para", "The pair moves a double bond over each time, so the charge lands one bond (ortho) and three bonds (para) from the OCH3 carbon.")],
+         pos_key(charge_sites(anisole, "[OX2]([CH3])c")), "op",
+         "A donor like OCH3 or OH puts negative charge on the ortho and para carbons. That is why o and p are the positions that matter.",
+         {"kind": "structure", "figure": figure(anisole), "name": "anisole"})
+    nitrobz = "[O-][N+](=O)c1ccccc1"
+    nmcq("u2-nom-res-wd", "Nitro pulls electrons out of the ring. Which carbons turn electron poor.",
+         [("m", "Meta", "Meta is two bonds from the nitro carbon, so the positive charge skips it. Meta is the least electron poor carbon."),
+          ("op", "Ortho and para", "Pulling the pair toward N moves a double bond over each time, so the positive charge lands one and three bonds from the nitro carbon."),
+          ("all", "All five carbons", "The charge alternates round the ring. It never lands on meta, so meta stays out.")],
+         pos_key(charge_sites(nitrobz, "[N+](=O)[O-]")), "op",
+         "An acceptor like NO2 makes the ortho and para carbons electron poor. Meta is left as the least poor position.",
+         {"kind": "structure", "figure": figure(nitrobz), "name": "nitrobenzene"})
+    tol = "Cc1ccccc1"
+    tolnit = {"o": ("Cc1ccccc1[N+](=O)[O-]", "2-nitrotoluene"), "p": ("Cc1ccc([N+](=O)[O-])cc1", "4-nitrotoluene"), "m": ("Cc1cccc([N+](=O)[O-])c1", "3-nitrotoluene")}
+    for k in ("o", "p", "m"):
+        check_name(tolnit[k][0], tolnit[k][1], f"u2-nom-eas-donor::{k}")
+    donor_sites = {relation(tolnit[k][0]) for k in ("o", "p")} & charge_sites(tol, "[CH3]c")
+    nmcq("u2-nom-eas-donor", "CH3 donates electrons. Nitrating toluene puts NO2 mainly where.",
+         [("eq", "An equal mix of o, m and p", "A donor steers the attack. The ortho and para carbons are richer in electrons, so they win."),
+          ("m", "Meta (3-nitrotoluene)", "Meta is the carbon the donor does not enrich. It is the minor product."),
+          ("op", "Ortho and para (2- and 4-)", "The donor makes ortho and para the most electron rich carbons, so the electrophile adds there.")],
+         "op" if donor_sites == {"ortho", "para"} else None, "op",
+         "Donors direct electrophilic substitution to ortho and para. The products are named 2- or o-nitrotoluene and 4- or p-nitrotoluene.",
+         {"kind": "structure", "figure": figure(tol), "name": "toluene"})
+    bromo = {"o": ("[O-][N+](=O)c1ccccc1Br", "1-bromo-2-nitrobenzene"), "p": ("[O-][N+](=O)c1ccc(Br)cc1", "1-bromo-4-nitrobenzene"), "m": ("[O-][N+](=O)c1cccc(Br)c1", "1-bromo-3-nitrobenzene")}
+    wd_meta = [k for k, (s, _) in bromo.items() if relation(s) == "meta" and "meta" not in charge_sites(nitrobz, "[N+](=O)[O-]")]
+    nmcq("u2-nom-eas-wd", "NO2 pulls electrons. Brominating nitrobenzene gives mainly which product.",
+         [("o", "1-Bromo-2-nitrobenzene", "Ortho is one of the electron poor carbons, so the electrophile avoids it."),
+          ("p", "1-Bromo-4-nitrobenzene", "Para is one of the electron poor carbons, so the electrophile avoids it."),
+          ("m", "1-Bromo-3-nitrobenzene", "Meta is the least electron poor carbon, so the electrophile adds there. The 1,3 pattern is m-bromonitrobenzene.")],
+         wd_meta[0] if len(wd_meta) == 1 else None, "m",
+         "Acceptors direct electrophilic substitution to meta. The product is 1-bromo-3-nitrobenzene, m-bromonitrobenzene.",
+         {"kind": "structure", "figure": figure(nitrobz), "name": "nitrobenzene"},
+         tiles={k: smi_named(s, n, f"u2-nom-eas-wd::{k}") for k, (s, n) in bromo.items()})
+    # ---- the exception and the ranking: halogens, and which ring reacts fastest ----
+    clbz = "Clc1ccccc1"
+    nmcq("u2-nom-eas-halogen", "Cl pulls electrons but has lone pairs. Nitrating chlorobenzene puts NO2 where.",
+         [("m", "Meta", "Cl does have lone pairs to share with the ring. They put charge on ortho and para, so meta is not where it steers."),
+          ("none", "Nowhere, the ring will not react", "Cl slows the reaction but does not stop it. It still reacts, only more slowly than benzene."),
+          ("op", "Ortho and para", "Cl's lone pairs put charge on the ortho and para carbons, so it steers there even though it slows the ring.")],
+         pos_key(charge_sites(clbz, "[Cl]c")), "op",
+         "Halogens are the exception. They slow the ring down (deactivating) but still direct ortho and para, because their lone pairs share into the ring.",
+         {"kind": "structure", "figure": figure(clbz), "name": "chlorobenzene"})
+    rate = {"tol": ("Cc1ccccc1", "toluene"), "bz": ("c1ccccc1", "benzene"), "nb": ("[O-][N+](=O)c1ccccc1", "nitrobenzene")}
+
+    def rate_score(smi: str) -> int:
+        m = mol(smi)
+        if m.HasSubstructMatch(Chem.MolFromSmarts("[N+](=O)[O-]")):
+            return -1
+        return 1 if m.HasSubstructMatch(Chem.MolFromSmarts("[CH3]c")) else 0
+    top = max(rate_score(x) for x, _ in rate.values())
+    fastest = [k for k, (x, _) in rate.items() if rate_score(x) == top]
+    nmcq("u2-nom-rate", "NO2+ attacks a ring. Pick the ring that nitrates fastest.",
+         [("nb", "Nitrobenzene", "NO2 pulls electrons out, so this ring is the poorest at attacking. It nitrates slowest."),
+          ("bz", "Benzene", "Benzene is the baseline. A donor on the ring makes it react faster than this."),
+          ("tol", "Toluene", "CH3 donates electrons, so the ring is richer than benzene and nitrates fastest.")],
+         fastest[0] if len(fastest) == 1 else None, "tol",
+         "Donors activate the ring, so it reacts faster than benzene. Acceptors deactivate it, so it reacts slower. Fastest to slowest here: toluene, benzene, nitrobenzene.",
+         {"kind": "structure", "figure": figure("O=[N+]=O"), "name": "NO2+, the attacking group"},
+         tiles={k: smi_named(x, n, f"u2-nom-rate::{k}") for k, (x, n) in rate.items()})
+    snar = {"cl": ("Clc1ccccc1", "chlorobenzene"), "m": ("Clc1cccc([N+](=O)[O-])c1", "1-chloro-3-nitrobenzene"), "p": ("Clc1ccc([N+](=O)[O-])cc1", "1-chloro-4-nitrobenzene")}
+    snar_ok = [k for k, (s, _) in snar.items() if k != "cl" and relation(s) in ("ortho", "para")]
+    nmcq("u2-nom-snar", "A nucleophile replaces Cl only if NO2 can hold the charge. Pick the ring that reacts.",
+         [("cl", "Chlorobenzene", "No group on the ring to take the negative charge, so it does not react."),
+          ("p", "1-Chloro-4-nitrobenzene", "NO2 sits para to Cl. It can take the negative charge that builds up, so this ring reacts."),
+          ("m", "1-Chloro-3-nitrobenzene", "NO2 is meta to Cl. The negative charge skips the meta carbon, so NO2 cannot help.")],
+         snar_ok[0] if len(snar_ok) == 1 else None, "p",
+         "In nucleophilic aromatic substitution an acceptor must be ortho or para to the leaving group. Meta does not help.",
+         ref(), brief="NO2 must be ortho or para to the Cl",
+         tiles={k: smi_named(s, n, f"u2-nom-snar::{k}") for k, (s, n) in snar.items()})
+    cnt = "Cc1ccc(Cl)cc1[N+](=O)[O-]"
+    cm = mol(cnt)
+    cring = set(cm.GetRingInfo().AtomRings()[0])
+    ring_groups = sum(1 for a in cring if any(n.GetIdx() not in cring for n in cm.GetAtomWithIdx(a).GetNeighbors()))
+    nmcq("u2-nom-why-numbers", "This name is 4-chloro-2-nitrotoluene. Why numbers and not o, m or p.",
+         [("cl", "Halogens always take numbers", "Halogens take o, m or p in a two group name like p-dichlorobenzene. The group count decides here."),
+          ("no", "Nitro groups always take numbers", "Nitro can be o, m or p too, as in m-dinitrobenzene. The group count decides here."),
+          ("three", "Three groups are on the ring", "o, m and p compare exactly two groups. With three or more, number the ring.")],
+         "three" if ring_groups >= 3 else None, "three",
+         "Use o, m or p only when two groups are on the ring. With three or more, give each group a number.",
+         {"kind": "structure", "figure": figure(cnt), "name": "4-chloro-2-nitrotoluene"},
+         names={"three": (cnt, "4-chloro-2-nitrotoluene")})
+
+    # ---- the names themselves ----
     ox = "Cc1ccccc1C"
     mx = "Cc1cccc(C)c1"
     px = "Cc1ccc(C)cc1"
@@ -2563,15 +2678,6 @@ def node_nomen() -> None:
          "Count the ring bonds between the two groups: one is ortho, two is meta, three is para.",
          {"kind": "structure", "figure": figure(brcl), "name": "a disubstituted benzene"},
          names={"m": (brcl, "1-bromo-3-chlorobenzene")})
-    dcb = {"o": ("Clc1ccccc1Cl", "1,2-dichlorobenzene"), "m": ("Clc1cccc(Cl)c1", "1,3-dichlorobenzene"), "p": ("Clc1ccc(Cl)cc1", "1,4-dichlorobenzene")}
-    para = [o for o, (s, _) in dcb.items() if relation(s) == "para"]
-    nmcq("u2-nom-para", "Pick p-dichlorobenzene.",
-         [("o", "1,2-Dichlorobenzene", "Neighbouring carbons, 1,2: that is ortho."),
-          ("m", "1,3-Dichlorobenzene", "One carbon between, 1,3: that is meta."),
-          ("p", "1,4-Dichlorobenzene", "Straight across the ring, 1,4: para.")],
-         para[0] if len(para) == 1 else None, "p",
-         "Para is the 1,4 pattern, the two groups straight across the ring.",
-         ref(), tiles={o: smi_named(s, n, f"u2-nom-para::{o}") for o, (s, n) in dcb.items()})
     common = {"phenol": ("Oc1ccccc1", "phenol"), "anisole": ("COc1ccccc1", "anisole"), "aniline": ("Nc1ccccc1", "aniline")}
     nmcq("u2-nom-phenol", "Name this compound.",
          [("anisole", "Anisole", "Anisole has a methoxy group, O-CH3, on the ring. This O carries an H."),
@@ -2582,22 +2688,6 @@ def node_nomen() -> None:
          {"kind": "structure", "figure": figure("Oc1ccccc1"), "name": "a monosubstituted benzene"},
          names={o: v for o, v in common.items()})
     carb = {"ald": ("O=Cc1ccccc1", "benzaldehyde"), "ket": ("CC(=O)c1ccccc1", "acetophenone"), "acid": ("OC(=O)c1ccccc1", "benzoic acid")}
-    nmcq("u2-nom-acetophenone", "Pick acetophenone.",
-         [("acid", "Benzoic acid", "Benzoic acid has COOH on the ring. Acetophenone is a ketone."),
-          ("ket", "Acetophenone", "A C=O between the ring and a methyl group: a methyl ketone on benzene, acetophenone."),
-          ("ald", "Benzaldehyde", "Benzaldehyde has CHO, an H on the carbonyl carbon. Acetophenone has a methyl there.")],
-         key_by_structure("acetophenone", {o: smi for o, (smi, _) in carb.items()}), "ket",
-         "Benzaldehyde is CHO on benzene, acetophenone is COCH3, benzoic acid is COOH.",
-         ref(), tiles={o: smi_named(s, n, f"u2-nom-acetophenone::{o}") for o, (s, n) in carb.items()})
-    vinyl = {"tol": ("Cc1ccccc1", "toluene"), "sty": ("C=Cc1ccccc1", "styrene"), "eth": ("CCc1ccccc1", "ethylbenzene")}
-    nmcq("u2-nom-styrene", "Name this compound.",
-         [("tol", "Toluene", "Toluene has a single CH3 on the ring. This group has two carbons and a C=C."),
-          ("eth", "Ethylbenzene", "Ethylbenzene's two carbons are joined by a single bond. Here they share a double bond."),
-          ("sty", "Styrene", "A vinyl group, CH=CH2, on benzene is styrene.")],
-         key_by_name("C=Cc1ccccc1", {o: n for o, (_, n) in vinyl.items()}), "sty",
-         "Toluene is methylbenzene, ethylbenzene has CH2CH3, styrene has CH=CH2.",
-         {"kind": "structure", "figure": figure(vinyl["sty"][0]), "name": "a monosubstituted benzene"},
-         names=vinyl)
     nmcq("u2-nom-benzoic", "Name this compound.",
          [("acid", "Benzoic acid", "A COOH group on benzene: benzoic acid."),
           ("ald", "Benzaldehyde", "An aldehyde has an H on the carbonyl carbon. This one has an OH."),
@@ -2606,36 +2696,72 @@ def node_nomen() -> None:
          "COOH on benzene is benzoic acid. Read what sits on the carbonyl carbon: H, CH3 or OH.",
          {"kind": "structure", "figure": figure(carb["acid"][0]), "name": "a monosubstituted benzene"},
          names=carb)
-    poly = {"nap": ("c1ccc2ccccc2c1", "naphthalene"), "ant": ("c1ccc2cc3ccccc3cc2c1", "anthracene"), "phe": ("c1ccc2c(c1)ccc1ccccc12", "phenanthrene")}
-
-    def linear(s: str) -> bool:
-        """Three fused rings in a straight row: no ring atom is shared by more than two rings and the middle ring's fusion bonds are opposite."""
-        m = mol(s)
-        rings = [set(r) for r in m.GetRingInfo().AtomRings()]
-        if len(rings) != 3:
-            return False
-        mid = [r for r in rings if sum(1 for o in rings if o is not r and len(o & r) == 2) == 2][0]
-        shared = [a for o in rings if o is not mid for a in (o & mid)]
-        path = min(len(Chem.GetShortestPath(m, a, b)) - 1 for a in shared[:2] for b in shared[2:])
-        return path == 2
-
-    lin = [o for o in ("ant", "phe") if linear(poly[o][0])]
-    nmcq("u2-nom-anthracene", "Pick anthracene.",
-         [("phe", "Phenanthrene", "Phenanthrene's three rings bend at the middle ring, like an elbow."),
-          ("nap", "Naphthalene", "Naphthalene has only two fused rings."),
-          ("ant", "Anthracene", "Three rings fused in a straight row: anthracene.")],
-         lin[0] if len(lin) == 1 else None, "ant",
-         "Naphthalene has two fused rings. Anthracene has three in a line; phenanthrene has three with a bend.",
-         ref(), tiles={o: smi_named(s, n, f"u2-nom-anthracene::{o}") for o, (s, n) in poly.items()})
-    bent = [o for o in ("ant", "phe") if not linear(poly[o][0])]
-    nmcq("u2-nom-phenanthrene", "Name this fused ring system.",
-         [("ant", "Anthracene", "Anthracene's three rings run in a straight line. These bend at the middle ring."),
-          ("phe", "Phenanthrene", "Three fused rings with a bend at the middle one: phenanthrene."),
-          ("nap", "Naphthalene", "Naphthalene has two rings. Count again: there are three here.")],
-         bent[0] if len(bent) == 1 else None, "phe",
-         "Three fused rings: straight is anthracene, bent is phenanthrene.",
-         {"kind": "structure", "figure": figure(poly["phe"][0]), "name": "a fused ring system"},
-         names=poly)
+    # ---- phenyl or benzyl, and the parent names an exam asks for ----
+    bz_t = {"bn": ("ClCc1ccccc1", "benzyl chloride"), "cb": ("Clc1ccccc1", "chlorobenzene"), "ct": ("Cc1ccccc1Cl", "2-chlorotoluene")}
+    nmcq("u2-nom-benzyl", "Benzyl is C6H5CH2. Pick benzyl chloride.",
+         [("cb", "Chlorobenzene", "Cl sits straight on the ring here, with no CH2 in between. That is not benzyl."),
+          ("ct", "2-Chlorotoluene", "Cl is on the ring and the CH3 is a separate group. Benzyl has Cl on the CH2."),
+          ("bn", "Benzyl chloride", "The ring carries a CH2, and the Cl is on that CH2. Ring plus CH2 is benzyl.")],
+         key_by_structure("benzyl chloride", {o: smi for o, (smi, _) in bz_t.items()}), "bn",
+         "Phenyl is the ring itself as a branch, C6H5. Benzyl is the ring plus one CH2, C6H5CH2.",
+         ref(), tiles={o: smi_named(x, n, f"u2-nom-benzyl::{o}") for o, (x, n) in bz_t.items()})
+    pe = "OCCc1ccccc1"
+    pe_n = {"bo": "benzyl alcohol", "ph": "phenol", "pe": "2-phenylethanol"}
+    nmcq("u2-nom-phenyl", "Name this compound. The ring is a branch.",
+         [("pe", "2-Phenylethanol", "Phenyl is the ring as a branch. Two CH2 carbons carry the OH, so ethanol is the parent."),
+          ("bo", "Benzyl alcohol", "Benzyl alcohol has only one CH2 between the ring and the OH. This one has two."),
+          ("ph", "Phenol", "Phenol has OH straight on the ring. Here CH2CH2 sits between them.")],
+         key_by_name(pe, pe_n), "pe",
+         "When the chain is the parent, the ring is a phenyl branch. Number the chain from the OH end.",
+         {"kind": "structure", "figure": figure(pe), "name": "a phenyl branch on a chain"},
+         names={"pe": (pe, pe_n["pe"])})
+    pa = "Cc1ccc(C(=O)O)cc1Br"
+    pa_n = {"a": "4-bromo-3-methylbenzoic acid", "b": "3-bromo-4-methylbenzoic acid", "c": "2-bromo-4-methylbenzoic acid"}
+    nmcq("u2-nom-benzoic-subs", "Name this compound. COOH sets the parent.",
+         [("a", "4-Bromo-3-methylbenzoic acid", "The groups are swapped. The Br is the one meta to COOH, the CH3 the one para."),
+          ("b", "3-Bromo-4-methylbenzoic acid", "COOH carbon is C1. Br is two bonds round at C3, CH3 is straight across at C4."),
+          ("c", "2-Bromo-4-methylbenzoic acid", "That name puts the Br right next to the COOH carbon. In the drawing one carbon sits between them.")],
+         key_by_name(pa, pa_n), "b",
+         "The principal group (COOH) takes C1. Then number the short way round to give the lowest locants, and list prefixes alphabetically.",
+         {"kind": "structure", "figure": figure(pa), "name": "a bromomethylbenzoic acid"},
+         names={"b": (pa, pa_n["b"])})
+    dn = "Oc1ccc([N+](=O)[O-])cc1[N+](=O)[O-]"
+    dn_n = {"a": "2,5-dinitrophenol", "b": "3,5-dinitrophenol", "c": "2,4-dinitrophenol"}
+    nmcq("u2-nom-dinitrophenol", "Name this compound.",
+         [("c", "2,4-Dinitrophenol", "OH is C1. One NO2 is next door at C2 and the other is straight across at C4."),
+          ("a", "2,5-Dinitrophenol", "The second NO2 is straight across from the OH, which is C4, not C5."),
+          ("b", "3,5-Dinitrophenol", "Both NO2 would be meta to the OH. The drawing has one right next door.")],
+         key_by_name(dn, dn_n), "c",
+         "Phenol's OH carbon is C1. Number toward the nearest group to get the lowest locants: 2,4.",
+         {"kind": "structure", "figure": figure(dn), "name": "a dinitrophenol"},
+         names={"c": (dn, dn_n["c"])})
+    na = "Nc1ccc([N+](=O)[O-])cc1"
+    na_n = {"a": "4-nitroaniline", "b": "3-nitroaniline", "c": "4-aminonitrobenzene"}
+    na_hits = [k for k, n in na_n.items() if opsin(n) == canon(na) and n.endswith("aniline")]
+    nmcq("u2-nom-nitroaniline", "Name this compound. Nitro is only a prefix.",
+         [("c", "4-Aminonitrobenzene", "NH2 outranks NO2, so the amine sets the parent. Nitro is always just a prefix."),
+          ("b", "3-Nitroaniline", "The groups are straight across the ring, 1,4. Meta would be 1,3."),
+          ("a", "4-Nitroaniline", "NH2 makes the parent, aniline, and its carbon is C1. NO2 is straight across at C4.")],
+         na_hits[0] if len(na_hits) == 1 else None, "a",
+         "Aniline is benzene with NH2. The amine outranks nitro, so it is the parent and nitro is a numbered prefix.",
+         {"kind": "structure", "figure": figure(na), "name": "a nitro amine on benzene"},
+         names={"a": (na, na_n["a"])})
+    nmcq("u2-nom-anisole", "Name this compound.",
+         [("tol", "Toluene", "Toluene has CH3 on the ring. This group has an O between the ring and the CH3."),
+          ("ph", "Phenol", "Phenol is OH on the ring. This O carries a CH3, not an H."),
+          ("an", "Anisole", "Methoxy (OCH3) on benzene is anisole.")],
+         key_by_name("COc1ccccc1", {"tol": "toluene", "ph": "phenol", "an": "anisole"}), "an",
+         "Anisole is benzene with OCH3. Phenol has OH, toluene has CH3.",
+         {"kind": "structure", "figure": figure("COc1ccccc1"), "name": "a monosubstituted benzene"},
+         names={"an": ("COc1ccccc1", "anisole")})
+    nmcq("u2-nom-benzaldehyde", "Name this compound.",
+         [("ald", "Benzaldehyde", "CHO on benzene, with an H on the carbonyl carbon, is benzaldehyde."),
+          ("ket", "Acetophenone", "Acetophenone has a CH3 on the carbonyl carbon. This one has an H."),
+          ("acid", "Benzoic acid", "Benzoic acid has an OH on the carbonyl carbon. This one has an H.")],
+         key_by_name("O=Cc1ccccc1", {"ald": "benzaldehyde", "ket": "acetophenone", "acid": "benzoic acid"}), "ald",
+         "Read what sits on the carbonyl carbon: H is benzaldehyde, CH3 is acetophenone, OH is benzoic acid.",
+         {"kind": "structure", "figure": figure("O=Cc1ccccc1"), "name": "a monosubstituted benzene"},
+         names={"ald": ("O=Cc1ccccc1", "benzaldehyde")})
     cp = {"4": ("Oc1ccc(Cl)cc1", "4-chlorophenol"), "3": ("Oc1cccc(Cl)c1", "3-chlorophenol"), "2": ("Oc1ccccc1Cl", "2-chlorophenol")}
     rel4 = relation(cp["4"][0])
     nmcq("u2-nom-chlorophenol", "Name this compound.",
@@ -2656,15 +2782,36 @@ def node_nomen() -> None:
          "With toluene as the parent, the CH3 carbon is C1.",
          {"kind": "structure", "figure": figure(ct["2"][0]), "name": "a chlorotoluene"},
          names={"t2": ct["2"], "t3": ct["3"], "t4": ct["4"]})
-    dm = {"13": (mx, "1,3-dimethylbenzene"), "12": (ox, "1,2-dimethylbenzene"), "14": (px, "1,4-dimethylbenzene")}
-    nmcq("u2-nom-iupac-xylene", "Pick the IUPAC name for m-xylene.",
-         [("12", "1,2-Dimethylbenzene", "1,2 is next door: ortho, o-xylene."),
-          ("14", "1,4-Dimethylbenzene", "1,4 is straight across: para, p-xylene."),
-          ("13", "1,3-Dimethylbenzene", "Meta is 1,3, one carbon between the two methyls.")],
-         {"meta": "13", "ortho": "12", "para": "14"}.get(relation(mx) or ""), "13",
-         "Each prefix has a number pattern: ortho 1,2, meta 1,3, para 1,4.",
-         {"kind": "structure", "figure": figure(mx), "name": "m-xylene"},
-         names={**dm, "ref": (mx, "m-xylene")})
+    tbt = "Cc1c(Br)cc(Br)cc1Br"
+    tn = {"246": "2,4,6-tribromotoluene", "345": "3,4,5-tribromotoluene", "245": "2,4,5-tribromotoluene"}
+    nmcq("u2-nom-tribromo", "Name this compound.",
+         [("345", "3,4,5-Tribromotoluene", "Nothing in this name sits next to the CH3 carbon. The drawing has two Br groups beside it."),
+          ("246", "2,4,6-Tribromotoluene", "CH3 carbon is C1. Both neighbours (C2, C6) and the carbon across (C4) carry Br."),
+          ("245", "2,4,5-Tribromotoluene", "Both carbons beside the CH3 carbon hold Br here, so the numbers are 2 and 6, not 2 and 5.")],
+         key_by_name(tbt, tn), "246",
+         "Toluene is the parent, so the CH3 carbon is C1. Then number the way that gives the lowest locants: 2,4,6.",
+         {"kind": "structure", "figure": figure(tbt), "name": "a tribromotoluene"},
+         names={"246": (tbt, "2,4,6-tribromotoluene")})
+    em = "CCc1ccccc1C"
+    em_opts = {"a": "1-ethyl-2-methylbenzene", "b": "2-ethyl-1-methylbenzene", "c": "1-ethyl-3-methylbenzene"}
+
+    def em_key() -> str | None:
+        import re
+        best = None
+        for k, n in em_opts.items():
+            loc = {g: int(x) for x, g in re.findall(r"(\d+)-(ethyl|methyl)", n)}
+            rank = (sorted(loc.values()), loc["ethyl"])
+            if opsin(n) == canon(em) and (best is None or rank < best[0]):
+                best = (rank, k)
+        return best[1] if best else None
+    nmcq("u2-nom-alphabetical", "Name this compound. Neither group is a parent name.",
+         [("b", "2-Ethyl-1-methylbenzene", "The locants are right but the order is not. Alphabetical order gives ethyl the lower number."),
+          ("c", "1-Ethyl-3-methylbenzene", "That puts the groups meta. The drawing has them next door."),
+          ("a", "1-Ethyl-2-methylbenzene", "Lowest locants are 1,2 either way. Ethyl comes before methyl alphabetically, so ethyl is C1.")],
+         em_key(), "a",
+         "Take the lowest locants. If they tie, the group that comes first alphabetically gets the lower number.",
+         {"kind": "structure", "figure": figure(em), "name": "an ethylmethylbenzene"},
+         names={"a": (em, em_opts["a"])})
 
 
 # ---------------------------------------------------------------------------

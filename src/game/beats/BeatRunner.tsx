@@ -77,7 +77,10 @@ import { bloomLookForNode } from "./BloomVerdictBerry";
 import { BloomLessonComplete } from "../mascot/progression/BloomLessonComplete";
 import { costumeForNode } from "../mascot/berryCostume";
 import { isFirstResonance, markResonanceSeen, readResonanceSeen, stateForNode } from "../mascot/berryTopicState";
-import { isSectionFinal, pathwayNode } from "../demo/pathwayMap";
+import { checkpointUnitFor, isSectionFinal, pathwayNode, PATHWAY_UNITS, unitNumber } from "../demo/pathwayMap";
+import { CelebrationPage } from "../lesson/CelebrationPage";
+import type { Celebration } from "../lesson/celebrations";
+import { daysSince, liveCelebration } from "../lesson/celebrationLive";
 import { HUMAN_GATE_MARK } from "../pathway-sheet/nodeSheetModel";
 import { showDraftMarks } from "../app/flags";
 import { ChipPress } from "./ChipPress";
@@ -161,6 +164,7 @@ const TrainerScreen = lazy(() => import("../tabs/trainer/engine/TrainerScreen").
 // clean run never loads it at all. A null fallback is right here: the toast
 // is an overlay, and its honest loading state is absence.
 const Recommendation = lazy(() => import("../cards/Recommendation"));
+const MistakesOffer = lazy(() => import("../mistakes/MistakesOffer"));
 // The in-a-row run, for a node whose plan is a practice step (template.ts).
 const PracticeRunner = lazy(() => import("./practice/PracticeRunner").then((m) => ({ default: m.PracticeRunner })));
 
@@ -238,7 +242,17 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
    * time on this clear, which is when the streak screen follows the reward
    * (the same rule LessonPlayer uses). Read off the store, never added up here.
    */
-  const [clearNote, setClearNote] = useState<{ readonly xp: number; readonly streak: Receipt | null } | null>(null);
+  const [clearNote, setClearNote] = useState<{
+    readonly xp: number;
+    readonly streak: Receipt | null;
+    /** The one celebration page this clear earned (lesson/celebrationLive.ts). */
+    readonly celebration: Celebration | null;
+  } | null>(null);
+  /** The celebration page is up, after the reward (and the streak screen) and before the ending. */
+  const [celebrateOpen, setCelebrateOpen] = useState(false);
+  /** A passed unit checkpoint's celebration, built when the exam ends. */
+  const [unitCelebration, setUnitCelebration] = useState<Celebration | null>(null);
+  const startedAt = useRef<number>(performance.now());
   /** The streak screen is up, between the reward and wherever the ending goes. */
   const [streakOpen, setStreakOpen] = useState(false);
   /** Which node this runner has already banked, so a re-render cannot double pay. */
@@ -392,6 +406,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     if (run?.phase !== "reward") return;
     if (bankedFor.current === node) return;
     bankedFor.current = node;
+    // EVALUATE AND SAVE THE LESSON'S MISTAKES, whatever the mode. The run
+    // already keeps the first-try misses (missedMcqIds, missedPoolIds); this
+    // is the one place they are written to the bank, once per lesson.
+    void import("../mistakes/saveLessonMistakes").then(({ saveLessonMistakes }) => saveLessonMistakes(run, node));
     // A CHALLENGE NEVER BANKS A CLEAR. The node is already cleared, and a
     // second node_cleared would pay the replay row on top of the pass. A pass
     // journals `challenge_passed`, whose price the economy owns; a fail
@@ -415,8 +433,12 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
     const flawless = runFlawless(run);
     const spine = pathwayNode(node)?.kind === "spine";
     let live = true;
-    void Promise.all([import("../app/progress"), import("../chest/chestFlow"), import("../upsell/noteLessonClear")]).then(([{ progress }, { earnChestForClear }, { noteLessonClear }]) => {
-      const countedBefore = progress.getSnapshot().economy.streak.todayCounted;
+    void Promise.all([import("../app/progress"), import("../chest/chestFlow"), import("../upsell/noteLessonClear"), import("../mistakes/saveLessonMistakes")]).then(([{ progress }, { earnChestForClear }, { noteLessonClear }, { missedFromRun }]) => {
+      const before = progress.getSnapshot().economy;
+      const countedBefore = before.streak.todayCounted;
+      const stageBefore = before.xp.stage;
+      const lastDay = before.streak.lastCountedDay;
+      const daysAway = lastDay === null ? null : daysSince(lastDay, new Date().toLocaleDateString("en-CA"));
       const diamonds = progress.clearNode(node, "concept", {
         flawless,
         stepsInOneSitting: run.totalBeats,
@@ -432,9 +454,26 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
       noteLessonClear(afterClear);
       const receipt = afterClear.lastReceipt;
       if (live && receipt !== null) {
+        const firstToday = !countedBefore && receipt.streak.counted;
+        const xpNow = afterClear.economy.xp;
+        // The same page the lesson player builds, off the same store numbers.
+        const celebration = liveCelebration({
+          receipt,
+          correct: Math.min(run.clearedBeats, run.totalBeats),
+          attempted: run.totalBeats,
+          elapsedMs: performance.now() - startedAt.current,
+          stageBefore,
+          stageAfter: xpNow.stage,
+          totalXp: xpNow.total,
+          toNextStage: xpNow.toNextStage,
+          firstToday,
+          daysAway,
+          missesQueued: missedFromRun(run, node).length > 0,
+        });
         setClearNote({
           xp: receipt.xp.reduce((sum, line) => sum + line.amount, 0),
-          streak: !countedBefore && receipt.streak.counted ? receipt : null,
+          streak: firstToday ? receipt : null,
+          celebration,
         });
       }
       if (live) setBanked(diamonds);
@@ -549,12 +588,54 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // lands on a recap of a lesson the student did not finish.
   const finish = primed !== null && priming !== null ? () => setRecapOpen(true) : onExit;
 
+  /** A passed unit checkpoint ends on the new-unit page; every other practice ends as it did. */
+  const finishPractice = async () => {
+    const unit = checkpointUnitFor(node);
+    if (unit === null) return finish();
+    const { progress } = await import("../app/progress");
+    const snap = progress.getSnapshot();
+    const passed = snap.journal.some((e) => e.kind === "node_cleared" && e.nodeId === node);
+    if (!passed) return finish();
+    const at = PATHWAY_UNITS.findIndex((u) => u.id === unit.id);
+    const number = Number.parseInt(unitNumber(unit.title).replace(/\D/g, ""), 10) || at + 1;
+    const next = PATHWAY_UNITS[at + 1];
+    const nextNumber = next === undefined ? null : Number.parseInt(unitNumber(next.title).replace(/\D/g, ""), 10) || at + 2;
+    const lessons = unit.nodes.filter((n) => n.kind !== "branch" && n.playable !== undefined).length;
+    const receipt = snap.lastReceipt;
+    if (receipt === null) return finish();
+    setUnitCelebration(
+      liveCelebration({
+        receipt,
+        correct: 0,
+        attempted: 0,
+        elapsedMs: 0,
+        stageBefore: snap.economy.xp.stage,
+        stageAfter: snap.economy.xp.stage,
+        totalXp: snap.economy.xp.total,
+        toNextStage: snap.economy.xp.toNextStage,
+        unit: { number, lessons, total: lessons, nextNumber },
+      }),
+    );
+  };
+
+  // THE CELEBRATION PAGE, the last stop of a lesson: Bloom, one line, three
+  // tiles, one button. It follows the reward, and the streak screen when that
+  // plays. A first-of-the-day page carries the streak itself, so it takes the
+  // streak screen's place rather than stacking a second streak moment.
+  if (celebrateOpen && clearNote?.celebration != null) {
+    return <CelebrationPage c={clearNote.celebration} reducedMotion={reducedMotion} onCta={finish} />;
+  }
+  if (unitCelebration !== null) {
+    return <CelebrationPage c={unitCelebration} reducedMotion={reducedMotion} onCta={finish} />;
+  }
+  const afterReward = () => (clearNote?.celebration != null ? setCelebrateOpen(true) : finish());
+
   // THE STREAK SCREEN, on the clear that made today count for the first time:
   // after the reward and before wherever the ending goes. Its Continue goes on.
-  if (streakOpen && clearNote?.streak != null) {
+  if (streakOpen && clearNote?.streak != null && clearNote.celebration?.id !== "first") {
     return (
       <Suspense fallback={null}>
-        <StreakScreen receipt={clearNote.streak} reducedMotion={reducedMotion} onContinue={finish} />
+        <StreakScreen receipt={clearNote.streak} reducedMotion={reducedMotion} onContinue={afterReward} />
       </Suspense>
     );
   }
@@ -564,7 +645,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   if (plan?.steps[0]?.beat.kind === "practice") {
     return (
       <Suspense fallback={<p role="status">Loading the practice set.</p>}>
-        <PracticeRunner key={node} node={node} onExit={onExit} onFinish={finish} reducedMotion={reducedMotion} challenge={challenge} />
+        <PracticeRunner key={node} node={node} onExit={onExit} onFinish={() => void finishPractice()} reducedMotion={reducedMotion} challenge={challenge} />
       </Suspense>
     );
   }
@@ -923,7 +1004,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             banked={banked}
             xp={clearNote?.xp ?? null}
             reducedMotion={reducedMotion}
-            onExit={clearNote?.streak != null ? () => setStreakOpen(true) : finish}
+            onExit={clearNote?.streak != null && clearNote.celebration?.id !== "first" ? () => setStreakOpen(true) : afterReward}
             offerSlot={
               // THE MISTAKE-TO-CARD OFFER, HELD UNTIL THE LESSON ENDS (A2
               // round 4). It used to float up the moment a wrong answer was
@@ -933,18 +1014,23 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
               // flow under the summary, and it waits until the student
               // chooses. onSave commits through the seam into the personal
               // deck; onDismiss is counted so the same card is not pushed twice.
-              offer !== null ? (
+              <>
+                {offer !== null ? (
+                  <Suspense fallback={null}>
+                    <Recommendation
+                      offer={offer}
+                      placement="inline"
+                      autoDismissMs={0}
+                      reducedMotion={reducedMotion}
+                      onSave={(card) => decks.saveCard(card, PERSONAL_DECK_ID)}
+                      onDismiss={(card) => decks.dismissReco(card.id)}
+                    />
+                  </Suspense>
+                ) : null}
                 <Suspense fallback={null}>
-                  <Recommendation
-                    offer={offer}
-                    placement="inline"
-                    autoDismissMs={0}
-                    reducedMotion={reducedMotion}
-                    onSave={(card) => decks.saveCard(card, PERSONAL_DECK_ID)}
-                    onDismiss={(card) => decks.dismissReco(card.id)}
-                  />
+                  <MistakesOffer />
                 </Suspense>
-              ) : null
+              </>
             }
           />
         ) : null}

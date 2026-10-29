@@ -83,10 +83,10 @@
   transform: translateX(-50%) rotate(45deg);
 }
 @media (min-width: 768px) {
-  .start-pop {
+  .start-pop:not(.sp-anchored) {
     align-items: center;
   }
-  .start-pop .sp-card {
+  .start-pop:not(.sp-anchored) .sp-card {
     margin-bottom: 0;
   }
 }
@@ -157,6 +157,28 @@
   text-wrap: balance;
   color: rgb(255 255 255 / 0.95);
 }
+.sp-place {
+  margin-top: 0.125rem;
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.85);
+}
+/* The payoff, on the key itself: START +15 XP. A soft tinted pill so the verb stays the loudest thing. */
+.sp-reward {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sp-btn) 14%, #ffffff);
+  color: var(--sp-btn);
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.sp-spend-word {
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
 .sp-meter {
   display: flex;
   flex-direction: column;
@@ -179,9 +201,9 @@
   min-height: 4.5rem;
   width: 100%;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.875rem;
-  padding: 0.375rem 0.5rem 0.375rem 1.5rem;
+  padding: 0.375rem 1.5rem;
   border: 0;
   border-radius: 999px;
   background: #ffffff;
@@ -320,4 +342,83 @@
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
+}
+
+/* The energy cost: not a readout. Nothing shows before the tap. When Start is pressed a small
+   bolt and the minus number pop out of the card's top corner, lift and fade, once. */
+.sp-spend {
+  position: absolute;
+  right: 3.5rem;
+  top: 0.9rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem 0.125rem 0.375rem;
+  gap: 0.25rem;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 2px 0 var(--sp-key-lip), 0 4px 10px rgb(20 12 60 / 0.2);
+  color: var(--sp-btn);
+  font-size: 0.9375rem;
+  font-weight: 900;
+  line-height: 1.25;
+  pointer-events: none;
+  animation: sp-pip-go 900ms cubic-bezier(0.3, 0, 0.2, 1) forwards;
+}
+.sp-spend .sp-bolt {
+  width: 1rem;
+  height: 1rem;
+  color: #f0a000;
+}
+.start-pop[data-charge-phase="spending"] .sp-go {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 var(--sp-key-lip);
+}
+@keyframes sp-pip-go {
+  0% { opacity: 0; transform: translateY(0.5rem) scale(0.4); }
+  25% { opacity: 1; transform: translateY(0) scale(1.15); }
+  60% { opacity: 1; transform: translateY(-0.25rem) scale(1); }
+  100% { opacity: 0; transform: translateY(-1.75rem) scale(0.9); }
+}
+/* A calm invitation: the key breathes a little while it waits. */
+.start-pop:not([data-charge-phase="spending"]) .sp-go {
+  animation: sp-key-breathe 2.8s 1.4s ease-in-out infinite;
+}
+@keyframes sp-key-breathe {
+  0%, 80%, 100% { transform: translateY(0); }
+  90% { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-spend,
+  .start-pop:not([data-charge-phase="spending"]) .sp-go {
+    animation: none;
+  }
+  .sp-spend {
+    display: none;
+  }
+}
+.start-pop .sp-go:active {
+  animation: none;
+}
+
+.sp-cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+.sp-cost-bolt {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+.sp-cost-left {
+  opacity: 0.8;
+  font-weight: 700;
+}
+.sp-cost-left::before {
+  content: "\00b7";
+  margin-right: 0.4rem;
 }

@@ -3,6 +3,15 @@
 Updated 2026-10-17. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
 
+## Owner rules, 2026-10-29 (read before touching the pathway, lessons or any new screen)
+
+- Pathway side tabs: Shop, Challenges, Tasks and Quests are tabs down the LEFT edge, each with an icon. They are not in the middle of the page and not in the bottom bar.
+- Finishing a pathway node unlocks the next one but does not mark it complete or green. First lesson of every section is open.
+- Top-right HUD (diamonds, energy, XP; src/game/app/ui/Hud.tsx and its siblings): fix its focus. Owner's words: "fix the focus on the diamonds, energy, and xp on the top right". Read as: make the three counters the clear visual focus of the corner (size, grouping, contrast, one tap target each) and give them a correct keyboard focus ring. Part of the energy/elixir gauntlet piece; XP and shop/glossary leave the bottom bar.
+- Keep the user's eyes at the bottom: the test-out button sits at the bottom, and notices (e.g. "feedback saved") must not push the page down from the top.
+- Failing a prodigy or master question goes back one question only.
+- Lessons: no low-ROI trivia, context first (why ortho/meta/para matters), keep rebuilding Orgo I ideas. Full list in the memory note lesson-content-preferences-oct-29.
+
 ## Added 2026-10-28 (owner's list; built = uncommitted in the working tree)
 
 Built, not committed, not yet seen in a browser: admin stats boards (`#/app/admin/stats`, sample data

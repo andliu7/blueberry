@@ -206,7 +206,9 @@ describe("BeatRunner's ending", () => {
   });
 
   it("follows the reward with the streak screen only when today counted for the first time", () => {
-    expect(src).toMatch(/streak: !countedBefore && receipt\.streak\.counted \? receipt : null/);
-    expect(src).toMatch(/<StreakScreen receipt=\{clearNote\.streak\}/);
+    // The streak page now rides on the celebration (owner's celebration pages): it is shown
+    // only when today counted for the first time, and the celebration is told so.
+    expect(src).toMatch(/const firstToday = !countedBefore && receipt\.streak\.counted/);
+    expect(src).toMatch(/firstToday,/);
   });
 });

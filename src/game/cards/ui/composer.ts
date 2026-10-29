@@ -27,6 +27,7 @@
 
 import type {
   Card,
+  CardQuizKind,
   CardId,
   DeckId,
   ReactionReveal,
@@ -255,6 +256,122 @@ export function questionCardFromDraft(draft: QuestionDraft, now: Date): Card {
     why: draft.why.trim(),
     tags: ["composed"],
     source: { kind: "composed", at: now.toISOString() },
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* The four question types (the default path of the composer)           */
+/* ------------------------------------------------------------------ */
+
+export const QUIZ_KINDS: readonly CardQuizKind[] = Object.freeze(["short", "long", "mcq", "multi"]);
+
+export const QUIZ_LABELS: Readonly<Record<CardQuizKind, string>> = Object.freeze({
+  short: "Short answer",
+  long: "Long answer",
+  mcq: "Pick one",
+  multi: "Pick many",
+});
+
+export interface QuizDraft {
+  readonly kind: CardQuizKind;
+  readonly question: string;
+  /** Short and long answers: the answer in words. Long answers may leave it blank. */
+  readonly answer: string;
+  /** Choice kinds: the option texts, including any blank rows still being typed. */
+  readonly options: readonly string[];
+  /** Choice kinds: indexes into options marked correct. */
+  readonly correct: readonly number[];
+  readonly why: string;
+}
+
+/** Two blank rows: the least a choice question can have. */
+export const EMPTY_QUIZ: QuizDraft = Object.freeze({
+  kind: "short",
+  question: "",
+  answer: "",
+  options: Object.freeze(["", ""]),
+  correct: Object.freeze([]),
+  why: "",
+});
+
+/** Switching type keeps the words; a pick-one keeps at most one correct mark. */
+export function setQuizKind(draft: QuizDraft, kind: CardQuizKind): QuizDraft {
+  const correct = kind === "mcq" ? draft.correct.slice(0, 1) : draft.correct;
+  return { ...draft, kind, correct };
+}
+
+export function setOption(draft: QuizDraft, index: number, text: string): QuizDraft {
+  return { ...draft, options: draft.options.map((o, i) => (i === index ? text : o)) };
+}
+
+export function addOption(draft: QuizDraft): QuizDraft {
+  return { ...draft, options: [...draft.options, ""] };
+}
+
+/** Drop a row; marks above it shift down, and its own mark goes. Two rows stay. */
+export function removeOption(draft: QuizDraft, index: number): QuizDraft {
+  if (draft.options.length <= 2) return draft;
+  return {
+    ...draft,
+    options: draft.options.filter((_, i) => i !== index),
+    correct: draft.correct.filter((c) => c !== index).map((c) => (c > index ? c - 1 : c)),
+  };
+}
+
+/** Pick one replaces the mark; pick many toggles it. */
+export function toggleCorrect(draft: QuizDraft, index: number): QuizDraft {
+  if (draft.kind === "mcq") return { ...draft, correct: [index] };
+  const has = draft.correct.includes(index);
+  return { ...draft, correct: has ? draft.correct.filter((c) => c !== index) : [...draft.correct, index].sort((a, b) => a - b) };
+}
+
+const isChoice = (kind: CardQuizKind): boolean => kind === "mcq" || kind === "multi";
+
+/** Filled option rows, with their original index so correct marks still line up. */
+function filledOptions(draft: QuizDraft): { text: string; at: number }[] {
+  return draft.options.map((text, at) => ({ text: text.trim(), at })).filter((o) => o.text.length > 0);
+}
+
+export function quizProblems(draft: QuizDraft): readonly string[] {
+  const problems: string[] = [];
+  if (draft.question.trim().length === 0) problems.push("Write the question so the card can ask something.");
+  if (isChoice(draft.kind)) {
+    const filled = filledOptions(draft);
+    if (filled.length < 2) problems.push("Add at least two options.");
+    const marked = filled.filter((o) => draft.correct.includes(o.at)).length;
+    if (filled.length >= 2 && marked === 0) problems.push(draft.kind === "mcq" ? "Tap the circle beside the right option." : "Tick every right option.");
+  } else if (draft.kind === "short" && draft.answer.trim().length === 0) {
+    problems.push("Add the answer so the card can check you.");
+  }
+  return problems;
+}
+
+/** A long answer with no model answer is checked by the student, and says so. */
+export const SELF_CHECK_BACK = "Your answer, checked by you or your AI.";
+
+export function quizCardFromDraft(draft: QuizDraft, now: Date): Card {
+  const front = draft.question.trim();
+  const base = {
+    id: composedCardId({ setup: front, conditions: "", product: "" }, now),
+    front,
+    why: draft.why.trim(),
+    tags: ["composed"],
+    source: { kind: "composed" as const, at: now.toISOString() },
+  };
+  if (isChoice(draft.kind)) {
+    const filled = filledOptions(draft);
+    const correct = filled.map((o, i) => (draft.correct.includes(o.at) ? i : -1)).filter((i) => i >= 0);
+    return {
+      ...base,
+      back: correct.map((i) => filled[i].text).join("; "),
+      quiz: { kind: draft.kind, options: filled.map((o) => o.text), correct },
+    };
+  }
+  const answer = draft.answer.trim();
+  return {
+    ...base,
+    back: answer.length > 0 ? answer : SELF_CHECK_BACK,
+    ...(draft.kind === "long" ? { quiz: { kind: "long" as const } } : {}),
   };
 }
 

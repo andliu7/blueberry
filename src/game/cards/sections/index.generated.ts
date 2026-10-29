@@ -38,7 +38,7 @@ export const SECTION_CARD_COUNTS: Readonly<Record<string, number>> = {
   "u2-annulene": 4,
   "u2-hetero": 5,
   "u2-nmr": 3,
-  "u2-nomen": 5,
+  "u2-nomen": 14,
   "u3-arenium": 7,
   "u3-directing": 5,
   "u3-birch": 3,

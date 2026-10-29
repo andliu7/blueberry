@@ -246,10 +246,20 @@ function WeekStrip({ model }: { readonly model: StreakPageModel }) {
 
 
 /** The one focal element under the week: how far to the next milestone. Read from the milestone table, never summed here. */
-function GoalCard({ days }: { readonly days: number }) {
+/** Past the last table milestone there is no next one, so aim at the next round hundred. Display only; it grants nothing. */
+export function goalSpan(days: number): { readonly prev: number; readonly next: number; readonly round: boolean } {
   const next = STREAK_MILESTONES.find((m) => m > days);
-  const prev = [...STREAK_MILESTONES].reverse().find((m) => m <= days) ?? 0;
-  const pct = next === undefined ? 100 : Math.max(6, Math.round(((days - prev) / (next - prev)) * 100));
+  if (next !== undefined) {
+    const prev = [...STREAK_MILESTONES].reverse().find((m) => m <= days) ?? 0;
+    return { prev, next, round: false };
+  }
+  const prev = Math.floor(days / 100) * 100;
+  return { prev, next: prev + 100, round: true };
+}
+
+function GoalCard({ days }: { readonly days: number }) {
+  const { prev, next, round } = goalSpan(days);
+  const pct = Math.max(6, Math.round(((days - prev) / (next - prev)) * 100));
   return (
     <section className="spage-goal" aria-label="Streak goal">
       <div className="spage-goal-head">
@@ -257,13 +267,21 @@ function GoalCard({ days }: { readonly days: number }) {
           <SmallFlame className="spage-goal-flame" />
         </span>
         <div>
-          <p className="spage-goal-kicker">{next === undefined ? "Past every milestone" : "Next milestone"}</p>
-          <p className="spage-goal-big">{next === undefined ? `${days} days` : `${next} days`}</p>
+          <p className="spage-goal-kicker">{round ? "Next round number" : "Next milestone"}</p>
+          <p className="spage-goal-big">{`${next} days`}</p>
         </div>
-        {next === undefined ? null : <p className="spage-goal-left">{next - days} to go</p>}
+        <p className="spage-goal-left">{`${next - days} to go`}</p>
       </div>
-      <div className="spage-goal-bar" role="img" aria-label={next === undefined ? "All milestones reached" : `${days} of ${next} days`}>
-        <span style={{ width: `${pct}%` }} />
+      <div className="spage-goal-track">
+        <span className="spage-goal-end" data-reached="true" aria-hidden>
+          {prev}
+        </span>
+        <div className="spage-goal-bar" role="img" aria-label={`${days} of ${next} days`}>
+          <span style={{ width: `${pct}%` }} />
+        </div>
+        <span className="spage-goal-end" data-reached="false" aria-hidden>
+          {next}
+        </span>
       </div>
     </section>
   );

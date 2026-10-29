@@ -10,6 +10,7 @@
 import { useCallback, useState, type ReactNode } from "react";
 import { hrefForTab } from "../../app/routes";
 import type { ActivityItem } from "./activityModel";
+import type { WeekDay, WeekModel } from "./weekModel";
 
 const CHEER_KEY = "blueberry.feed.cheers.v1";
 
@@ -137,19 +138,6 @@ export function PostCard({
   );
 }
 
-function CheckRow({ filled }: { readonly filled: number }) {
-  return (
-    <span className="fp-checks" aria-hidden="true">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <svg key={i} viewBox="0 0 24 24" className="fp-check" data-on={i < filled ? "true" : "false"} focusable="false">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M7.5 12.5 10.7 15.6 16.5 9" />
-        </svg>
-      ))}
-    </span>
-  );
-}
-
 function BannerFlame() {
   return (
     <svg viewBox="0 0 24 24" className="fp-flame" aria-hidden="true" focusable="false">
@@ -159,13 +147,65 @@ function BannerFlame() {
   );
 }
 
+const DAY_WORD: Readonly<Record<WeekDay["kind"], string>> = {
+  counted: "practiced",
+  rest: "rest day",
+  freeze: "covered by a freeze or rest day",
+  missed: "no goal met",
+  pending: "today, still open",
+  future: "not yet",
+};
+
+/** Sunday to Saturday, each day named, so a student reads the week instead of guessing at dots. */
+function WeekRow({ week }: { readonly week: WeekModel }) {
+  return (
+    <ol className="fp-week" aria-label="This week">
+      {week.days.map((d) => (
+        <li key={d.date} className="fp-wd" data-kind={d.kind} data-today={d.today ? "true" : "false"} aria-label={`${d.letter}, ${DAY_WORD[d.kind]}`}>
+          <span className="fp-wd-letter" aria-hidden="true">{d.letter}</span>
+          <span className="fp-wd-disc" aria-hidden="true">
+            {d.kind === "counted" ? (
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M6 12.5l4 4 8-9" /></svg>
+            ) : d.kind === "freeze" ? (
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3c3.4 4.2 6 7.2 6 10.6A6 6 0 0 1 12 20a6 6 0 0 1-6-6.4C6 10.2 8.6 7.2 12 3z" /></svg>
+            ) : null}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 /** The streak nudge. Honest to the day: open until a lesson counts, then a reason to return tomorrow. */
-export function NudgeCard({ counted, streak }: { readonly counted: boolean; readonly streak: number }) {
+export function NudgeCard({ counted, streak, week }: { readonly counted: boolean; readonly streak: number; readonly week: WeekModel }) {
+  // A brand new student: no "0 day streak" over blank circles. One line about day 1, no second button.
+  if (streak === 0 && !counted && week.empty) {
+    return (
+      <li className="fp-card fp-card--system fp-card--tight" data-nudge="new">
+        <div className="fp-banner fp-banner--flame fp-banner--stack">
+          <div className="fp-streak-top">
+            <BannerFlame />
+            <p className="fp-streak-num">
+              <span>Light your first flame</span>
+            </p>
+          </div>
+          <WeekRow week={week} />
+        </div>
+        <p className="fp-text">One lesson today makes it day 1.</p>
+      </li>
+    );
+  }
   return (
     <li className="fp-card fp-card--system" data-nudge={counted ? "safe" : "open"}>
-      <div className="fp-banner fp-banner--flame">
-        <BannerFlame />
-        <CheckRow filled={Math.min(5, counted ? Math.max(1, streak) : Math.max(0, streak))} />
+      <div className="fp-banner fp-banner--flame fp-banner--stack">
+        <div className="fp-streak-top">
+          <BannerFlame />
+          <p className="fp-streak-num">
+            <b>{streak}</b>
+            <span>day streak</span>
+          </p>
+        </div>
+        <WeekRow week={week} />
       </div>
       <p className="fp-when fp-when--solo">Today</p>
       <p className="fp-text fp-text--big">
@@ -174,6 +214,51 @@ export function NudgeCard({ counted, streak }: { readonly counted: boolean; read
       <a href={hrefForTab(counted ? "cards" : "pathway")} className="fp-outline press">
         {counted ? "Review cards" : "Start a lesson"}
       </a>
+    </li>
+  );
+}
+
+/** Bloom's daily pace: the one rival every student has. Not a person, so nothing is pretended. */
+export const BLOOM_PACE_XP = 30;
+
+export function RivalCard({ xpToday, avatar }: { readonly xpToday: number; readonly avatar: ReactNode }) {
+  const pct = Math.min(100, Math.round((xpToday / BLOOM_PACE_XP) * 100));
+  const ahead = xpToday >= BLOOM_PACE_XP;
+  return (
+    <li className="fp-card fp-card--system fp-card--tight" data-id="rival" data-ahead={ahead ? "true" : "false"}>
+      <div className="fp-head">
+        <span className="fp-avatar" aria-hidden="true">{avatar}</span>
+        <div className="fp-who">
+          <p className="fp-name">Beat Bloom today</p>
+          <p className="fp-when">Bloom studies {BLOOM_PACE_XP} XP a day</p>
+        </div>
+      </div>
+      <div className="fp-race" role="img" aria-label={`You ${xpToday} XP, Bloom ${BLOOM_PACE_XP} XP`}>
+        <span className="fp-race-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="fp-text">
+        {ahead ? "You are ahead of Bloom. Bloom wants a rematch tomorrow." : `You: ${xpToday} XP. ${BLOOM_PACE_XP - xpToday} more to pass Bloom.`}
+      </p>
+    </li>
+  );
+}
+
+/** Three real counts for the week so far. Not shown until there is something to count. */
+export function WeekCard({ week }: { readonly week: WeekModel }) {
+  if (week.empty) return null;
+  const stats: readonly { n: number; label: string }[] = [
+    { n: week.practiced, label: week.practiced === 1 ? "day practiced" : "days practiced" },
+    { n: week.lessons, label: week.lessons === 1 ? "lesson cleared" : "lessons cleared" },
+    { n: week.cards, label: week.cards === 1 ? "card reviewed" : "cards reviewed" },
+  ];
+  return (
+    <li className="fp-card fp-card--system" data-id="week">
+      <p className="fp-when fp-when--solo">Your week so far</p>
+      <ul className="fp-stats">
+        {stats.map((s) => (
+          <li key={s.label}><b>{s.n}</b><span>{s.label}</span></li>
+        ))}
+      </ul>
     </li>
   );
 }

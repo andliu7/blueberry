@@ -1,0 +1,180 @@
+/* Calendar (calendar.tsx). Game tokens only, so both themes come free. */
+.bbcal {
+  width: 100%;
+  max-width: 20rem;
+  font-family: var(--font-display);
+  color: var(--bb-foreground);
+}
+.bbcal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+.bbcal__title {
+  display: flex;
+  gap: 0.25rem;
+}
+.bbcal__nav,
+.bbcal__pick {
+  min-height: 44px;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+.bbcal__nav {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  color: var(--bb-muted-foreground);
+}
+.bbcal__pick {
+  padding: 0 0.5rem;
+}
+.bbcal__nav:hover,
+.bbcal__pick:hover {
+  background: var(--bb-muted);
+}
+.bbcal__nav:focus-visible,
+.bbcal__pick:focus-visible,
+.bbcal__btn:focus-visible,
+.bbcal__cell:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 1px;
+}
+.bbcal__row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.bbcal__dowcell {
+  padding: 0.25rem 0;
+  text-align: center;
+  color: var(--bb-muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.bbcal__weeks {
+  overflow: hidden;
+  animation: bbcal-slide 180ms ease-out;
+}
+@keyframes bbcal-slide {
+  from {
+    opacity: 0.4;
+    transform: translateX(calc(12px * var(--bbcal-dir, 1)));
+  }
+}
+.bbcal__weeks.is-prev {
+  --bbcal-dir: -1;
+}
+.bbcal__day {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.bbcal__day.is-band {
+  background: var(--bb-muted);
+}
+.bbcal__day.is-edge-start {
+  background: linear-gradient(90deg, transparent 50%, var(--bb-muted) 50%);
+}
+.bbcal__day.is-edge-end {
+  background: linear-gradient(90deg, var(--bb-muted) 50%, transparent 50%);
+}
+.bbcal__btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+.bbcal__btn:hover:not(:disabled) {
+  background: var(--bb-muted);
+}
+.bbcal__btn.is-outside {
+  color: var(--bb-muted-foreground);
+  opacity: 0.55;
+}
+.bbcal__btn.is-today {
+  box-shadow: inset 0 0 0 2px var(--bb-primary);
+}
+.bbcal__btn.is-selected {
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground, #fff);
+  box-shadow: none;
+}
+.bbcal__btn.is-booked {
+  text-decoration: line-through;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.bbcal__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.bbcal__dot {
+  position: absolute;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+.bbcal__pickgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+}
+.bbcal__cell {
+  min-height: 48px;
+  border: 0;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bbcal__cell:hover {
+  background: var(--bb-muted);
+}
+.bbcal__cell.is-on {
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground, #fff);
+}
+.bbcal__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbcal__weeks {
+    animation: bbcal-fade 180ms linear;
+  }
+  @keyframes bbcal-fade {
+    from {
+      opacity: 0.3;
+    }
+  }
+}
+:root[data-motion="reduced"] .bbcal__weeks {
+  animation: none;
+}

@@ -1,0 +1,554 @@
+/*
+ * Task board, Linear board-view language on Blueberry tokens: calm muted columns, white cards with a
+ * hairline, tiny chips, a thin drop line. Only game tokens, so both themes come for free.
+ */
+.tb {
+  display: grid;
+  gap: 0.75rem;
+  color: var(--bb-foreground);
+  font-family: var(--font-display);
+}
+.tb--embedded {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--bb-border) 30%, transparent);
+  border-radius: 1.25rem;
+  background: var(--bb-card);
+}
+.tb-page {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+.tb-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.tb-muted {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+
+.tb-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+.tb-title {
+  margin: 0 0.25rem 0 0;
+  font-size: var(--text-scale-base);
+  font-weight: 900;
+}
+.tb-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 44px;
+  padding: 0 0.625rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.625rem;
+  background: var(--bb-background);
+  color: var(--bb-muted-foreground);
+}
+.tb-search:focus-within {
+  border-color: var(--bb-primary);
+  outline: 2px solid var(--bb-ring);
+  outline-offset: 1px;
+}
+.tb-search input {
+  width: 9rem;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+}
+.tb-search kbd {
+  padding: 0 0.375rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.375rem;
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 800;
+}
+.tb-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.tb-open {
+  margin-left: auto;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--bb-primary-ink);
+  font-size: var(--text-scale-sm);
+  font-weight: 900;
+}
+
+.tb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 28px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.tb-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.tb-chip:hover {
+  background: var(--bb-muted);
+}
+.tb-chip[aria-pressed="true"] {
+  border-color: var(--bb-primary);
+  background: var(--bb-muted);
+}
+/* The filter chips are small to the eye but keep a 44px hit area on touch screens. */
+@media (pointer: coarse) {
+  .tb-chip,
+  .tb-mini,
+  .tb-pri,
+  .tb-meta,
+  .tb-status,
+  .tb-plus {
+    position: relative;
+  }
+  .tb-chip::after,
+  .tb-mini::after,
+  .tb-pri::after,
+  .tb-meta::after,
+  .tb-status::after,
+  .tb-plus::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: max(100%, 44px);
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.tb-board {
+  display: grid;
+  gap: 0.75rem;
+}
+.tb-col {
+  min-width: 0;
+  padding: 0.375rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bb-muted) 55%, transparent);
+}
+.tb-col__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.125rem 0.25rem 0.5rem;
+}
+.tb-col__head h3 {
+  margin: 0;
+  font-size: var(--text-scale-sm);
+  font-weight: 900;
+}
+.tb-count {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 800;
+}
+.tb-plus {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: auto;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  cursor: pointer;
+}
+.tb-plus:hover {
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.tb-new input {
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: 0.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bb-primary);
+  border-radius: 0.625rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 800;
+}
+.tb-list {
+  display: grid;
+  gap: 0.125rem;
+  min-height: 3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tb-li {
+  display: grid;
+  gap: 0.125rem;
+}
+.tb-line {
+  height: 3px;
+  margin: -0.0625rem 0.25rem;
+  border-radius: 3px;
+  background: var(--bb-primary);
+}
+.tb-empty {
+  padding: 0.75rem 0.5rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 700;
+  text-align: center;
+}
+
+.tb-card {
+  position: relative;
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.375rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: var(--bb-card);
+  cursor: grab;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.tb-card:hover {
+  border-color: color-mix(in srgb, var(--bb-border) 70%, transparent);
+}
+.tb-card:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 1px;
+  border-color: var(--bb-primary);
+}
+.tb-card.is-drag {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+.tb-card__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+.tb-id {
+  color: var(--bb-muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.tb-status,
+.tb-pri {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  cursor: pointer;
+}
+.tb-status {
+  border-radius: 50%;
+}
+.tb-status:hover,
+.tb-pri:hover {
+  background: var(--bb-muted);
+}
+.tb-card__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+  line-height: 22px;
+  overflow-wrap: anywhere;
+}
+.tb-card.is-done .tb-card__title {
+  color: var(--bb-muted-foreground);
+}
+.tb-edit {
+  flex: 1;
+  min-width: 0;
+  min-height: 30px;
+  padding: 0 0.5rem;
+  border: 1px solid var(--bb-primary);
+  border-radius: 0.5rem;
+  background: var(--bb-background);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+}
+.tb-card__chips {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem 0.625rem;
+  min-height: 22px;
+  padding-left: 28px;
+}
+.tb-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tb-meta i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.tb-meta:hover {
+  color: var(--bb-foreground);
+}
+.tb-meta--date.is-late {
+  color: var(--warn-ink-strong);
+  font-weight: 800;
+}
+.tb-you {
+  color: var(--bb-primary-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.tb-next {
+  padding: 0 0.375rem;
+  border-radius: 999px;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground, #fff);
+  font-size: 0.6875rem;
+  font-weight: 900;
+  line-height: 1.5;
+}
+/* Actions sit over the quiet line, only while the card is hovered or has focus. */
+.tb-acts {
+  position: absolute;
+  right: -0.25rem;
+  top: 50%;
+  display: none;
+  transform: translateY(-50%);
+  gap: 0.0625rem;
+  padding-left: 1.5rem;
+  background: linear-gradient(to right, transparent, var(--bb-card) 1.25rem);
+}
+.tb-card:hover .tb-acts,
+.tb-card:focus-within .tb-acts {
+  display: inline-flex;
+}
+.tb-mini {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.tb-mini:hover:not(:disabled) {
+  background: var(--bb-muted);
+  color: var(--bb-foreground);
+}
+.tb-mini:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.tb-status:focus-visible,
+.tb-pri:focus-visible,
+.tb-meta:focus-visible,
+.tb-mini:focus-visible,
+.tb-chip:focus-visible,
+.tb-plus:focus-visible,
+.tb-more:focus-visible,
+.tb-start:focus-visible,
+.tb-tab:focus-visible,
+.tb-new-btn:focus-visible {
+  outline: 3px solid var(--bb-ring);
+  outline-offset: 1px;
+}
+.tb-more {
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tb-more:hover {
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+
+.tb-nextbar {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bb-primary) 9%, var(--bb-card));
+  font-size: var(--text-scale-sm);
+}
+.tb-nextbar__tag {
+  flex: none;
+  color: var(--bb-primary-ink);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tb-nextbar__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tb-start,
+.tb-new-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.625rem;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.tb-start {
+  flex: none;
+  border-color: transparent;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground, #fff);
+}
+.tb-new-btn kbd {
+  padding: 0 0.3125rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.375rem;
+  font: inherit;
+  font-size: 0.6875rem;
+}
+.tb-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.1875rem;
+  border-radius: 0.75rem;
+  background: var(--bb-muted);
+}
+.tb-tab {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 0.5625rem;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 800;
+  cursor: pointer;
+}
+.tb-tab span {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+}
+.tb-tab[aria-pressed="true"] {
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.tb-pop {
+  padding: 0.5rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+  cursor: default;
+}
+
+.tb-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 700;
+}
+.tb-keys {
+  display: none;
+}
+
+@media (max-width: 719px) {
+  .tb-col:not(.is-active) {
+    display: none;
+  }
+  .tb-nextbar__tag {
+    display: none;
+  }
+}
+@media (min-width: 720px) {
+  .tb-tabs {
+    display: none;
+  }
+  .tb-board {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+  .tb-keys {
+    display: inline;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tb-card {
+    transition: none;
+  }
+}
+:root[data-motion="reduced"] .tb-card {
+  transition: none;
+}

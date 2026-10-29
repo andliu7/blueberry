@@ -33,7 +33,10 @@ export function answerReview(state: PracticeRunState, correct: boolean): Practic
   const id = currentProblem(state);
   if (id === null) return state;
   const repeat = !countsTowardRun(state);
-  const next = answerProblem(state, correct);
+  const answered = answerProblem(state, correct);
+  // A checkpoint review is a graded clear, so a miss still ends the run. The one-step
+  // setback (owner, 29 Oct) belongs to the practice tiers in beats/practice/run.ts.
+  const next = correct ? answered : { ...answered, run: 0 };
 
   // Rule 2: a right answer to a repeat leaves the run and the best as they were.
   if (repeat && correct) return { ...next, run: state.run, best: state.best };

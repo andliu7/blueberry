@@ -322,7 +322,13 @@ export function McqBeatView({
           on the first screen. */}
       <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 pb-3 md:px-6">
         {reported ? (
-          <p className="fade-in rounded-2xl border border-bb-border bg-bb-muted px-3 py-2 text-scale-sm text-bb-muted-foreground">
+          // Fixed to the bottom, above the action bar, so it never pushes the
+          // stem or the options when it appears (fail-back-one round 1).
+          <p
+            role="status"
+            data-notice="flagged"
+            className="fade-in pointer-events-none fixed inset-x-4 bottom-28 z-40 mx-auto max-w-md rounded-2xl border border-bb-border bg-bb-muted px-3 py-2 text-scale-sm text-bb-muted-foreground shadow-md"
+          >
             Thanks, this one is flagged for review. Carry on when you are ready.
           </p>
         ) : null}

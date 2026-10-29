@@ -69,7 +69,8 @@ beforeEach(async () => {
   m.configured.value = true;
   replace = vi.fn();
   // jsdom's location is not writable property by property; swap the object.
-  vi.stubGlobal("location", { ...window.location, hash: "#/app/lesson/x", replace });
+  // A real host name: localhost skips the sign-in on purpose (owner, 29 Oct), and these cases are the deployed site.
+  vi.stubGlobal("location", { ...window.location, hostname: "blueberry.example", hash: "#/app/lesson/x", replace });
 });
 
 afterEach(() => {

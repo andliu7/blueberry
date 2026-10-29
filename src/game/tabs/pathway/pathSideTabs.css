@@ -1,0 +1,217 @@
+.pside {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--bb-card);
+  border-bottom: 2px solid var(--bb-border);
+}
+.pside__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.25rem 0.4rem;
+  border-bottom: 4px solid transparent;
+  margin-bottom: -2px;
+  color: var(--bb-foreground);
+  opacity: 0.7;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.pside__tab--on {
+  opacity: 1;
+  color: #6d4fd6;
+  border-bottom-color: #8b6df2;
+  background: color-mix(in srgb, #8b6df2 10%, transparent);
+}
+.pchal {
+  margin: 0 auto;
+  padding: 1rem 1rem 6rem;
+  max-width: 28rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.pchal__h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+.pchal__count {
+  font-size: 0.875rem;
+  opacity: 0.7;
+}
+.pq {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--bb-border);
+  border-radius: 1rem;
+  background: var(--bb-card);
+  overflow: hidden;
+}
+.pq__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+}
+.pq__row + .pq__row {
+  border-top: 2px solid var(--bb-border);
+}
+.pq__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+}
+.pq__prize {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.75rem;
+}
+.pq__gem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.pq__row[data-done="true"] .pq__text strong {
+  opacity: 0.6;
+}
+.pbar {
+  position: relative;
+  display: block;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bb-foreground) 12%, transparent);
+  overflow: hidden;
+}
+.pbar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  min-width: 0.5rem;
+  border-radius: 999px;
+  background: #8b6df2;
+}
+.pq__row[data-done="true"] .pbar__fill {
+  background: #7ed957;
+}
+.pbar__text {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 900;
+  line-height: 1.25rem;
+  color: var(--bb-foreground);
+  text-shadow: 0 0 3px var(--bb-card), 0 0 3px var(--bb-card);
+}
+.pnext {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 1rem;
+  background: #8b6df2;
+  box-shadow: 0 5px 0 #6d4fd6;
+  color: #fff;
+  font-size: 0.875rem;
+}
+.pnext strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+.pnext__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+.pnext .pbar {
+  background: rgba(0, 0, 0, 0.25);
+}
+.pnext .pbar__fill {
+  background: #fff;
+}
+.pnext .pbar__text {
+  color: #fff;
+  text-shadow: 0 0 3px #4a32a8;
+}
+.pchal__road {
+  list-style: none;
+  margin: 0;
+  padding: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.pchal__row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+.pchal__chip,
+.pchal__cup {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: #fff;
+  background: #8b6df2;
+  box-shadow: 0 6px 0 #6d4fd6;
+}
+.pchal__row[data-challenge-state="done"] .pchal__chip,
+.pchal__row--prize[data-challenge-state="done"] .pchal__cup {
+  background: #7ed957;
+  box-shadow: 0 6px 0 #3f8c28;
+  color: #1d4a10;
+}
+.pchal__row[data-challenge-state="locked"] .pchal__chip,
+.pchal__row--prize[data-challenge-state="locked"] .pchal__cup {
+  background: #e5e5e5;
+  box-shadow: 0 6px 0 #c4c4c4;
+  color: #7a7a7a;
+}
+.pchal__row--prize {
+  margin-top: 0.5rem;
+}
+.pchal__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  color: var(--bb-foreground);
+}
+.pchal__text strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+.pchal__row[data-challenge-state="locked"] .pchal__text {
+  opacity: 0.6;
+}
+.pchest[data-done="true"] {
+  opacity: 0.8;
+}

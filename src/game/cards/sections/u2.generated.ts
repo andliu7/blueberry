@@ -180,6 +180,38 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "why": "[18]annulene's inner H sit below 0 ppm."
   },
   {
+    "id": "sec:u2-nomen:idea:u2-nom-res-donor",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "A donor like OCH₃ or OH puts negative charge on the ____ carbons.",
+    "back": "ortho and para",
+    "why": "A donor like OCH3 or OH puts negative charge on the ortho and para carbons."
+  },
+  {
+    "id": "sec:u2-nomen:idea:u2-nom-res-wd",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "An acceptor like NO₂ makes the ortho and para carbons electron poor. ____ is left as the least poor position.",
+    "back": "Meta",
+    "why": "An acceptor like NO2 makes the ortho and para carbons electron poor. Meta is left as the least poor position."
+  },
+  {
+    "id": "sec:u2-nomen:idea:u2-nom-eas-halogen",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "Halogens are the ____: they slow the ring (deactivating) but still direct ortho and para.",
+    "back": "exception",
+    "why": "Halogens are the exception. They slow the ring down (deactivating) but still direct ortho and para, because their lone pairs share into the ring."
+  },
+  {
+    "id": "sec:u2-nomen:idea:u2-nom-rate",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "Donors make the ring react ____ than benzene, acceptors slower: toluene, benzene, nitrobenzene.",
+    "back": "faster",
+    "why": "Donors activate the ring, so it reacts faster than benzene."
+  },
+  {
     "id": "sec:u2-nomen:idea:u2-nom-xylene",
     "lesson": "u2-nomen",
     "kind": "idea",
@@ -188,12 +220,52 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "why": "Ortho is 1,2 (next door), meta is 1,3 (one carbon between), para is 1,4 (across the ring)."
   },
   {
-    "id": "sec:u2-nomen:idea:u2-nom-phenanthrene",
+    "id": "sec:u2-nomen:idea:u2-nom-why-numbers",
     "lesson": "u2-nomen",
     "kind": "idea",
-    "front": "Three fused rings: ____",
-    "back": "straight is anthracene, bent is phenanthrene.",
-    "why": "Three fused rings: straight is anthracene, bent is phenanthrene."
+    "front": "Use o, m or p only when ____ are on the ring. With three or more, give each group a number.",
+    "back": "two groups",
+    "why": "Use o, m or p only when two groups are on the ring. With three or more, give each group a number."
+  },
+  {
+    "id": "sec:u2-nomen:idea:u2-nom-benzyl",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "Phenyl is the ring as a branch, C6H5. ____ is the ring plus one CH2.",
+    "back": "Benzyl",
+    "why": "Phenyl is the ring itself as a branch, C6H5. Benzyl is the ring plus one CH2, C6H5CH2."
+  },
+  {
+    "id": "sec:u2-nomen:idea:u2-nom-benzoic-subs",
+    "lesson": "u2-nomen",
+    "kind": "idea",
+    "front": "The ____ (COOH, OH, NH₂) takes C1. Nitro and halogens are only prefixes.",
+    "back": "principal group",
+    "why": "The principal group (COOH) takes C1."
+  },
+  {
+    "id": "sec:u2-nomen:slip:u2-nom-eas-donor",
+    "lesson": "u2-nomen",
+    "kind": "slip",
+    "front": "Spot the slip: Sending the next group meta after a donor.",
+    "back": "Donors direct to ortho and para. Acceptors direct to meta.",
+    "why": "Donors direct electrophilic substitution to ortho and para."
+  },
+  {
+    "id": "sec:u2-nomen:slip:u2-nom-eas-halogen",
+    "lesson": "u2-nomen",
+    "kind": "slip",
+    "front": "Spot the slip: Calling a halogen a meta director because it deactivates.",
+    "back": "Halogens deactivate but direct ortho and para.",
+    "why": "Halogens are the exception."
+  },
+  {
+    "id": "sec:u2-nomen:slip:u2-nom-nitroaniline",
+    "lesson": "u2-nomen",
+    "kind": "slip",
+    "front": "Spot the slip: Naming 4-nitroaniline as an aminonitrobenzene.",
+    "back": "NH2 outranks NO2, so aniline is the parent.",
+    "why": "The amine outranks nitro, so it is the parent"
   },
   {
     "id": "sec:u2-nomen:slip:u2-nom-meta",
@@ -204,19 +276,19 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "why": "two is meta, three is para"
   },
   {
+    "id": "sec:u2-nomen:slip:u2-nom-why-numbers",
+    "lesson": "u2-nomen",
+    "kind": "slip",
+    "front": "Spot the slip: Using o, m or p on a ring with three groups.",
+    "back": "o, m and p compare exactly two groups. Number the ring instead.",
+    "why": "o, m and p compare exactly two groups."
+  },
+  {
     "id": "sec:u2-nomen:slip:u2-nom-chlorophenol",
     "lesson": "u2-nomen",
     "kind": "slip",
     "front": "Spot the slip: Numbering a chlorophenol from the Cl.",
     "back": "When the parent is phenol, the OH carbon is C1.",
     "why": "When the parent is phenol, the OH carbon is C1"
-  },
-  {
-    "id": "sec:u2-nomen:slip:u2-nom-anthracene",
-    "lesson": "u2-nomen",
-    "kind": "slip",
-    "front": "Spot the slip: Calling three fused rings with a bend anthracene.",
-    "back": "Anthracene is a straight row; the bent one is phenanthrene.",
-    "why": "Anthracene has three in a line; phenanthrene has three with a bend."
   }
 ];

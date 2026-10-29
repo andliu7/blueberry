@@ -31,7 +31,8 @@ describe("AdminGate wiring", () => {
   const gate = app.slice(app.indexOf("function AdminGate"));
 
   it("renders the sign-in card when signed out", () => {
-    expect(gate).toMatch(/const signedOut = !loading && user === null;/);
+    // Localhost counts as staff and skips the card (owner, 29 Oct); the deployed site still shows it.
+    expect(gate).toMatch(/const signedOut = !loading && user === null && !devLocal;/);
     expect(gate).toMatch(/if \(signedOut\) \{[\s\S]*?<AdminSignIn \/>/);
   });
 

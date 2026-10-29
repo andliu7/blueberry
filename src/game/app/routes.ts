@@ -157,12 +157,16 @@ export type Route =
    * five-tab bar stays five (owner items 14 and 27).
    */
   | { readonly kind: "glossary"; readonly entry: string | null }
+  /** Naming and acid-base reference: "#/app/naming". */
+  | { readonly kind: "naming" }
   /**
    * The shop: "#/app/shop". Reached from the diamond counter's sheet, never
    * the bar. Diamonds earned by learning buy streak freezes and decks; no
    * real money, no random boxes (shop/ShopPage.tsx).
    */
   | { readonly kind: "shop" }
+  /** The saved mistakes and their practice run: "#/app/mistakes" (mistakes/MistakesPage.tsx). */
+  | { readonly kind: "mistakes" }
   /**
    * Development surfaces. Deliberately NOT in ALL_TABS, so nothing renders a
    * link to them. Reached by typing the hash, which is the right amount of
@@ -219,7 +223,9 @@ export function parseHash(hash: string): Route {
   if (head === "review") return { kind: "tab", tab: "cards", rest: [] };
   if (head === "gallery") return { kind: "gallery", name: parts[1] ?? "berry" };
   if (head === "glossary") return { kind: "glossary", entry: parts[1] ?? null };
+  if (head === "naming") return { kind: "naming" };
   if (head === "shop") return { kind: "shop" };
+  if (head === "mistakes") return { kind: "mistakes" };
   if (head === "admin") return { kind: "admin", node: parts[1] ?? null };
   if (head !== undefined && TAB_IDS.has(head)) {
     return { kind: "tab", tab: head as TabId, rest: parts.slice(1) };
@@ -292,6 +298,16 @@ export function hrefForOnboarding(step: string): string {
 /** The glossary, optionally opened on one entry (an id from glossary/glossaryModel.ts). */
 export function hrefForGlossary(entry?: string): string {
   return entry === undefined ? `#/${BASE}/glossary` : `#/${BASE}/glossary/${encodeURIComponent(entry)}`;
+}
+
+/** Saved mistakes and their practice run. */
+export function hrefForMistakes(): string {
+  return `#/${BASE}/mistakes`;
+}
+
+/** The Naming and acid-base reference. */
+export function hrefForNaming(): string {
+  return `#/${BASE}/naming`;
 }
 
 /** The shop, reached from the diamond counter. */

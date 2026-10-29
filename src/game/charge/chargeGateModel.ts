@@ -42,6 +42,9 @@
 import {
   CHARGE_REGEN_MINUTES,
   SINK_COST,
+  XP_CHALLENGE_PASSED,
+  XP_NODE_FIRST_CLEAR,
+  XP_QUIZ_PASSED,
   chargeCostFor,
   type ChargeEntry,
   type EconomySnapshot,
@@ -71,6 +74,20 @@ export interface ChargeGateNode {
    * "quiz"). Owner 2026-10-20: it costs the final entry, 6, not a lesson's 3.
    */
   readonly final?: boolean;
+  /** Where the node sits in its unit, in words ("Step 4 of 6"). Optional: only the pathway knows. */
+  readonly place?: string;
+}
+
+/**
+ * The XP a clear of this node pays, read from the economy's own tables so the
+ * start sheet can sell the payoff without adding anything up itself. A
+ * Challenge pays the challenge rate, a unit quiz the quiz rate, the rest the
+ * first clear rate for their kind. Zero means "say nothing".
+ */
+export function xpRewardOf(node: ChargeGateNode): number {
+  if (node.challenge === true) return XP_CHALLENGE_PASSED;
+  if (node.kind === "quiz") return XP_QUIZ_PASSED;
+  return XP_NODE_FIRST_CLEAR[node.kind];
 }
 
 /**

@@ -954,3 +954,17 @@
 .shop-option .shop-price { font-size: 1.5rem; color: var(--diamond); }
 .shop-item-name { font-size: 1.125rem; }
 .shop-item-status { font-size: 1rem; }
+
+.shop-page[data-embedded="true"] { min-height: 0; }
+.shop-header[hidden] { display: none; }
+.shop-balance-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.5rem 1rem 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.125rem;
+}

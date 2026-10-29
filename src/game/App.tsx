@@ -25,6 +25,7 @@ import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 import { progress } from "./app/progress";
 import { paceForNode } from "./beats/pace";
 import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
+import { isLocalHost } from "@/lib/appGate";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "./admin/staff";
 import { AdminSignIn } from "./admin/AdminSignIn";
@@ -73,21 +74,28 @@ const PilotTrainerGallery = lazy(() => import("./tabs/trainer/engine/TrainerGall
  * should not download.
  */
 const GlossaryPage = lazy(() => import("./glossary/GlossaryPage"));
+/** Naming and acid-base reference, at #/app/naming. Lazy: its drawings load only when opened. */
+const NamingPage = lazy(() => import("./naming/NamingPage"));
 
 /** The shop, at #/app/shop. Lazy: only a student who opens it from the diamond counter pays for it. */
 const ShopPage = lazy(() => import("./shop/ShopPage"));
+/** Saved mistakes and their practice run, at #/app/mistakes. */
+const MistakesPage = lazy(() => import("./mistakes/MistakesPage"));
 
 /** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
 const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
 
 /** The streak page states, at #/app/gallery/streak?state=lit. Development only, lazy. */
+const CelebrationGallery = lazy(() => import("./lesson/CelebrationGallery"));
 const StreakGallery = lazy(() => import("./lesson/StreakGallery"));
 
 /** The lesson-start card states, at #/app/gallery/start?state=ready. Development only, lazy. */
 const StartPopGallery = lazy(() => import("./charge/StartPopGallery"));
+const ElixirGallery = lazy(() => import("./elixir/ElixirGallery"));
 
 /** The gem and XP reward screens, at #/app/gallery/gems?state=xp. Development only, lazy. */
 const GemRewardGallery = lazy(() => import("./lesson/GemRewardGallery"));
+const ChestGallery = lazy(() => import("./chest/ChestGallery"));
 
 /**
  * The staff lesson viewer, at #/app/admin. Lazy like the glossary, and only
@@ -165,6 +173,14 @@ function Body({
         </Suspense>
       );
     }
+    if (route.name === "celebrate") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the celebration pages" />}>
+          <BootReady />
+          <CelebrationGallery />
+        </Suspense>
+      );
+    }
     if (route.name === "streak") {
       return (
         <Suspense fallback={<TabSkeleton label="the streak page" />}>
@@ -181,11 +197,27 @@ function Body({
         </Suspense>
       );
     }
+    if (route.name === "elixir") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the elixir" />}>
+          <BootReady />
+          <ElixirGallery />
+        </Suspense>
+      );
+    }
     if (route.name === "buttons") {
       return (
         <Suspense fallback={<TabSkeleton label="the button sheet" />}>
           <BootReady />
           <ButtonGallery />
+        </Suspense>
+      );
+    }
+    if (route.name === "chest") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the chest" />}>
+          <BootReady />
+          <ChestGallery />
         </Suspense>
       );
     }
@@ -283,6 +315,24 @@ function Body({
     );
   }
 
+  if (route.kind === "mistakes") {
+    return (
+      <Suspense fallback={<TabSkeleton label="your mistakes" />}>
+        <BootReady />
+        <MistakesPage />
+      </Suspense>
+    );
+  }
+
+  if (route.kind === "naming") {
+    return (
+      <Suspense fallback={<TabSkeleton label="naming and acid-base" />}>
+        <BootReady />
+        <NamingPage />
+      </Suspense>
+    );
+  }
+
   if (route.kind === "shop") {
     return (
       <Suspense fallback={<TabSkeleton label="the shop" />}>
@@ -344,13 +394,18 @@ function AdminGate({ node }: { readonly node: string | null }) {
   // Signed in but the profile row not read yet: the role still reads "member",
   // so wait rather than bounce an admin to the path.
   const waiting = loading || (user !== null && !profileLoaded && !isStaffRole(role));
-  const staff = isStaffRole(role);
+  // Owner, 29 Oct: localhost skips sign-in. In a dev server on this machine the
+  // staff viewer opens without a role; it is UI only, RLS still guards every read,
+  // and a production build never matches (DEV is false there).
+  const devLocal = import.meta.env.DEV && typeof window !== "undefined" && isLocalHost(window.location.hostname);
+  const staff = isStaffRole(role) || devLocal;
 
   // Every hook runs before any early return: React matches hooks by call
   // order, so a hook skipped on one render would break the next.
   // Signed out: offer a sign-in here rather than bounce (owner, 23 Oct).
   // Signed in without a staff role: back to the path, as before.
-  const signedOut = !loading && user === null;
+  // devLocal counts as staff above, so the one viewer mount below stays behind the staff check.
+  const signedOut = !loading && user === null && !devLocal;
   useEffect(() => {
     if (!waiting && !staff && !signedOut) navigate(hrefForTab("pathway"));
   }, [waiting, staff, signedOut]);

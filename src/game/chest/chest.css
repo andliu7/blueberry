@@ -19,7 +19,38 @@
 .ca-wood { fill: #6b3008; }
 .ca-rim { fill: none; stroke: #f5b82e; }
 .ca-deep { fill: #4a2208; }
-.ca-light { fill: #fff4b8; }
+.ca-light { fill: #fff4b8; fill-opacity: 0.55; }
+.ca-floor { fill: #5a2a0a; }
+.ca-pile-shade { fill: #8a5208; }
+.ca-twinkle { fill: #fff; }
+/* Coins and stones, in the heap and in the air. */
+.cc-edge { fill: #b8780a; }
+.cc-face { fill: #ffcb2e; fill: url(#cc-dome); }
+.cc-rim { fill: #ffe98a; }
+.cc-under { fill: none; stroke: #c98a0a; stroke-opacity: 0.8; }
+.cc-spark { fill: #fff; }
+.cc-stop-a { stop-color: #fff1a8; }
+.cc-stop-b { stop-color: #ffcb2e; }
+.cc-stop-c { stop-color: #e8a010; }
+.cc-ring { fill: none; stroke: #e39a0c; }
+.cc-shine { fill: none; stroke: #fff4b8; }
+.cc-star { fill: #e39a0c; }
+.jw-edge { fill: none; stroke: #2a1536; stroke-opacity: 0.55; }
+.jw-shine { fill: #fff; fill-opacity: 0.75; }
+.jw--ruby .jw-1 { fill: #e11d48; }
+.jw--ruby .jw-2 { fill: #fda4af; }
+.jw--ruby .jw-3 { fill: #be123c; }
+.jw--ruby .jw-4 { fill: #9f1239; }
+.jw--emerald .jw-1 { fill: #10b981; }
+.jw--emerald .jw-2 { fill: #6ee7b7; }
+.jw--emerald .jw-3 { fill: #059669; }
+.jw--emerald .jw-4 { fill: #047857; }
+.jw--sapphire .jw-1 { fill: #3b82f6; }
+.jw--sapphire .jw-2 { fill: #93c5fd; }
+.jw--sapphire .jw-3 { fill: #2563eb; }
+.jw--sapphire .jw-4 { fill: #1d4ed8; }
+.coin-art,
+.stone-art { display: block; width: 100%; height: 100%; overflow: visible; }
 .ca-lip { fill: #8a420c; }
 /* The lip is the chest's bottom edge, drawn against the card: on the night
    card #8a420c measured 2.19:1 (contrast audit, 21 Oct), so the night lip is
@@ -51,6 +82,32 @@
   from {
     transform: scaleY(0.2);
   }
+}
+/* The swung-back lid and the heap spring up out of the box when it opens. */
+.ca-lid-open {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ca-lid-swing 520ms var(--bb-ease-spring);
+}
+@keyframes ca-lid-swing {
+  from { transform: translateY(34px) scaleY(0.15); opacity: 0; }
+  35% { opacity: 1; }
+}
+.ca-hoard {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: ca-hoard-up 560ms var(--bb-ease-spring) 120ms backwards;
+}
+@keyframes ca-hoard-up {
+  from { transform: scale(0.4, 0.1); opacity: 0; }
+}
+.ca-twinkle {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ca-twinkle 900ms ease-in-out infinite alternate;
+}
+@keyframes ca-twinkle {
+  from { opacity: 0.2; transform: scale(0.6); }
 }
 .ca-plate { transition: opacity 120ms var(--bb-ease-ui); }
 .chest-art.is-open .ca-lid { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
@@ -125,7 +182,10 @@
   .chest-art .ca-lid {
     transition: none;
   }
-  .chest-art .ca-inner {
+  .chest-art .ca-inner,
+  .chest-art .ca-lid-open,
+  .chest-art .ca-hoard,
+  .chest-art .ca-twinkle {
     animation: none;
   }
 }

@@ -96,12 +96,23 @@ export function currentProblem(state: PracticeRunState): string | null {
 
 const TOP = RUN_TIERS[RUN_TIERS.length - 1]!.at;
 
+/**
+ * Where the run lands after a miss. In the Master and Prodigy tiers a miss
+ * steps back ONE problem, not to zero (owner: no big setback on a miss, as in
+ * Duolingo). Below Master it still resets, so the Pro clear stays earned.
+ * Challenge and exam keep their own rules, so they are not softened here.
+ */
+function missedRun(state: PracticeRunState): number {
+  if (state.challenge || state.exam === true) return 0;
+  return state.run >= RUN_TIERS[1].at ? state.run - 1 : 0;
+}
+
 /** The problem on screen was answered. Ignored once the session is over. */
 export function answerProblem(state: PracticeRunState, correct: boolean): PracticeRunState {
   const id = currentProblem(state);
   if (id === null) return state;
   const rest = state.queue.slice(1);
-  const run = correct ? state.run + 1 : 0;
+  const run = correct ? state.run + 1 : missedRun(state);
   const best = Math.max(state.best, run);
   let queue = rest;
   let requeued = state.requeued;

@@ -13,7 +13,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  EMPTY_QUIZ,
   EMPTY_SIDES,
+  SELF_CHECK_BACK,
+  addOption,
+  quizCardFromDraft,
+  quizProblems,
+  removeOption,
+  setOption,
+  setQuizKind,
+  toggleCorrect,
+  type QuizDraft,
   SIDE_LABELS,
   SIDE_ORDER,
   canSave,
@@ -145,5 +155,55 @@ describe("a question card", () => {
     const problems = questionProblems({ front: " ", back: "", why: "because" });
     expect(problems).toHaveLength(2);
     for (const problem of problems) expect(problem).not.toMatch(/\?|wrong|must/i);
+  });
+});
+
+describe("the four question types", () => {
+  const base = { ...EMPTY_QUIZ, question: " Which is a Grignard reagent? " };
+
+  it("a short answer needs a question and an answer, a long answer only the question", () => {
+    expect(quizProblems(base)).toHaveLength(1);
+    expect(quizProblems({ ...base, question: "" })).toHaveLength(2);
+    expect(quizProblems({ ...base, kind: "long" })).toEqual([]);
+    expect(quizProblems({ ...base, answer: "RMgX" })).toEqual([]);
+  });
+
+  it("a long answer with no model answer says it is checked by the student", () => {
+    const card = quizCardFromDraft({ ...base, kind: "long" }, AT);
+    expect(card.back).toBe(SELF_CHECK_BACK);
+    expect(card.quiz).toEqual({ kind: "long" });
+  });
+
+  it("pick one: the mark is single, blank rows are dropped, indexes stay aligned", () => {
+    let d: QuizDraft = setQuizKind(base, "mcq");
+    d = setOption(setOption(addOption(d), 0, "NaCl"), 2, "CH3MgBr");
+    d = toggleCorrect(toggleCorrect(d, 0), 2);
+    expect(d.correct).toEqual([2]);
+    expect(quizProblems(d)).toEqual([]);
+    const card = quizCardFromDraft(d, AT);
+    expect(card.quiz).toEqual({ kind: "mcq", options: ["NaCl", "CH3MgBr"], correct: [1] });
+    expect(card.back).toBe("CH3MgBr");
+    expect(card.front).toBe("Which is a Grignard reagent?");
+  });
+
+  it("pick many toggles, and switching down to pick one keeps one mark", () => {
+    let d = setOption(setOption(setQuizKind(base, "multi"), 0, "a"), 1, "b");
+    d = toggleCorrect(toggleCorrect(d, 0), 1);
+    expect(quizCardFromDraft(d, AT).back).toBe("a; b");
+    expect(setQuizKind(d, "mcq").correct).toEqual([0]);
+    expect(toggleCorrect(d, 0).correct).toEqual([1]);
+  });
+
+  it("a choice card needs two options and a right one", () => {
+    expect(quizProblems(setQuizKind(base, "mcq"))).toContain("Add at least two options.");
+    const two = setOption(setOption(setQuizKind(base, "mcq"), 0, "a"), 1, "b");
+    expect(quizProblems(two)[0]).toContain("right");
+  });
+
+  it("removing a row shifts the marks and never goes below two rows", () => {
+    let d = setQuizKind(addOption(base), "multi");
+    d = toggleCorrect(toggleCorrect(d, 1), 2);
+    expect(removeOption(d, 0).correct).toEqual([0, 1]);
+    expect(removeOption(setQuizKind(base, "mcq"), 0).options).toHaveLength(2);
   });
 });

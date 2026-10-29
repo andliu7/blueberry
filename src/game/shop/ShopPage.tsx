@@ -12,9 +12,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { type EconomyEvent } from "@blueberry/economy";
+import { deriveEconomy, type EconomyEvent } from "@blueberry/economy";
 import { useProgress } from "../app/hooks";
-import { progress } from "../app/progress";
+import { economyOptions, progress } from "../app/progress";
 import { hrefForTab } from "../app/routes";
 import { DiamondMark } from "../app/ui/HudIcons";
 import { Press, pressClassName } from "../app/ui/Press";
@@ -307,11 +307,17 @@ function BuySheet({
 
 /* ------------------------------------------------------------------- page -- */
 
-export default function ShopPage({ reducedMotion }: { readonly reducedMotion: boolean }) {
+export default function ShopPage({ reducedMotion, embedded = false }: { readonly reducedMotion: boolean; readonly embedded?: boolean }) {
   const snapshot = useProgress();
   const [pick, setPick] = useState<Pick | null>(null);
-  const balance = snapshot.economy.diamonds.balance;
-  const held = snapshot.economy.streak.freezes;
+  // The SAME derivation the header counter uses (course denominator included),
+  // so the shop and the header can never show two balances for one currency.
+  const economy = useMemo(
+    () => deriveEconomy(snapshot.journal, new Date().toISOString(), economyOptions(snapshot.course)),
+    [snapshot.journal, snapshot.course],
+  );
+  const balance = economy.diamonds.balance;
+  const held = economy.streak.freezes;
   const shelf = useMemo(() => shopDecks(), []);
   const owned = useMemo(() => ownedDeckIds(snapshot.journal as readonly EconomyEvent[]), [snapshot.journal]);
   const ownedDecks = shelf.filter((deck) => owned.has(deck.id));
@@ -322,8 +328,9 @@ export default function ShopPage({ reducedMotion }: { readonly reducedMotion: bo
   };
 
   return (
-    <div className="shop-page" data-reduced={reducedMotion ? "true" : undefined}>
-      <header className="shop-header pt-safe">
+    <div className="shop-page" data-embedded={embedded ? "true" : undefined} data-reduced={reducedMotion ? "true" : undefined}>
+      {/* Embedded under the Path header, the header already shows the balance; a second counter here is what once disagreed with it. */}
+      <header className="shop-header pt-safe" hidden={embedded}>
         <button type="button" className="shop-close" onClick={close} aria-label="Close shop">
           <CloseIcon />
         </button>

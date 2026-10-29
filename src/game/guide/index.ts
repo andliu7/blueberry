@@ -23,6 +23,8 @@ const GUIDES: Readonly<Record<string, UnitGuide>> = {
 };
 
 const LATER: Readonly<Record<string, () => Promise<UnitGuide>>> = {
+  // Not a unit: the Naming and acid-base reference (naming/), whose cards draw from it.
+  nm: () => import("./nmGuide").then((m) => m.NM_GUIDE),
   u2: () => import("./u2Guide").then((m) => m.U2_GUIDE),
   u3: () => import("./u3Guide").then((m) => m.U3_GUIDE),
   u4: () => import("./u4Guide").then((m) => m.U4_GUIDE),

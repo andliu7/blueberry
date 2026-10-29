@@ -13,7 +13,7 @@ import type { ChargeGateNode } from "./chargeGateModel";
 
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
 
-const REACTION: ChargeGateNode = { id: "u3-directing", kind: "reaction", title: "Directing groups", href: "#/lesson/u3-directing" };
+const REACTION: ChargeGateNode = { id: "u3-directing", kind: "reaction", title: "Directing groups", place: "Step 4 of 6", href: "#/lesson/u3-directing" };
 const TUTORIAL: ChargeGateNode = { id: "tutorial-1", kind: "tutorial", title: "How Blueberry works", href: "#/lesson/tutorial-1" };
 const REVIEW: ChargeGateNode = { id: "u1-review", kind: "review", title: "Review: resonance", href: "#/lesson/u1-review" };
 const QUIZ: ChargeGateNode = { id: "u3-quiz", kind: "quiz", title: "Unit 3 quiz", href: "#/lesson/u3-quiz", final: true };

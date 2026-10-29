@@ -10,8 +10,16 @@
 
 export type AppGateState = "game" | "wait" | "signin";
 
-export function appGateFor(a: { configured: boolean; loading: boolean; signedIn: boolean }): AppGateState {
-  if (!a.configured) return "game";
+/**
+ * The page is being served from this machine (owner, 29 Oct: keep the sign-in for the real
+ * site, drop it on localhost). Exact hostnames only; the deployed site never matches.
+ */
+export function isLocalHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
+export function appGateFor(a: { configured: boolean; loading: boolean; signedIn: boolean; localHost?: boolean }): AppGateState {
+  if (!a.configured || a.localHost) return "game";
   if (a.loading) return "wait";
   return a.signedIn ? "game" : "signin";
 }

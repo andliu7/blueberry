@@ -386,3 +386,14 @@
 html[data-motion="reduced"] .gl-chip {
   transition: none;
 }
+
+/* Link to the Naming and acid-base page, at the right of the bar. A flat text link, 44px tall. */
+.gl-naming-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: auto;
+  font-weight: 800;
+  font-size: 0.9375rem;
+  color: var(--bb-primary-ink);
+}

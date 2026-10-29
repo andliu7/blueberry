@@ -144,6 +144,25 @@ export interface Card {
    * reaction registry); nothing here is recalled by a model.
    */
   readonly reaction?: ReactionCardData;
+  /**
+   * How a student's own question card is asked, when it is not a plain
+   * short answer. `front` is always the question and `back` the answer in
+   * words (for a choice card, the correct options), so any surface that does
+   * not know about this still shows the card whole. The composer is the only
+   * writer.
+   */
+  readonly quiz?: CardQuiz;
+}
+
+/** short = one line answer, long = a written answer the student or an AI grades later. */
+export type CardQuizKind = "short" | "long" | "mcq" | "multi";
+
+export interface CardQuiz {
+  readonly kind: CardQuizKind;
+  /** Choice cards only: the options in the order the student wrote them. */
+  readonly options?: readonly string[];
+  /** Choice cards only: indexes into options that are correct. One for mcq. */
+  readonly correct?: readonly number[];
 }
 
 /**

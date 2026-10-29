@@ -1,7 +1,7 @@
 import { lazy, useEffect } from "react";
 import { LoaderGate } from "@/components/ui/blueberry-loader";
 import { useAuth } from "@/lib/AuthContext";
-import { appGateFor } from "@/lib/appGate";
+import { appGateFor, isLocalHost } from "@/lib/appGate";
 import { rememberReturn } from "@/lib/returnTo";
 import { supabaseConfigured } from "@/lib/supabase";
 
@@ -38,7 +38,12 @@ const GamePage = lazy(loadGamePage);
  */
 export function AppGate() {
   const { user, loading } = useAuth();
-  const state = appGateFor({ configured: supabaseConfigured, loading, signedIn: user !== null });
+  const state = appGateFor({
+    configured: supabaseConfigured,
+    loading,
+    signedIn: user !== null,
+    localHost: isLocalHost(window.location.hostname),
+  });
 
   // Effects run after render, never during it, so the navigation below cannot
   // fire halfway through drawing a page. Both re-run only when the state changes.

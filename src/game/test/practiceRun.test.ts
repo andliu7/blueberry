@@ -111,6 +111,24 @@ describe("the run", () => {
     expect(cleared(state)).toBe(true);
   });
 
+  it("a miss in the Master tier goes back one problem, not to zero", () => {
+    const state = play(startPracticeRun(ids(14)), [true, true, true, true, true, false]);
+    expect(state.run).toBe(4);
+    expect(state.best).toBe(5);
+    expect(play(state, [true]).run).toBe(5);
+  });
+
+  it("a miss in the Prodigy run goes back one problem, and below Master still resets", () => {
+    const deep = play(startPracticeRun(ids(20)), [...Array(9).fill(true), false]);
+    expect(deep.run).toBe(8);
+    expect(deep.finished).toBe(false);
+    expect(play(startPracticeRun(ids(12)), [true, true, true, true, false]).run).toBe(0);
+  });
+
+  it("a Challenge is not softened", () => {
+    expect(play(startPracticeRun(ids(12), true), [true, true, true, true, true, false]).run).toBe(0);
+  });
+
   it("ends at the top tier", () => {
     const state = play(startPracticeRun(ids(12)), Array(10).fill(true));
     expect(state.finished).toBe(true);

@@ -26,7 +26,7 @@ import {
   type EconomyEvent,
   type NodeKind,
 } from "@blueberry/economy";
-import { chargeGateModel, formatCountdown, type ChargeGateNode } from "../charge/chargeGateModel";
+import { chargeGateModel, xpRewardOf, formatCountdown, type ChargeGateNode } from "../charge/chargeGateModel";
 
 const TZ = "UTC";
 const NOW = "2026-08-28T14:00:00.000Z";
@@ -333,5 +333,14 @@ describe("wrong answers are free, and the sheet says nothing different about the
         expect(prose).not.toMatch(/lost|lose|penalt/i);
       }
     }
+  });
+});
+
+describe("xpRewardOf: the payoff the start sheet sells", () => {
+  const n = (kind: ChargeGateNode["kind"], extra: Partial<ChargeGateNode> = {}): ChargeGateNode => ({ id: "x", kind, title: "t", href: "#/x", ...extra });
+  it("reads the economy tables", () => {
+    expect(xpRewardOf(n("reaction"))).toBe(15);
+    expect(xpRewardOf(n("quiz"))).toBeGreaterThan(0);
+    expect(xpRewardOf(n("reaction", { challenge: true }))).toBeGreaterThan(0);
   });
 });

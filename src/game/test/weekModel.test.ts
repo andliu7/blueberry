@@ -1,20 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { weekXp } from "../tabs/leaderboards/weekModel";
+import type { EconomyEvent } from "@blueberry/economy";
+import { weekModel } from "../tabs/feed/weekModel";
 
-describe("this week's XP for the league card", () => {
-  it("runs Monday to Sunday, marks today, and leaves later days empty", () => {
-    // 2026-10-14 is a Wednesday.
-    const { days, total } = weekXp([], Date.parse("2026-10-14T15:00:00Z"), "UTC");
-    expect(days.map((day) => day.letter).join("")).toBe("MTWTFSS");
-    expect(days[0]!.date).toBe("2026-10-12");
-    expect(days[2]!.isToday).toBe(true);
-    expect(days.filter((day) => day.ahead).map((day) => day.date)).toEqual(["2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"]);
-    expect(total).toBe(0);
+const NOW = "2026-08-28T14:00:00.000Z"; // a Friday
+
+function clear(day: string, nodeId: string): EconomyEvent {
+  return {
+    kind: "node_cleared", at: `${day}T12:00:00.000Z`, tz: "UTC", nodeId, nodeKind: "concept",
+    flawless: false, stepsInOneSitting: 1, spine: false, difficulty: 2,
+  };
+}
+
+describe("weekModel", () => {
+  it("an empty journal is an honest empty week, Sunday to Saturday", () => {
+    const week = weekModel([], NOW);
+    expect(week.empty).toBe(true);
+    expect(week.days.map((d) => d.letter).join("")).toBe("SMTWTFS");
+    expect(week.days[5]?.today).toBe(true);
+    expect(week.days[6]?.kind).toBe("future");
   });
 
-  it("puts a Sunday at the end of its own week, not the start of the next", () => {
-    const { days } = weekXp([], Date.parse("2026-10-18T12:00:00Z"), "UTC");
-    expect(days[6]!.isToday).toBe(true);
-    expect(days.some((day) => day.ahead)).toBe(false);
+  it("counts this week's clears and ignores last week's", () => {
+    const week = weekModel([clear("2026-08-20", "a:1"), clear("2026-08-26", "a:2"), clear("2026-08-28", "a:3")], NOW);
+    expect(week.lessons).toBe(2);
+    expect(week.empty).toBe(false);
   });
 });

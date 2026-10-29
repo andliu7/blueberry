@@ -66,7 +66,7 @@ import {
 import { progress } from "../app/progress";
 import type { Receipt } from "@blueberry/economy";
 import { useProgress } from "../app/hooks";
-import { playCorrect } from "../sound/gameSound";
+import { playCorrect, playGem } from "../sound/gameSound";
 import { ProblemView } from "./ProblemView";
 import { FeedbackBody, feedbackHeadline } from "./Feedback";
 import { ReactionStrip } from "./ReactionStrip";
@@ -74,6 +74,9 @@ import { ComboInterstitial } from "./ComboInterstitial";
 import { RewardMoment } from "./RewardMoment";
 import { StreakScreen } from "./StreakScreen";
 import { LessonVideo } from "./LessonVideo";
+import { CelebrationPage } from "./CelebrationPage";
+import type { Celebration } from "./celebrations";
+import { daysSince, liveCelebration } from "./celebrationLive";
 
 export interface LessonPlayerProps {
   readonly topic: TopicId;
@@ -138,6 +141,15 @@ function outcomeOf(result: GradingResult): ReactionOutcome {
   return "wrong";
 }
 
+function LiveCelebration({ c, reducedMotion, onContinue }: { c: Celebration; reducedMotion: boolean; onContinue: () => void }) {
+  useEffect(() => {
+    if (c.id === "miss") return;
+    playGem();
+    if (!reducedMotion && typeof navigator.vibrate === "function") navigator.vibrate([20, 40, 20]);
+  }, [c.id, reducedMotion]);
+  return <CelebrationPage c={c} reducedMotion={reducedMotion} onCta={onContinue} />;
+}
+
 export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinished, showVideo = true, surface }: LessonPlayerProps) {
   const snapshot = useProgress();
   const definition = useMemo(() => topicDefinition(topic), [topic]);
@@ -165,9 +177,13 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
      * before the clear and one after; nothing here works it out.
      */
     streakJustCounted: boolean;
+    /** Bloom's level before this clear, for the level-up celebration page. */
+    stageBefore: number;
+    /** Whole days away before this clear, or null for a first ever lesson. */
+    daysAway: number | null;
   } | null>(null);
   /** Which of the two end-of-lesson stages is on screen. */
-  const [stage, setStage] = useState<"reward" | "streak">("reward");
+  const [stage, setStage] = useState<"reward" | "streak" | "celebrate">("reward");
   const startedAtRef = useRef<number>(performance.now());
 
   // The reaction in play and a key that bumps each time one fires, so the
@@ -247,6 +263,9 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
     }
     const firstDiamond = snapshot.economy.diamonds.earned === 0;
     const countedBefore = snapshot.economy.streak.todayCounted;
+    const stageBefore = snapshot.economy.xp.stage;
+    const lastDay = snapshot.economy.streak.lastCountedDay;
+    const daysAway = lastDay === null ? null : daysSince(lastDay, new Date().toLocaleDateString("en-CA"));
     progress.completeLesson(topic, correct, attempted, problems.map((p) => p.id));
     // The store commits synchronously, so the receipt for this clear is the
     // snapshot's lastReceipt by the time completeLesson returns.
@@ -260,6 +279,8 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
       firstDiamond: firstDiamond && receipt.diamonds.length > 0,
       elapsedMs: performance.now() - startedAtRef.current,
       streakJustCounted: !countedBefore && receipt.streak.counted,
+      stageBefore,
+      daysAway,
     });
   };
 
@@ -291,8 +312,27 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
     // one is skipped entirely when today was already counted, so it stays a
     // once-a-day moment rather than a screen between the student and the exit.
     const leave = () => (onFinished === undefined ? onExit() : onFinished(correct, attempted));
+    // The third stage: one celebration page on the student's own results, on every clear: the
+    // most specific moment wins (level up, streak milestone, comeback, perfect, first of the day, hard miss), else the plain lesson page.
+    const xpNow = progress.getSnapshot().economy.xp;
+    const live = liveCelebration({
+      receipt: finished.receipt,
+      correct,
+      attempted,
+      elapsedMs: finished.elapsedMs,
+      stageBefore: finished.stageBefore,
+      stageAfter: xpNow.stage,
+      totalXp: xpNow.total,
+      toNextStage: xpNow.toNextStage,
+      firstToday: finished.streakJustCounted,
+      daysAway: finished.daysAway,
+    });
+    const afterReward = () => setStage("celebrate");
+    if (stage === "celebrate") {
+      return <LiveCelebration c={live} reducedMotion={reducedMotion} onContinue={leave} />;
+    }
     if (stage === "streak") {
-      return <StreakScreen receipt={finished.receipt} reducedMotion={reducedMotion} onContinue={leave} />;
+      return <StreakScreen receipt={finished.receipt} reducedMotion={reducedMotion} onContinue={afterReward} />;
     }
     return (
       <RewardMoment
@@ -302,7 +342,7 @@ export function LessonPlayer({ topic, problems, reducedMotion, onExit, onFinishe
         correct={correct}
         attempted={attempted}
         reducedMotion={reducedMotion}
-        onContinue={() => (finished.streakJustCounted ? setStage("streak") : leave())}
+        onContinue={() => (finished.streakJustCounted && live.id !== "first" ? setStage("streak") : afterReward())}
       />
     );
   }
