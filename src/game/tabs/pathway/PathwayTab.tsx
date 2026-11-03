@@ -46,7 +46,7 @@
  * door; the door is the sheet.
  */
 
-import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ACTS,
   prerequisiteClosure,
@@ -115,7 +115,7 @@ import { checkpointQuestions, difficultyForNode } from "../../pathway-sheet/node
 import { nameSide, revealWords, trackWind, withBreakHints } from "./pathwayLayout";
 import { reviewHolding, reviewsAfter, type ReviewCheckpoint } from "./reviewCheckpoints";
 import { clearedIdsOf, pathStatus, sectionWaits } from "./sectionStarts";
-import { syllabusStore, todayIso } from "../../syllabus/syllabusPlan";
+import { useSyllabusMap } from "../../syllabus/useSyllabusMap";
 import { readCelebration, type Celebration } from "./unlockCelebration";
 import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
@@ -475,7 +475,7 @@ function enterHandlers(onOpenNode: OpenNode, sheet: SheetNode, charge: ChargeGat
  * this one". The state already says it is locked, and the model disables START
  * on that; the href only says whether there is content behind the node.
  */
-function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string, checkpoint?: SheetNode["checkpoint"]): SheetNode {
+function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string, checkpoint?: SheetNode["checkpoint"], onSyllabus = false): SheetNode {
   const practiceHref = node.playable === undefined ? null : hrefForPlayable(node.playable);
   const base = {
     id: node.id,
@@ -487,6 +487,7 @@ function sheetNodeFor(node: MapNode, state: NodeState, lockedNote?: string, chec
     ...(lockedNote === undefined ? {} : { lockedNote }),
     ...(hasChallengeRun(node) ? {} : { noChallenge: true }),
     ...(checkpoint === undefined ? {} : { checkpoint }),
+    ...(onSyllabus ? { onSyllabus } : {}),
   };
   // The pips are a measurement of the node's own content, not a restatement of
   // its kind. Null means nothing is authored behind it, and the sheet then
@@ -1346,7 +1347,7 @@ function titleOf(unit: MapUnit, id: string): string {
 }
 
 /** The ChargeGate node for a playable map node, or null when unpressable. */
-function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
+function mapGateNode(node: MapNode, clickable: boolean, place: NodePlace | null = null): ChargeGateNode | null {
   if (!clickable || node.playable === undefined) return null;
   return {
     id: node.id,
@@ -1355,6 +1356,8 @@ function mapGateNode(node: MapNode, clickable: boolean): ChargeGateNode | null {
     href: hrefForPlayable(node.playable),
     // A section's closing quiz or the unit checkpoint: the final price (owner 2026-10-20).
     ...(isSectionFinal(node) ? { final: true } : {}),
+    // "Step 4 of 6": the start sheet says where in the unit this lesson sits.
+    ...(placeSaid(place) !== null && place?.kind === "step" ? { place: placeSaid(place) as string } : {}),
   };
 }
 
@@ -1748,34 +1751,6 @@ function SectionDivider({ id, eyebrow, title }: { readonly id: string; readonly 
   );
 }
 
-type SyllabusMap = typeof import("../../syllabus/syllabusStart");
-/**
- * The student's saved syllabus plan (STATUS C1) and the code that reads it,
- * or null with no plan. useSyncExternalStore subscribes to the plan's store,
- * so saving one re-renders the path. The reading code is a DYNAMIC IMPORT
- * fetched only once a plan exists, so a student with no syllabus loads none
- * of it on first open; useState holds the module once it lands.
- */
-function useSyllabusMap(): { readonly map: SyllabusMap; readonly plan: NonNullable<ReturnType<SyllabusMap["sanitisePlan"]>> } | null {
-  const stored = useSyncExternalStore(syllabusStore.subscribe, syllabusStore.getSnapshot);
-  const [map, setMap] = useState<SyllabusMap | null>(null);
-  useEffect(() => {
-    if (stored === null || map !== null) return;
-    let live = true;
-    void import("../../syllabus/syllabusStart").then((module) => {
-      if (live) setMap(module);
-    });
-    return () => {
-      live = false;
-    };
-  }, [stored, map]);
-  // useMemo: sanitise the stored plan (known ids only) once per saved value.
-  return useMemo(() => {
-    const plan = stored === null || map === null ? null : map.sanitisePlan(stored);
-    return plan === null || map === null ? null : { map, plan };
-  }, [stored, map]);
-}
-
 function OrgoMapTrack({
   onOpenNode,
   onGuidebook,
@@ -1883,7 +1858,7 @@ function OrgoMapTrack({
   /* The syllabus week chip (STATUS C1): which week the unit is taught, the
      exam it is due before, or that it is not on the syllabus. Never a lock. */
   const syllabus = useSyllabusMap();
-  const chip = syllabus === null ? null : syllabus.map.weekChip(syllabus.plan, unit.id, todayIso(), statusOf(status, checkpointNodeId(unit.id)).state === "done");
+  const chip = syllabus === null ? null : syllabus.map.weekChip(syllabus.plan, unit.id, syllabus.map.todayIso(), statusOf(status, checkpointNodeId(unit.id)).state === "done");
   /* The sentence every chip in a shut unit says, naming the unit to finish:
      "the unit before it" named the empty Unit 2 on Unit 3's chips (g11). */
   const lockSaid = unitLockSaid(PATHWAY_UNITS, status);
@@ -2115,8 +2090,9 @@ function OrgoMapTrack({
       place,
       detail: mapNodeDetail(node, nodeStatus.queued, nodeStatus.state === "locked", place, waitNote),
       href: clickable && playable !== undefined ? hrefForPlayable(playable) : null,
-      sheetNode: sheetNodeFor(node, nodeStatus.state, waitNote === null ? undefined : `${waitNote}.`),
-      gateNode: mapGateNode(node, clickable),
+      // A side quest the student's syllabus covers says so on its sheet (STATUS C1).
+      sheetNode: sheetNodeFor(node, nodeStatus.state, waitNote === null ? undefined : `${waitNote}.`, undefined, syllabus?.covered.has(node.id) === true),
+      gateNode: mapGateNode(node, clickable, place),
       waitNote: nodeStatus.queued ? "Coming soon" : waitNote,
     };
   };
@@ -2424,26 +2400,13 @@ function OrgoMapTrack({
           <p className="path-unit__reason mx-auto w-full max-w-md">
             <a
               href={hrefForTab("me", "settings", "syllabus")}
-              className={`inline-block rounded-full border-2 px-2.5 py-0.5 font-extrabold no-underline ${
-                chip.tone === "muted" ? "border-bb-border bg-bb-muted text-bb-muted-foreground" : chip.tone === "warn" ? "border-bb-primary bg-bb-primary text-bb-primary-foreground" : "border-bb-primary bg-bb-card text-bb-primary-ink"
-              }`}
+              className={`inline-block rounded-full border-2 px-2.5 py-0.5 font-extrabold no-underline ${syllabus!.map.chipClass(chip.tone)}`}
               aria-label={`Your syllabus: ${chip.text}`}
             >
               {chip.text}
             </a>
           </p>
         )}
-        {/* SKIP AHEAD, owner brief 17 Oct item 2: every unit's exam is open at
-            any time, and a pass lights this unit and every unit before it
-            (testOuts.ts). Gone once the unit is finished. */}
-        {TEST_OUT_UNITS.has(unit.id) && statusOf(status, checkpointNodeId(unit.id)).state !== "done" ? (
-          <div className="path-skip mx-auto w-full max-w-md">
-            <p className="path-skip__text">{`Know ${unitNumber(unit.title)} already? Pass its ${UNIT_EXAM_SIZE} question exam to skip ahead.`}</p>
-            <a className={pressClassName({ variant: "secondary", size: "md" })} href={hrefForLesson(unitExamId(unit.id))}>
-              Test out
-            </a>
-          </div>
-        ) : null}
         {/*
           THE SIGNPOST IS GONE FROM THIS TRACK, and only from this one.
           The picker directly above it now says "ORGO II / Unit 1 -
@@ -2640,6 +2603,18 @@ function OrgoMapTrack({
             })}
           </ol>
         </div>
+        {/* SKIP AHEAD, owner brief 17 Oct item 2: every unit's exam is open at
+            any time, and a pass lights this unit and every unit before it
+            (testOuts.ts). Gone once the unit is finished. At the BOTTOM of the
+            unit (fail-back-one round 1): the learner's eyes are down there. */}
+        {TEST_OUT_UNITS.has(unit.id) && statusOf(status, checkpointNodeId(unit.id)).state !== "done" ? (
+          <div className="path-skip mx-auto w-full max-w-md">
+            <p className="path-skip__text">{`Know ${unitNumber(unit.title)} already? Pass its ${UNIT_EXAM_SIZE} question exam to skip ahead.`}</p>
+            <a className={pressClassName({ variant: "secondary", size: "md" })} href={hrefForLesson(unitExamId(unit.id))}>
+              Test out
+            </a>
+          </div>
+        ) : null}
       </section>
       {/*
         NO PAGE FOOTER, 2026-10-01. A sticky bar used to ride above the tab

@@ -13,6 +13,7 @@ import type { NamedFigure } from "./mcq/mcqFigures";
 import { U0_SORT_FIGURES } from "../content/u0";
 import { U1_SORT_FIGURES } from "../content/u1";
 import { U2_SORT_FIGURES } from "../content/u2";
+import { U2T_SORT_FIGURES } from "../content/u2tools";
 import { U3_SORT_FIGURES } from "../content/u3";
 import { U4_SORT_FIGURES } from "../content/u4";
 import { U5_SORT_FIGURES } from "../content/u5";
@@ -26,6 +27,7 @@ type FigureTable = Readonly<Record<string, Readonly<Record<string, NamedFigure>>
 const TABLES: readonly FigureTable[] = [
   U1_SORT_FIGURES,
   U2_SORT_FIGURES,
+  U2T_SORT_FIGURES,
   U3_SORT_FIGURES,
   U4_SORT_FIGURES,
   U5_SORT_FIGURES,

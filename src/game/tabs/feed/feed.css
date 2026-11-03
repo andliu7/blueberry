@@ -28,23 +28,13 @@
    for --chip-rim, named there for the same reason: it is a lighter REAL
    border, not a border painted the colour of its own face. */
 
-/* ------------------------------------------------------- the composed ground */
+/* ------------------------------------------------------------- the page -- */
 
-/* The page is a positioning context so the backdrop can fill it, and the
-   backdrop is the page's own scroll height rather than the viewport's: the
-   placement table's `y` is a fraction of the TAB, so a prop at 0.93 belongs
-   under the last card and not off the bottom of the first screenful. */
+/* The page sits on the game's own ground. The decorative backdrop that was
+   drawn behind it was removed (owner, 2 Nov 2026). */
 .feed-page {
   position: relative;
   isolation: isolate;
-  /* THE GROUND REACHES THE BOTTOM OF THE SCREEN. Without this the page is only
-     as tall as its content, and on a short journal the band's fill stopped in
-     a dead-straight full-width line partway down with bare cream under it,
-     which is precisely the "unfinished background asset" the S2 judge named on
-     the pathway. Shell.tsx renders a tab inside `<main class="min-h-0 flex-1">`
-     within a `min-h-dvh` column, so main has a resolved height and 100 percent
-     resolves against it; where it does not resolve this is simply inert, which
-     is why it is min-height and not height. */
   min-height: 100%;
 
   /* THE WHITE CARD, and its family. Declared on the page rather than on the
@@ -66,131 +56,9 @@
   --quest-divider: var(--bb-border);
   --quest-track: color-mix(in srgb, var(--bb-foreground) 12%, var(--bb-card));
 }
-.feed-backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
 .feed-column {
   position: relative;
   z-index: 1;
-}
-
-/* The band. A wash, not a surface: it carries no text of its own and every
-   card that crosses it is opaque, so its only job is to stop the lower half of
-   the page being an unbroken sheet of cream. The teal is the diamond family's
-   own hue at a wash weight, which is the one cool colour the product already
-   owns; a new hue in the wallpaper would be a sixth system nobody declared. */
-.feed-band {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.feed-band path {
-  fill: color-mix(in srgb, var(--diamond) 14%, transparent);
-}
-.dark .feed-band path {
-  fill: color-mix(in srgb, var(--diamond) 18%, transparent);
-}
-
-/* A prop's seat. `left` and `top` are the placement's own fractions and the
-   translate re-centres the drawing on that point, so a placement names where a
-   prop IS rather than where its top-left corner is. */
-.feed-prop-seat {
-  position: absolute;
-  display: block;
-  transform: translate(-50%, -50%) scale(var(--prop-scale, 1));
-}
-
-/* THE PROP INK, and it is a literal here for a reason worth writing down.
-   These are pathway.css's own measured --path-prop values, copied rather than
-   referenced, because pathway.css ships inside the PATHWAY's lazy chunk: a
-   student who lands on #/feed first has never loaded it, and var(--path-prop)
-   would resolve to nothing and paint every prop black. Promoting the pair to
-   theme.css is the right permanent home and theme.css is the integrator's
-   file, so this is flagged rather than done here.
-
-   2.35:1 on the cream ground: decoration, deliberately under the 3:1 an
-   INTERFACE graphic owes, per the exemption pathway.css records beside the
-   same value. Nothing on this layer is a control or carries state. */
-.feed-backdrop {
-  --feed-prop: #b09a6d;
-  --feed-cloud-line: #7d6c4c;
-  --feed-cloud-fill: #ffffff;
-}
-.dark .feed-backdrop {
-  --feed-prop: #3a3f66;
-  --feed-cloud-line: #6f74a3;
-  --feed-cloud-fill: #1d2140;
-}
-/*
- * SMALL AND GENUINELY FAINT, and both numbers are corrections measured off a
- * capture rather than guesses.
- *
- * The first pass drew these at the pathway's own size and the pathway's own
- * ink, which is right there and wrong here. The pathway has real MARGINS: its
- * track column is narrow and the flanks either side are empty ground, so a
- * 55 px flask sits in open space. The Feed's content column is FULL WIDTH on a
- * phone (max-w-2xl with 16 px of padding is the whole of a 390 pt screen), so
- * there is no margin for a prop to live in and every prop is behind an opaque
- * card for most of its height. A big, firm outline in that position does not
- * read as wallpaper, it reads as an object being SLICED by every card edge it
- * passes under, which is worse than no background at all.
- *
- * So: roughly half the size, and half the weight again through opacity. At
- * this value a prop crossing a card boundary is a texture rather than a cut
- * drawing, and the BAND does the work of making the lower page a different
- * place. Still decorative and still deliberately under the 3:1 an interface
- * graphic owes, per the exemption above.
- */
-.feed-prop {
-  display: block;
-  overflow: visible;
-  /* HALVED AGAIN, off a second capture, and the reason is the one the block
-     above already gives: on a phone the content column is the whole screen, so
-     every prop spends most of its height behind an opaque white card and what
-     the student actually sees is the SLICE of it that clears a card edge. At
-     0.5 those slices read as objects being cut; DESIGN-GOALS' own measurement
-     of the reference is a luminance delta of about 33 against the ground,
-     which on this cream is roughly what 0.28 of --feed-prop lands on. Faint
-     enough that a cut edge is texture rather than damage. */
-  opacity: 0.28;
-}
-/* Outlined, faint by WEIGHT rather than by a colour nobody can find. */
-.feed-prop--flask,
-.feed-prop--chain {
-  fill: none;
-  stroke: var(--feed-prop);
-  stroke-linejoin: round;
-  stroke-linecap: round;
-}
-.feed-prop--flask {
-  width: 1.9rem;
-  height: 2.1rem;
-  stroke-width: 2.4;
-}
-.feed-prop--chain {
-  width: 3.2rem;
-  height: 1.05rem;
-  stroke-width: 2;
-}
-/* The one FILLED prop, per the committed backdrop: white clouds over cream,
-   not outlines of clouds. White on cream is 1.10:1 on its own, so the shape
-   carries the terrace ink as its boundary and the two ride ONE path. */
-.feed-prop--cloud {
-  width: 2.8rem;
-  height: 1.5rem;
-  fill: var(--feed-cloud-fill);
-  stroke: var(--feed-cloud-line);
-  stroke-width: 2;
-  stroke-linejoin: round;
-  /* Same correction as .feed-prop, one notch higher because a cloud is a
-     filled shape whose white is already close to the card it passes behind,
-     so it survives being quieter better than an outline does. */
-  opacity: 0.26;
 }
 
 /* ------------------------------------------------------------ the headings -- */
@@ -566,8 +434,6 @@
 .fp-kudos { min-height: 48px; min-width: 88px; font-size: 1.25rem; box-shadow: 0 4px 12px -4px rgb(214 48 79 / 0.6); }
 .fp-kudos .fp-act-icon { width: 26px; height: 26px; }
 .fp-banner--friends { border-radius: 16px; }
-/* the decorative props peeked out between cards as clipped shapes; the cards carry the screen now */
-.feed-backdrop .feed-prop { display: none; }
 .fp-hero .fp-stand::after { display: none; }
 .fp-sheet-scrim { z-index: 400; }
 .fp-sheet { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
@@ -626,3 +492,7 @@
 .fp-card--tight { gap: 8px; }
 .fp-race { height: 14px; border-radius: 999px; background: color-mix(in srgb, var(--bb-foreground) 12%, transparent); overflow: hidden; }
 .fp-race-fill { display: block; height: 100%; min-width: 6px; border-radius: 999px; background: var(--progress); }
+
+/* Clouds look (light mode, owner 2 Nov: no purple gradients): the violet banners are one flat
+   brand fill. White ink on #5a3fd8 is 6.9:1. */
+:root[data-look="white"]:not(.dark) :is(.fp-banner--tip, .fp-banner--friends) { background: #5a3fd8; }

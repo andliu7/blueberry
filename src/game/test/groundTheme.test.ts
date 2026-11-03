@@ -22,8 +22,13 @@ function memory(initial: Record<string, string> = {}): SettingsStorage & { data:
 }
 
 describe("page colour", () => {
-  it("writes nothing for lavender, so the default is the theme.css look", () => {
+  it("defaults to clouds, the white preset, which writes no hue", () => {
+    expect(DEFAULT_GROUND.preset).toBe("white");
     expect(groundCss(DEFAULT_GROUND)).toBe("");
+  });
+
+  it("writes nothing for lavender, so it is the theme.css look", () => {
+    expect(groundCss({ preset: "lavender", custom: "#5a3fd8" })).toBe("");
   });
 
   it("paints deep blue in both themes without !important", () => {
@@ -31,6 +36,13 @@ describe("page colour", () => {
     expect(css).toContain(`hsl(${DEEP_BLUE_HUE} 100% 93%)`);
     expect(css).toContain("html.dark:root");
     expect(css).not.toContain("!important");
+  });
+
+  it("keeps white as a saved choice that writes no hue; tokens.css paints it", () => {
+    expect(groundCss({ preset: "white", custom: "#5a3fd8" })).toBe("");
+    const storage = memory();
+    createGround(storage).set({ preset: "white", custom: "#5a3fd8" });
+    expect(createGround(storage).getSnapshot().preset).toBe("white");
   });
 
   it("reads the hue of a colour and ignores greys", () => {

@@ -3649,6 +3649,125 @@ export const STAGE_AB_POOLS: UnitPools = {
       "placeholder": true
     },
     {
+      "id": "u1-kvt-read-both",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-kvt-read-both",
+          "node": "u1-kvt",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the statement this diagram supports.",
+          "correctOptionId": "both",
+          "options": [
+            {
+              "id": "both",
+              "text": "A forms faster, B is more stable",
+              "why": "A has the lower hump, so it forms faster. B has the deeper well, so it is the more stable one. Speed and stability are read from different parts of the diagram."
+            },
+            {
+              "id": "a_all",
+              "text": "A is both faster and more stable",
+              "why": "A is faster, but its well is shallower than B's, so B is the more stable product. One product does not have to win both."
+            },
+            {
+              "id": "b_all",
+              "text": "B is both faster and more stable",
+              "why": "B is more stable, but its hump is taller, so it forms more slowly. Depth says stability, height says speed."
+            }
+          ]
+        }
+      },
+      "explanation": "Speed is the height of the hump and stability is the depth of the well. They are read separately and can disagree.",
+      "provenance": "scripts/u1_pools_ab.py: both readings taken from the diagram's numbers: A has the lower transition state, B the deeper well. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-kvt-back-easy",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-kvt-back-easy",
+          "node": "u1-kvt",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Warm, both products can return to the cation. Which returns more easily.",
+          "correctOptionId": "a",
+          "options": [
+            {
+              "id": "b",
+              "text": "B, because it is the more stable",
+              "why": "Stable means deep, and a deep well is the hardest to climb out of. B has the longer climb back, so it returns less easily."
+            },
+            {
+              "id": "a",
+              "text": "A, it has the shorter climb out",
+              "why": "Going back means climbing from the well up to the same hump. A starts higher and its hump is lower, so its climb is shorter."
+            },
+            {
+              "id": "same",
+              "text": "Both return equally easily",
+              "why": "They would need equal climbs. Compare the distance from each well up to its own hump."
+            }
+          ]
+        }
+      },
+      "explanation": "The product with the shorter climb from well to hump goes back more easily, here the kinetic product A.",
+      "conditions": "40 degrees, given time: both products can return to the cation",
+      "provenance": "scripts/u1_pools_ab.py: climb out of each well read from the diagram's numbers: hump minus well, A shorter than B. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-kvt-settle",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-kvt-settle",
+          "node": "u1-kvt",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pure A is warmed with the acid still there. Pick what it does over time.",
+          "correctOptionId": "settle",
+          "options": [
+            {
+              "id": "stay",
+              "text": "It stays A, since A formed first",
+              "why": "Forming first does not make a product permanent. Warm, A climbs its short barrier back to the cation."
+            },
+            {
+              "id": "settle",
+              "text": "It returns and settles toward B",
+              "why": "A has the shorter climb out, so it reverts to the cation, and each pass can fall into the deeper well of B. Over time the mixture favours B."
+            },
+            {
+              "id": "break",
+              "text": "It breaks down to smaller pieces",
+              "why": "Nothing on the diagram goes past the cation. The only motion shown is between the cation and the two products."
+            }
+          ]
+        }
+      },
+      "explanation": "Warm and reversible, the kinetic product reverts and the mixture settles toward the thermodynamic product.",
+      "conditions": "40 degrees, given time: both products can return to the cation",
+      "provenance": "scripts/u1_pools_ab.py: A has the shorter climb out and B the deeper well, so equilibration ends at B. OpenStax Organic Chemistry 14.3 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
       "id": "u1-kvt-draw-warm",
       "item": {
         "kind": "draw",
@@ -4607,6 +4726,86 @@ export const STAGE_AB_POOLS: UnitPools = {
       },
       "explanation": "1,4 addition: H on C1, the nucleophile on C4, and the double bond moves to C2=C3.",
       "provenance": "scripts/u1_pools_ab.py: 1,2 and 1,4 products built from the allylic cation; names checked with OPSIN. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-12v14-more-subst",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-12v14-more-subst",
+          "node": "u1-12v14",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            1
+          ],
+          "prompt": "Pick the product with the more substituted double bond.",
+          "correctOptionId": "p14",
+          "options": [
+            {
+              "id": "p12",
+              "text": "3-bromobut-1-ene",
+              "why": "Its C=C is at the end of the chain with one carbon attached, so it is monosubstituted. The 1,4 product has a carbon on each side."
+            },
+            {
+              "id": "inner",
+              "text": "4-bromobut-1-ene",
+              "why": "It would come from the primary cation, which is not the one that forms. Its C=C is also at the chain end, with one carbon attached."
+            },
+            {
+              "id": "p14",
+              "text": "1-bromobut-2-ene",
+              "why": "The C=C sits in the middle with a carbon on each end, so it is disubstituted. More substituted means more stable: this is the thermodynamic product."
+            }
+          ]
+        }
+      },
+      "explanation": "The 1,4 product keeps the C=C in the middle of the chain. More substituted is more stable, so it is the thermodynamic product.",
+      "provenance": "scripts/u1_pools_ab.py: alkene substitution counted on both products; the 1,4 product has the more substituted C=C. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u1-12v14-why-fast",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u1-12v14-why-fast",
+          "node": "u1-12v14",
+          "conceptIds": [
+            "kinetic_vs_thermodynamic_control",
+            "resonance_delocalisation"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Pick why the 1,2 product forms faster, even though it is less stable.",
+          "correctOptionId": "near",
+          "options": [
+            {
+              "id": "near",
+              "text": "Bromide starts beside C2, the more charged end",
+              "why": "C2 is the secondary end of the cation, so it carries more of the charge, and the bromide ion sits right next to it after protonation."
+            },
+            {
+              "id": "c4",
+              "text": "C4 holds more of the charge",
+              "why": "C4 is the primary end, so it holds less of the charge than C2. Charge does not favour the 1,4 product."
+            },
+            {
+              "id": "stable",
+              "text": "The 1,2 product is the more stable one",
+              "why": "It is the less stable one: its C=C is monosubstituted. It forms first because it is quicker to reach, not because it is deeper."
+            }
+          ]
+        }
+      },
+      "explanation": "The 1,2 product is formed faster because the bromide is closest to C2, the end with more charge. Speed, not stability.",
+      "provenance": "scripts/u1_pools_ab.py: C2 is secondary and C4 primary in the cation; the 1,2 product is the monosubstituted, less stable alkene. OpenStax Organic Chemistry 14.2 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
     {
@@ -9208,6 +9407,453 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
     },
     "name": "A: deeper well. B: lower hump."
   },
+  "u1-kvt-read-both": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 4,
+          "y1": 80,
+          "x2": 4,
+          "y2": 8,
+          "arrow": true
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 68,
+          "y2": 50.0
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 48.0,
+          "y2": 43.1
+        },
+        {
+          "x1": 48.0,
+          "y1": 43.1,
+          "x2": 44.0,
+          "y2": 37.3
+        },
+        {
+          "x1": 44.0,
+          "y1": 37.3,
+          "x2": 40.0,
+          "y2": 33.4
+        },
+        {
+          "x1": 40.0,
+          "y1": 33.4,
+          "x2": 36.0,
+          "y2": 32.0
+        },
+        {
+          "x1": 36.0,
+          "y1": 32.0,
+          "x2": 32.5,
+          "y2": 34.0
+        },
+        {
+          "x1": 32.5,
+          "y1": 34.0,
+          "x2": 29.0,
+          "y2": 39.7
+        },
+        {
+          "x1": 29.0,
+          "y1": 39.7,
+          "x2": 25.5,
+          "y2": 48.3
+        },
+        {
+          "x1": 25.5,
+          "y1": 48.3,
+          "x2": 22.0,
+          "y2": 58.4
+        },
+        {
+          "x1": 22,
+          "y1": 58.4,
+          "x2": 10,
+          "y2": 58.4
+        },
+        {
+          "x1": 68,
+          "y1": 50.0,
+          "x2": 72.0,
+          "y2": 39.4
+        },
+        {
+          "x1": 72.0,
+          "y1": 39.4,
+          "x2": 76.0,
+          "y2": 30.5
+        },
+        {
+          "x1": 76.0,
+          "y1": 30.5,
+          "x2": 80.0,
+          "y2": 24.5
+        },
+        {
+          "x1": 80.0,
+          "y1": 24.5,
+          "x2": 84.0,
+          "y2": 22.4
+        },
+        {
+          "x1": 84.0,
+          "y1": 22.4,
+          "x2": 87.5,
+          "y2": 26.0
+        },
+        {
+          "x1": 87.5,
+          "y1": 26.0,
+          "x2": 91.0,
+          "y2": 36.1
+        },
+        {
+          "x1": 91.0,
+          "y1": 36.1,
+          "x2": 94.5,
+          "y2": 51.3
+        },
+        {
+          "x1": 94.5,
+          "y1": 51.3,
+          "x2": 98.0,
+          "y2": 69.2
+        },
+        {
+          "x1": 98,
+          "y1": 69.2,
+          "x2": 112,
+          "y2": 69.2
+        }
+      ],
+      "labels": [
+        {
+          "x": 16,
+          "y": 69.4,
+          "t": "A",
+          "size": 12
+        },
+        {
+          "x": 105,
+          "y": 80.2,
+          "t": "B",
+          "size": 12
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "t": "G",
+          "size": 11
+        }
+      ]
+    },
+    "name": "A: lower hump. B: deeper well."
+  },
+  "u1-kvt-back-easy": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 4,
+          "y1": 80,
+          "x2": 4,
+          "y2": 8,
+          "arrow": true
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 68,
+          "y2": 50.0
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 48.0,
+          "y2": 43.1
+        },
+        {
+          "x1": 48.0,
+          "y1": 43.1,
+          "x2": 44.0,
+          "y2": 37.3
+        },
+        {
+          "x1": 44.0,
+          "y1": 37.3,
+          "x2": 40.0,
+          "y2": 33.4
+        },
+        {
+          "x1": 40.0,
+          "y1": 33.4,
+          "x2": 36.0,
+          "y2": 32.0
+        },
+        {
+          "x1": 36.0,
+          "y1": 32.0,
+          "x2": 32.5,
+          "y2": 34.0
+        },
+        {
+          "x1": 32.5,
+          "y1": 34.0,
+          "x2": 29.0,
+          "y2": 39.7
+        },
+        {
+          "x1": 29.0,
+          "y1": 39.7,
+          "x2": 25.5,
+          "y2": 48.3
+        },
+        {
+          "x1": 25.5,
+          "y1": 48.3,
+          "x2": 22.0,
+          "y2": 58.4
+        },
+        {
+          "x1": 22,
+          "y1": 58.4,
+          "x2": 10,
+          "y2": 58.4
+        },
+        {
+          "x1": 68,
+          "y1": 50.0,
+          "x2": 72.0,
+          "y2": 39.4
+        },
+        {
+          "x1": 72.0,
+          "y1": 39.4,
+          "x2": 76.0,
+          "y2": 30.5
+        },
+        {
+          "x1": 76.0,
+          "y1": 30.5,
+          "x2": 80.0,
+          "y2": 24.5
+        },
+        {
+          "x1": 80.0,
+          "y1": 24.5,
+          "x2": 84.0,
+          "y2": 22.4
+        },
+        {
+          "x1": 84.0,
+          "y1": 22.4,
+          "x2": 87.5,
+          "y2": 26.0
+        },
+        {
+          "x1": 87.5,
+          "y1": 26.0,
+          "x2": 91.0,
+          "y2": 36.1
+        },
+        {
+          "x1": 91.0,
+          "y1": 36.1,
+          "x2": 94.5,
+          "y2": 51.3
+        },
+        {
+          "x1": 94.5,
+          "y1": 51.3,
+          "x2": 98.0,
+          "y2": 69.2
+        },
+        {
+          "x1": 98,
+          "y1": 69.2,
+          "x2": 112,
+          "y2": 69.2
+        }
+      ],
+      "labels": [
+        {
+          "x": 16,
+          "y": 69.4,
+          "t": "A",
+          "size": 12
+        },
+        {
+          "x": 105,
+          "y": 80.2,
+          "t": "B",
+          "size": 12
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "t": "G",
+          "size": 11
+        }
+      ]
+    },
+    "name": "A: lower hump. B: deeper well."
+  },
+  "u1-kvt-settle": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 4,
+          "y1": 80,
+          "x2": 4,
+          "y2": 8,
+          "arrow": true
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 68,
+          "y2": 50.0
+        },
+        {
+          "x1": 52,
+          "y1": 50.0,
+          "x2": 48.0,
+          "y2": 43.1
+        },
+        {
+          "x1": 48.0,
+          "y1": 43.1,
+          "x2": 44.0,
+          "y2": 37.3
+        },
+        {
+          "x1": 44.0,
+          "y1": 37.3,
+          "x2": 40.0,
+          "y2": 33.4
+        },
+        {
+          "x1": 40.0,
+          "y1": 33.4,
+          "x2": 36.0,
+          "y2": 32.0
+        },
+        {
+          "x1": 36.0,
+          "y1": 32.0,
+          "x2": 32.5,
+          "y2": 34.0
+        },
+        {
+          "x1": 32.5,
+          "y1": 34.0,
+          "x2": 29.0,
+          "y2": 39.7
+        },
+        {
+          "x1": 29.0,
+          "y1": 39.7,
+          "x2": 25.5,
+          "y2": 48.3
+        },
+        {
+          "x1": 25.5,
+          "y1": 48.3,
+          "x2": 22.0,
+          "y2": 58.4
+        },
+        {
+          "x1": 22,
+          "y1": 58.4,
+          "x2": 10,
+          "y2": 58.4
+        },
+        {
+          "x1": 68,
+          "y1": 50.0,
+          "x2": 72.0,
+          "y2": 39.4
+        },
+        {
+          "x1": 72.0,
+          "y1": 39.4,
+          "x2": 76.0,
+          "y2": 30.5
+        },
+        {
+          "x1": 76.0,
+          "y1": 30.5,
+          "x2": 80.0,
+          "y2": 24.5
+        },
+        {
+          "x1": 80.0,
+          "y1": 24.5,
+          "x2": 84.0,
+          "y2": 22.4
+        },
+        {
+          "x1": 84.0,
+          "y1": 22.4,
+          "x2": 87.5,
+          "y2": 26.0
+        },
+        {
+          "x1": 87.5,
+          "y1": 26.0,
+          "x2": 91.0,
+          "y2": 36.1
+        },
+        {
+          "x1": 91.0,
+          "y1": 36.1,
+          "x2": 94.5,
+          "y2": 51.3
+        },
+        {
+          "x1": 94.5,
+          "y1": 51.3,
+          "x2": 98.0,
+          "y2": 69.2
+        },
+        {
+          "x1": 98,
+          "y1": 69.2,
+          "x2": 112,
+          "y2": 69.2
+        }
+      ],
+      "labels": [
+        {
+          "x": 16,
+          "y": 69.4,
+          "t": "A",
+          "size": 12
+        },
+        {
+          "x": 105,
+          "y": 80.2,
+          "t": "B",
+          "size": 12
+        },
+        {
+          "x": 10,
+          "y": 10,
+          "t": "G",
+          "size": 11
+        }
+      ]
+    },
+    "name": "A: lower hump. B: deeper well."
+  },
   "u1-ed-faster": {
     "kind": "structure",
     "figure": {
@@ -11240,6 +11886,156 @@ export const STAGE_AB_VISUALS: Readonly<Record<string, McqVisual>> = {
       },
       "leftName": "buta-1,3-diene",
       "over": "HBr"
+    }
+  },
+  "u1-12v14-more-subst": {
+    "kind": "scheme",
+    "scheme": {
+      "left": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 34.0,
+            "y2": 49.0,
+            "order": 2
+          }
+        ]
+      },
+      "leftName": "buta-1,3-diene",
+      "over": "HBr"
+    }
+  },
+  "u1-12v14-why-fast": {
+    "kind": "pair",
+    "a": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 49.0,
+            "x2": 68.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 39.0,
+            "x2": 51.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 51.3,
+            "y1": 49.0,
+            "x2": 34.0,
+            "y2": 39.0,
+            "order": 2
+          }
+        ],
+        "labels": [
+          {
+            "x": 93.8,
+            "y": 57.5,
+            "t": "1",
+            "size": 10
+          },
+          {
+            "x": 68.6,
+            "y": 36.0,
+            "t": "+",
+            "size": 14
+          },
+          {
+            "x": 58.3,
+            "y": 37.0,
+            "t": "2",
+            "size": 10
+          },
+          {
+            "x": 51.4,
+            "y": 62.0,
+            "t": "3",
+            "size": 10
+          },
+          {
+            "x": 26.2,
+            "y": 38.5,
+            "t": "4",
+            "size": 10
+          }
+        ]
+      },
+      "name": "+ on C2"
+    },
+    "b": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 86.0,
+            "y1": 39.0,
+            "x2": 68.7,
+            "y2": 49.0
+          },
+          {
+            "x1": 68.7,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 51.3,
+            "y1": 39.0,
+            "x2": 34.0,
+            "y2": 49.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 93.8,
+            "y": 38.5,
+            "t": "1",
+            "size": 10
+          },
+          {
+            "x": 68.6,
+            "y": 62.0,
+            "t": "2",
+            "size": 10
+          },
+          {
+            "x": 51.4,
+            "y": 34.0,
+            "t": "3",
+            "size": 10
+          },
+          {
+            "x": 27.1,
+            "y": 58.0,
+            "t": "+",
+            "size": 14
+          },
+          {
+            "x": 23.6,
+            "y": 47.0,
+            "t": "4",
+            "size": 10
+          }
+        ]
+      },
+      "name": "+ on C4"
     }
   },
   "u1-hx-label-thermo": {
@@ -14091,6 +14887,128 @@ export const STAGE_AB_OPTION_TILES: Readonly<Record<string, Readonly<Record<stri
     }
   },
   "u1-12v14-pick-14": {
+    "p12": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 77.3,
+            "y1": 19.0,
+            "x2": 77.3,
+            "y2": 39.0,
+            "order": 2
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 60.1,
+            "y2": 69.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 51.3,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 42.7,
+            "y": 44.1,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "3-bromobut-1-ene"
+    },
+    "inner": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 39.0,
+            "x2": 42.7,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 42.7,
+            "y1": 49.0,
+            "x2": 60.0,
+            "y2": 39.0
+          },
+          {
+            "x1": 60.0,
+            "y1": 39.0,
+            "x2": 77.3,
+            "y2": 49.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 49.0,
+            "x2": 86.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 44.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "4-bromobut-1-ene"
+    },
+    "p14": {
+      "figure": {
+        "bonds": [
+          {
+            "x1": 25.4,
+            "y1": 49.0,
+            "x2": 42.7,
+            "y2": 39.0
+          },
+          {
+            "x1": 42.7,
+            "y1": 39.0,
+            "x2": 60.0,
+            "y2": 49.0,
+            "order": 2
+          },
+          {
+            "x1": 60.0,
+            "y1": 49.0,
+            "x2": 77.3,
+            "y2": 39.0
+          },
+          {
+            "x1": 77.3,
+            "y1": 39.0,
+            "x2": 86.0,
+            "y2": 44.0
+          }
+        ],
+        "labels": [
+          {
+            "x": 94.6,
+            "y": 54.0,
+            "t": "Br",
+            "size": 13
+          }
+        ]
+      },
+      "name": "1-bromobut-2-ene"
+    }
+  },
+  "u1-12v14-more-subst": {
     "p12": {
       "figure": {
         "bonds": [

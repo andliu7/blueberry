@@ -164,6 +164,28 @@ html:has(.site-header) {
   background: linear-gradient(180deg, var(--site-wash-violet) 0%, var(--site-ground) 45%, var(--site-wash-blue) 100%);
 }
 
+:root[data-look="white"]:not(.dark) .site-wash {
+  background: var(--site-sky);
+}
+
+/* The clouds look (src/tokens.css): cards lose the chunky outline and ledge for one quiet
+   line, and a pressable card answers with a soft shadow and a small sink. */
+:root[data-look="white"]:not(.dark) :is(.home-card, .home-close__band, .home-board, .hn__card, .hn__chip, .lrn-card, .lrn-tap, .lrn-pop, .lrn-aside, .lrn-decide, .rv-card-box, .rv-btn2) {
+  border-width: 1px;
+  box-shadow: none;
+}
+@media (hover: hover) {
+  :root[data-look="white"]:not(.dark) :is(.home-card, .lrn-tap):hover {
+    transform: none;
+    border-color: var(--site-border);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+}
+:root[data-look="white"]:not(.dark) :is(.home-card, .lrn-tap):active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
 /* Each card glows in its own accent where the cursor is, in two parts. SiteChrome's
    pointermove listener (src/lib/cardGlow.ts) writes --x and --y on the card under the mouse.
    A card names its colour with --glow (default: --primary).
@@ -262,6 +284,9 @@ html:has(.site-header) {
 }
 html[data-tint] .site-wash::after { opacity: 1; }
 html[data-motion="reduced"] .site-wash::after { transition: none; }
+/* Clouds look (light mode, owner 2 Nov: no purple gradients): the ground stays sky, so the
+   per-card tint pools, violet under Practice, are not drawn. */
+:root[data-look="white"]:not(.dark) .site-wash::after { display: none; }
 
 /* ---------- The footer comes up from under the page (owner, 20 Oct: "like andliu.dev") ---------- */
 

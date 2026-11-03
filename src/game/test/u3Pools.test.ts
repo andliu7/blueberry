@@ -30,14 +30,14 @@ import { U3_OPTION_TILES, U3_POOLS, U3_SORT_FIGURES, U3_UNWIRED, U3_VISUALS } fr
 import { checkpointNodeId, pathwayNode } from "../demo/pathwayMap";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
-/** Fourteen lessons of MCQs. u3-directing gained two entries on 23 Oct: the ladder and the board audit top-25 #14 wires in. */
+/** Fourteen lessons of MCQs. u3-directing gained two entries on 23 Oct: the ladder and the board audit top-25 #14 wires in, and three more on 30 Oct: the reasoning pass (u3-dir-why-nitro, u3-dir-why-fast, u3-dir-bad-count). */
 const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u3-arenium": 8,
   "u3-halo": 7,
   "u3-nitration": 7,
   "u3-sulfo": 6,
   "u3-fc-acyl": 7,
-  "u3-directing": 11,
+  "u3-directing": 14,
   "u3-blocking": 6,
   "u3-nitro-red": 6,
   "u3-c-to-ch2": 7,
@@ -76,6 +76,10 @@ function idAndNode(entry: PoolEntry): { readonly id: string; readonly node: stri
       return { id: entry.item.content.beat.id, node: entry.item.content.beat.node };
     case "match":
       return { id: entry.item.board.beatId, node: entry.item.board.node };
+    case "keqTyped": // played from content/u2energy only
+      throw new Error("unexpected keqTyped item in this unit pool");
+    case "nmrProduct": // played from content/u6/nmrProduct.ts only; no unit lesson pool writes one
+      throw new Error("unexpected nmrProduct item in a unit pool");
     case "draw": // pool kind added by U1-P3 (2026-10-17); no unit pool here writes one yet
       return { id: entry.item.beat.id, node: entry.item.beat.node };
   }

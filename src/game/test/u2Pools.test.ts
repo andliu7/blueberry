@@ -66,6 +66,10 @@ function idAndNode(entry: PoolEntry): { readonly id: string; readonly node: stri
       return { id: entry.item.content.beat.id, node: entry.item.content.beat.node };
     case "match":
       return { id: entry.item.board.beatId, node: entry.item.board.node };
+    case "keqTyped":
+      return { id: entry.item.question.id, node: "u2-energy" };
+    case "nmrProduct": // played from content/u6/nmrProduct.ts only; no unit lesson pool writes one
+      throw new Error("unexpected nmrProduct item in a unit pool");
     case "draw": // pool kind added by U1-P3 (2026-10-17); Unit 2 writes four since round 2
       return { id: entry.item.beat.id, node: entry.item.beat.node };
   }

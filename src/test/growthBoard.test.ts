@@ -5,7 +5,36 @@ import { createElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { act } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import GrowthBoard, { sampleGrowthData, type GrowthBoardData } from "@/components/admin/GrowthBoard";
+import GrowthBoard, { type DeviceSlice, type GrowthBoardData } from "@/components/admin/GrowthBoard";
+
+/** Test fixture only. Never shipped: the board itself holds no figures. */
+function slice(s: number): DeviceSlice {
+  const r = (v: number[]) => v.map((x) => Math.round(x * s));
+  return {
+    learners: Array.from({ length: 4 }, (_, i) => ({ month: `2026-0${i + 1}-01`, free: Math.round((100 + i * 50) * s), ad: Math.round((40 + i * 10) * s), pro: Math.round((10 + i * 5) * s) })),
+    funnel: [
+      { label: "Signed up", count: Math.round(100 * s) },
+      { label: "Started a lesson", count: Math.round(70 * s) },
+      { label: "Cleared first node", count: Math.round(50 * s) },
+      { label: "Back on day 7", count: Math.round(30 * s) },
+    ],
+    previousDay7Return: 0.25,
+    flow: { months: ["May", "Jun", "Jul"], seriesLabels: ["2026"], signups: [r([20, 30, 40])], churned: [r([10, 20, 30])] },
+    weekday: { days: ["Mon", "Tue", "Wed"], values: r([10, 20, 30]) },
+  };
+}
+const sampleGrowthData: GrowthBoardData = {
+  asOf: "test",
+  isSample: false,
+  slices: { all: slice(1), phone: slice(0.6), desktop: slice(0.4) },
+  cac: { current: 3.4, target: 4, spend: 5200, signups: 1530 },
+  exams: [{ name: "Exam", date: "Nov 14", daysAway: 17 }],
+  feedback: [{ label: "Typo", open: 3, total: 25 }],
+  flaggedLessons: [
+    { name: "A", change: "+1%", daily: [3, 4, 4, 6, 5, 7, 9] },
+    { name: "B", change: "-8%", daily: [8, 7, 7, 5, 6, 4, 4] },
+  ],
+};
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -21,14 +50,21 @@ beforeAll(() => {
 });
 
 describe("GrowthBoard", () => {
-  it("renders the sample chip when sample data is used (server markup)", () => {
+  it("with no data it shows an example empty state and no invented figure (server markup)", () => {
     const html = renderToStaticMarkup(createElement(GrowthBoard));
-    expect(html).toContain("Sample data, not live");
+    expect(html).toContain("No data, example");
+    expect(html).toContain("Example graph for");
+    expect(html).not.toContain("$3.40");
+    expect(html).not.toContain("5,200");
+    expect(html).not.toContain("1,530");
+    expect(html).not.toContain("Nov 14");
+    expect(html).not.toContain("+12%");
+    expect(html.match(/No data, example/g)?.length).toBe(1);
   });
 
   it("hides the chip for real data", () => {
     const real: GrowthBoardData = { ...sampleGrowthData, isSample: false };
-    expect(renderToStaticMarkup(createElement(GrowthBoard, { data: real }))).not.toContain("Sample data");
+    expect(renderToStaticMarkup(createElement(GrowthBoard, { data: real }))).not.toContain("No data, example");
   });
 
   it("mounts and escapes a script string in a lesson name", async () => {

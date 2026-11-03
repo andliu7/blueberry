@@ -115,7 +115,9 @@ describe("STATE_SHAPE", () => {
     expect(STATE_SHAPE.carbocation.jitterPx).toBeGreaterThan(0);
     expect(STATE_SHAPE.carbocation.sparkRate).toBeGreaterThan(0);
     expect(STATE_SHAPE.carbocation.badge).toBe("+");
-    expect(STATE_SHAPE.radical.split).toBe(true);
+    expect(STATE_SHAPE.radical.split).toBe(false);
+    expect(STATE_SHAPE.radical.badge).toBeNull();
+    expect(STATE_SHAPE.radical.jitterPx).toBeGreaterThan(0);
     expect(STATE_SHAPE.radical.haloKind).toBe("unpaired");
     expect(STATE_SHAPE.resonance.ghostCount).toBe(2);
     expect(STATE_SHAPE.aromatic.haloKind).toBe("ring");

@@ -41,7 +41,7 @@ export type Pips = 1 | 2 | 3 | 4;
  * has no authored content and gets no pips.
  */
 export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
-  "u1-12v14": 6,
+  "u1-12v14": 7,
   "u1-allylic": 2,
   "u1-da": 4,
   "u1-da-3d": 1,
@@ -85,7 +85,7 @@ export const NODE_MOVES: Readonly<Record<string, number>> = Object.freeze({
   "u14-orthogonal": 1,
   "u2-annulene": 4,
   "u2-charged": 4,
-  "u2-energy": 2,
+  "u2-energy": 3,
   "u2-ewg-edg": 3,
   "u2-hetero": 4,
   "u2-huckel": 4,

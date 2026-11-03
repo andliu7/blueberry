@@ -50,24 +50,6 @@ export const planFor = (key: string): Plan | null =>
 export const priceIdFor = (plan: Plan): string | null =>
   Deno.env.get(plan.priceEnv) || null;
 
-/**
- * When a semester pass bought today runs out.
- *
- * `SEMESTER_PASS_ENDS_ON` is an ISO date Andrew sets once a semester. There is
- * deliberately no fallback duration: a pass whose end date is guessed is a
- * promise the site made up, and the failure mode of guessing wrong is a
- * student losing access they paid for. When it is unset or already past, the
- * pass is simply not on sale and checkout says so before any money moves. The
- * subscriptions are unaffected.
- */
-export function semesterPassEnd(): Date | null {
-  const raw = Deno.env.get("SEMESTER_PASS_ENDS_ON");
-  if (!raw) return null;
-  const end = new Date(`${raw}T23:59:59Z`);
-  if (Number.isNaN(end.getTime()) || end.getTime() <= Date.now()) return null;
-  return end;
-}
-
 /* The clients */
 
 /**

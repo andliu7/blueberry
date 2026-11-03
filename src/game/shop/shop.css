@@ -1,6 +1,6 @@
 /*
  * The shop. Tokens from theme.css only: cards are --bb-card with a --bb-border
- * rim and a thicker bottom edge, the ice tint is the diamond sky, the primary
+ * rim and a thicker bottom edge, the ice tint is --ice, prices are gold, the primary
  * key is the shared .btn3d. Nunito arrives through --font-display, the system
  * stack through --font-sans; nothing else is loaded.
  */
@@ -13,8 +13,8 @@
   background: var(--bb-background);
   color: var(--bb-foreground);
   font-family: var(--font-sans);
-  --shop-ice: var(--diamond);
-  --shop-ice-wash: color-mix(in srgb, var(--diamond) 14%, var(--bb-card));
+  --shop-ice: var(--ice);
+  --shop-ice-wash: color-mix(in srgb, var(--ice) 14%, var(--bb-card));
   --shop-deck-wash: color-mix(in srgb, var(--bb-primary) 13%, var(--bb-card));
 }
 
@@ -56,19 +56,23 @@
   color: var(--bb-foreground);
 }
 
+/* The treasury rail is drawn by .coin-counter in hud.css; this only sizes it. */
 .shop-balance {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--diamond-ink);
+}
+.shop-balance .coin-counter {
+  --cc-h: 1.75rem;
+  --cc-cap: 0.875rem;
+  --cc-track: 4.125rem;
+  --cc-coin: 2rem;
+  --cc-draw: 3rem;
+  --cc-lead: 0.25rem;
+  --cc-pad: 0.5rem;
 }
 .shop-balance--head {
   min-height: 2.75rem;
   padding-right: 0.25rem;
-  font-size: 1.125rem;
 }
 
 .shop-main {
@@ -181,7 +185,7 @@
 .shop-tile[data-tone="ice"],
 .shop-item-art[data-tone="ice"] {
   background: var(--shop-ice-wash);
-  color: var(--diamond);
+  color: var(--ice);
 }
 .shop-tile[data-tone="deck"],
 .shop-item-art[data-tone="deck"] {
@@ -366,7 +370,7 @@
 .shop-slot[data-held="true"] {
   border: 3px solid transparent;
   background: var(--shop-ice-wash);
-  color: var(--diamond);
+  color: var(--ice);
 }
 .shop-slot[data-new="true"] {
   animation: shop-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -508,10 +512,10 @@
   width: 100%;
   min-height: 9rem;
   padding: 1rem 1rem 1rem 0.5rem;
-  border: 2px solid color-mix(in srgb, var(--diamond) 55%, var(--bb-border));
+  border: 2px solid color-mix(in srgb, var(--ice) 55%, var(--bb-border));
   border-bottom-width: 6px;
   border-radius: 1.5rem;
-  background: linear-gradient(150deg, color-mix(in srgb, var(--diamond) 26%, var(--bb-card)), color-mix(in srgb, var(--diamond) 6%, var(--bb-card)) 70%);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--ice) 26%, var(--bb-card)), color-mix(in srgb, var(--ice) 6%, var(--bb-card)) 70%);
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -532,7 +536,7 @@
   left: 1rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  background: var(--diamond-ink);
+  background: var(--ice-ink);
   color: #fff;
   font-family: var(--font-display);
   font-size: 0.6875rem;
@@ -647,7 +651,7 @@
   position: absolute;
   inset: -1.25rem;
   border-radius: 999px;
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--diamond) 40%, transparent), transparent);
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--ice) 40%, transparent), transparent);
 }
 .shop-sparkles {
   position: absolute;
@@ -968,3 +972,10 @@
   font-weight: 900;
   font-size: 1.125rem;
 }
+
+/* Clouds look (light mode, owner 2 Nov: no purple gradients). The streak-freeze hero and the
+   violet deck art become one flat brand fill (white ink 6.9:1), and the bought sheet loses its
+   violet fade. The other three deck hues are not violet and keep their art. */
+:root[data-look="white"]:not(.dark) .shop-hero { background: #5a3fd8; }
+:root[data-look="white"]:not(.dark) .shop-card:not([data-hue="1"], [data-hue="2"], [data-hue="3"]) .shop-card-art { background: #5a3fd8; }
+:root[data-look="white"]:not(.dark) .shop-sheet-body:has(.shop-sheet-art[data-done="true"]) { background: var(--bb-card); }

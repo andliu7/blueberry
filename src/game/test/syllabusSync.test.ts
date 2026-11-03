@@ -156,3 +156,44 @@ describe("syllabusSync", () => {
     expect(storage.map.get(OWNER_KEY)).toBe("user-a");
   });
 });
+
+describe("sign-out (C1 fix round)", () => {
+  it("puts an account's plan aside, so a signed-out visitor is not steered by it, and gives it back on sign-in", async () => {
+    const db = new FakeDb();
+    const storage = mapStorage();
+    createSyllabusStore(() => storage).replace(plan(["u3"]), 10);
+    const first = start(db, storage, "user-a");
+    await first.sync.done;
+    expect(storage.map.get(OWNER_KEY)).toBe("user-a");
+
+    first.sync.stop();
+    expect(first.store.getSnapshot()).toBeNull();
+    expect(storage.map.has(OWNER_KEY)).toBe(false);
+    expect(JSON.parse(storage.map.get("blueberry.syllabus.v1.stash:user-a")!).unitOrder).toEqual(["u3"]);
+
+    // Back, even with no network: the stash comes back before the client is asked for.
+    const again = start(null, storage, "user-a");
+    expect(again.store.getSnapshot()?.unitOrder).toEqual(["u3"]);
+    await again.sync.done;
+    expect(again.store.getSnapshot()?.unitOrder).toEqual(["u3"]);
+  });
+
+  it("leaves a plan that never reached an account on the device", async () => {
+    const db = new FakeDb();
+    db.missing = true;
+    const storage = mapStorage();
+    createSyllabusStore(() => storage).replace(plan(["u4"]), 10);
+    const { sync, store } = start(db, storage, "user-a");
+    await sync.done;
+    sync.stop();
+    expect(store.getSnapshot()?.unitOrder).toEqual(["u4"]);
+  });
+
+  it("does not hand one account's stash to another", async () => {
+    const storage = mapStorage();
+    storage.setItem("blueberry.syllabus.v1.stash:user-a", JSON.stringify(plan(["u3"])));
+    const { sync, store } = start(null, storage, "user-b");
+    await sync.done;
+    expect(store.getSnapshot()).toBeNull();
+  });
+});

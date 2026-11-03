@@ -628,3 +628,9 @@ html[data-motion="reduced"] .lrn-dock { transition: none; }
   .lrn-fold[open] .lrn-fold-sum { border-radius: 18px 18px 0 0; }
 }
 html[data-motion="reduced"] .lrn-fold-chev { transition: none; }
+
+/* Clouds look (light mode, owner 2 Nov: no purple gradients): the scene's sky is one flat brand
+   violet with no glow; the flat hills stay. White ink on #5a3fd8 is 6.9:1. */
+:root[data-look="white"]:not(.dark) .lrn-scene { background: #5a3fd8; }
+:root[data-look="white"]:not(.dark) .lrn-scene-fill { fill: #5a3fd8; }
+:root[data-look="white"]:not(.dark) .lrn-scene-glow { display: none; }

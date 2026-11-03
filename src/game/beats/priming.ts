@@ -14,6 +14,11 @@
 import { U1_POOLS } from "../content/u1";
 import { PATHWAY_UNITS, pathwayNode, type PathwayNode } from "../demo/pathwayMap";
 import { U1_PRIMING, type LessonPriming } from "../content/u1/priming";
+import { U2_PRIMING, U3_PRIMING } from "../content/u2tools/priming";
+import { U3_POOLS } from "../content/u3";
+import { U2T_POOLS } from "../content/u2tools";
+import { U2E_POOLS } from "../content/u2energy";
+import { U2_POOLS } from "../content/u2";
 import { lessonMcqBeats } from "./template";
 import type { McqBeat } from "./types";
 
@@ -21,7 +26,7 @@ export type { LessonPriming } from "../content/u1/priming";
 
 /** The preview for a node, or null when it has none (quizzes, checkpoints, other units). */
 export function primingFor(node: string): LessonPriming | null {
-  return U1_PRIMING[node] ?? null;
+  return U1_PRIMING[node] ?? U2_PRIMING[node] ?? U3_PRIMING[node] ?? null;
 }
 
 export interface PrimingVisit {
@@ -47,7 +52,7 @@ export interface PrimingSource {
 export function primingSources(node: string): ReadonlyMap<string, PrimingSource> {
   const found = new Map<string, PrimingSource>();
   for (const beat of lessonMcqBeats(node)) found.set(beat.id, { id: beat.id, beat, explanation: null });
-  for (const entry of U1_POOLS[node] ?? []) {
+  for (const entry of [...(U1_POOLS[node] ?? []), ...(U2_POOLS[node] ?? []), ...(U2T_POOLS[node] ?? []), ...(U2E_POOLS[node] ?? []), ...(U3_POOLS[node] ?? [])]) {
     const beat = entry.item.kind === "mcq" ? entry.item.beat : null;
     found.set(entry.id, { id: entry.id, beat, explanation: entry.explanation });
   }
@@ -170,7 +175,7 @@ export function previousOnPath(node: string): string | null {
   const unit = PATHWAY_UNITS.find((u) => u.nodes.some((n) => n.id === node));
   if (unit === undefined) return null;
   const isLesson = (n: PathwayNode) =>
-    n.kind === "spine" && n.playable !== undefined && n.role !== "quiz" && !n.mentionOnly;
+    (n.kind === "spine" || n.kind === "gate") && n.playable !== undefined && n.role !== "quiz" && !n.mentionOnly;
   const before = unit.nodes.slice(0, unit.nodes.findIndex((n) => n.id === node)).filter(isLesson);
   return before.length === 0 ? null : before[before.length - 1].id;
 }

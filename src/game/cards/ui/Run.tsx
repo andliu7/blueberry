@@ -598,7 +598,7 @@ function RunSummary({
       <div className="grid grid-cols-3 gap-2 text-center">
         <Stat value={called === null ? "None" : `${stats.called}/${stats.predicted}`} label="Called it" />
         <Stat value={String(stats.bestStreak)} label="Best streak of right calls" />
-        <Stat value={String(credited)} label="Diamonds" />
+        <Stat value={String(credited)} label="Coins" />
       </div>
       {reward !== null && <p className="m-0 text-center text-scale-xs text-bb-muted-foreground">{reward}</p>}
 

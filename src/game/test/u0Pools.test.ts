@@ -59,6 +59,10 @@ function idOf(entry: PoolEntry): string {
       return entry.item.content.beat.id;
     case "match":
       return entry.item.board.beatId;
+    case "keqTyped": // played from content/u2energy only
+      throw new Error("unexpected keqTyped item in this unit pool");
+    case "nmrProduct": // played from content/u6/nmrProduct.ts only; no unit lesson pool writes one
+      throw new Error("unexpected nmrProduct item in a unit pool");
     case "draw":
       return entry.item.beat.id;
   }

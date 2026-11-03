@@ -1115,7 +1115,7 @@ export function BlueberryGlassReveal({ tuning, ...props }: BlueberryGlassRevealP
       logo={BLUEBERRY_SILHOUETTE}
       label="Blueberry"
       look="light"
-      background={SITE_GROUND}
+      background={document.documentElement.getAttribute("data-look") === "white" ? "#ffffff" : SITE_GROUND}
       logoColor={SITE_PRIMARY}
       logoScale={0.62}
       finalScale={0.8}

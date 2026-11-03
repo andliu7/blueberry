@@ -26,6 +26,8 @@ const STROKE = {
   strokeLinejoin: "round",
 } as const;
 
+import { DiamondMark } from "../app/ui/HudIcons";
+
 /** The exit, drawn as the committed mechanism frame draws it: inside its chip. */
 export function ExitMark() {
   return (
@@ -45,23 +47,7 @@ export function FlagMark() {
   );
 }
 
-/**
- * The cut gem of the reward currency, matched to the counter the committed
- * reaction frame draws. Filled, and the facet lines are drawn in the page
- * ground rather than in a second colour so the shape stays one object.
- */
+/** The coin of the reward currency: the header's own mark, so there is one coin. */
 export function GemMark() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden focusable="false" role="presentation">
-      <path d="M6.6 3.5h10.8l4 5.2L12 21 1.6 8.7Z" fill="currentColor" stroke="none" />
-      <path
-        d="M1.6 8.7h20.8M12 21 8.4 8.7 10.6 3.5M12 21l3.6-12.3-2.2-5.2"
-        fill="none"
-        stroke="var(--bb-card)"
-        strokeWidth={1.2}
-        strokeLinejoin="round"
-        opacity={0.55}
-      />
-    </svg>
-  );
+  return <DiamondMark />;
 }

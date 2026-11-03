@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import fs from 'node:fs'
 
 /**
  * Writes dist/budget-subjects.json, the contract the budget validators read
@@ -118,6 +119,68 @@ function budgetSubjects(): Plugin {
   }
 }
 
+/**
+ * DEV ONLY: the Unit 1 sign-off page (#/signoff, src/game/signoff/) keeps its
+ * verdicts in documentation/unit1-signoff.json, so the next agent reads them
+ * from disk instead of from a browser it cannot see. A page cannot write a
+ * file, so this middleware does it: GET returns the file (or {} before the
+ * first verdict), PUT replaces it with the page's whole table.
+ *
+ * `apply: 'serve'` keeps it out of `vite build` and `vite preview`; the page
+ * itself is cut from the build by `import.meta.env.DEV` in src/App.tsx.
+ * The row shape is checked by the page (parseVerdicts); this only refuses
+ * a body that is not a JSON object, so a bad request cannot blank the file.
+ */
+const SIGNOFF_FILE = path.resolve(import.meta.dirname, 'documentation/unit1-signoff.json')
+
+function signoffStore(): Plugin {
+  return {
+    name: 'blueberry-signoff-store',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use('/__signoff', (req, res) => {
+        if (req.method === 'GET') {
+          res.setHeader('content-type', 'application/json')
+          res.end(fs.existsSync(SIGNOFF_FILE) ? fs.readFileSync(SIGNOFF_FILE, 'utf8') : '{}')
+          return
+        }
+        if (req.method !== 'PUT') {
+          res.statusCode = 405
+          res.end()
+          return
+        }
+        let body = ''
+        req.on('data', (chunk) => (body += chunk))
+        req.on('end', () => {
+          let table: unknown
+          try {
+            table = JSON.parse(body)
+          } catch {
+            table = null
+          }
+          if (typeof table !== 'object' || table === null || Array.isArray(table)) {
+            res.statusCode = 400
+            res.end('expected a JSON object')
+            return
+          }
+          // Write beside it, then rename, so a crash mid-write never leaves half a file.
+          // A failed write (the file locked by an editor, say) answers 500 rather than
+          // throwing inside this callback, which would take the dev server down; the
+          // page then keeps a browser copy and says so.
+          try {
+            fs.writeFileSync(`${SIGNOFF_FILE}.tmp`, `${JSON.stringify(table, null, 2)}\n`)
+            fs.renameSync(`${SIGNOFF_FILE}.tmp`, SIGNOFF_FILE)
+            res.statusCode = 204
+          } catch {
+            res.statusCode = 500
+          }
+          res.end()
+        })
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   base: './',
@@ -155,7 +218,7 @@ export default defineConfig(({ mode }) => ({
    * instead of hiding it behind a broken sign-in half an hour later.
    */
   server: { port: 5173, strictPort: true },
-  plugins: [react(), tailwindcss(), budgetSubjects()],
+  plugins: [react(), tailwindcss(), budgetSubjects(), signoffStore()],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),

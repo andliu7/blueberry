@@ -105,3 +105,27 @@ describe("mergeOrder", () => {
     expect(mergeOrder(["a"], ["z", "a"])).toEqual(["z", "a"]);
   });
 });
+
+describe("the week and the first day of Week 1 (C1 fix round)", () => {
+  it("assignWeek moves a unit to another week, and to none", () => {
+    const state = read();
+    const moved = run(state, { type: "assignWeek", unitId: "u2", week: 4 });
+    expect(moved.plan!.weeks.find((week) => week.week === 2)?.unitIds ?? []).not.toContain("u2");
+    expect(moved.plan!.weeks.find((week) => week.week === 4)!.unitIds).toContain("u2");
+    const none = run(moved, { type: "assignWeek", unitId: "u2", week: null });
+    expect(none.plan!.weeks.some((week) => week.unitIds.includes("u2"))).toBe(false);
+  });
+
+  it("setTermStart keeps a real date, drops anything else, and survives answering a flag", () => {
+    const state = run(read(), { type: "setTermStart", date: "2026-08-24" });
+    expect(state.plan!.termStart).toBe("2026-08-24");
+    expect(run(state, { type: "setTermStart", date: "soon" }).plan!.termStart).toBeNull();
+    const resolved = run(state, { type: "resolve", row: 3, topic: 0, choice: "not-covered" });
+    expect(resolved.plan!.termStart).toBe("2026-08-24");
+  });
+
+  it("load shows a plan adopted from the account", () => {
+    const adopted = { ...read().plan!, unitOrder: ["u9"] };
+    expect(run(read(), { type: "load", plan: adopted })).toEqual({ rows: [], plan: adopted });
+  });
+});

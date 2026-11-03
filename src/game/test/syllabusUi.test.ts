@@ -132,4 +132,52 @@ describe("the syllabus screen", () => {
     act(() => button("Add Unit 6").click());
     expect(order()).toEqual(["u1", "u3", "u2", "u4", "u9", "u10", "u6"]);
   });
+
+  it("sets a unit's week from the screen, and the saved plan holds it (C1 fix round)", () => {
+    paste("terse.txt");
+    choose(host.querySelector('select[aria-label="Week for Unit 3"]')!, "5");
+    act(() => button("Save my syllabus").click());
+    expect(syllabusStore.getSnapshot()!.weeks).toEqual([{ week: 5, start: null, unitIds: ["u3"] }]);
+  });
+
+  it("marks a single lesson not covered", () => {
+    paste("terse.txt");
+    const boxes = [...host.querySelectorAll('[data-unit="u1"] ul ul input[type="checkbox"]')] as HTMLInputElement[];
+    expect(boxes.length).toBeGreaterThan(1);
+    expect(boxes.every((box) => box.checked)).toBe(true);
+    act(() => boxes[0]!.click());
+    act(() => button("Save my syllabus").click());
+    const off = syllabusStore.getSnapshot()!.notCovered;
+    expect(off.length).toBe(1);
+    expect(off[0]).toMatch(/^u1-/);
+  });
+
+  it("asks for the first day of Week 1 only when the weeks have no dates", () => {
+    type(host.querySelector("textarea")!, "Week 1: Dienes\nWeek 2: Aromaticity");
+    act(() => button("Read my syllabus").click());
+    expect(text()).toContain("When does Week 1 start?");
+    const field = host.querySelector('input[type="date"]') as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set;
+    act(() => {
+      setter?.call(field, "2026-08-24");
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    act(() => button("Save my syllabus").click());
+    expect(syllabusStore.getSnapshot()!.termStart).toBe("2026-08-24");
+    act(() => button("Clear").click());
+    paste("pdf-table.txt");
+    expect(text()).not.toContain("When does Week 1 start?");
+  });
+
+  it("shows a plan the account sync adopts while the screen is open, when nothing is unsaved", () => {
+    expect(order()).toEqual([]);
+    act(() => syllabusStore.replace({ version: 1, updatedAt: 9, weeks: [], unitOrder: ["u7", "u8"], sectionOrder: {}, notCovered: [], sideQuests: [], exams: [] }));
+    expect(order()).toEqual(["u7", "u8"]);
+  });
+
+  it("keeps unsaved edits when the sync adopts a plan underneath", () => {
+    paste("terse.txt");
+    act(() => syllabusStore.replace({ version: 1, updatedAt: 9, weeks: [], unitOrder: ["u7"], sectionOrder: {}, notCovered: [], sideQuests: [], exams: [] }));
+    expect(order()).toEqual(["u1", "u3", "u2", "u4", "u9", "u10"]);
+  });
 });

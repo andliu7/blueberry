@@ -218,7 +218,7 @@ function ExplainerFigure() {
         width="28"
         height="16"
         rx="4"
-        fill="color-mix(in srgb, var(--diamond) 45%, var(--bb-card))"
+        fill="color-mix(in srgb, var(--ice) 45%, var(--bb-card))"
         stroke="currentColor"
         strokeWidth="2"
       />
@@ -403,6 +403,23 @@ function Background({ topics }: { readonly topics: GuidebookContent["background"
   );
 }
 
+/** Short plain-words refreshers for what the lesson assumes from before Unit 1. */
+function Context({ items }: { readonly items: GuidebookContent["context"] }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-2" aria-label="If you are missing the background">
+      <p className="gb-callout__cap text-scale-xs">New to this? Quick background</p>
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <li key={item.title} className="text-scale-sm">
+            <strong>{item.title}.</strong> {item.text}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export interface GuidebookProps {
   readonly content: GuidebookContent;
   readonly onBack: () => void;
@@ -434,6 +451,7 @@ export function Guidebook({ content, onBack, reducedMotion }: GuidebookProps) {
       {content.placeholder && showDraftMarks() ? <p className="gb-draft text-scale-xs">{content.gateMark}</p> : null}
 
       <Background topics={content.background} />
+      <Context items={content.context} />
 
       <p className="gb-intro text-scale-base">{content.intro}</p>
 

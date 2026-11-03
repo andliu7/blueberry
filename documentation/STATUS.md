@@ -3,6 +3,20 @@
 Updated 2026-10-17. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
 
+## Shipped 2026-11-02
+
+Everything below marked uncommitted went to main on 2 Nov. Admin dashboard reachable for staff from the profile menu, Dashboard Settings, game Me > Settings (Staff group) and the footer's Settings column. Role in the profile menu is a plain label, not a link. Light (Clouds) look: purple gradients replaced with flat colours under `:root[data-look="white"]` only; the feed backdrop is removed in every look. Queued gauntlets: admin dashboard (bar: Stripe Dashboard), coin reward moments, hexagon buttons (owner idea: badge-shaped 3D buttons read as benzene/cyclohexane).
+
+## Built 2026-11-01
+
+Clouds is the default look, for new and returning visitors alike unless they saved a choice: light sky blue fading to white, from the andliu.dev sky (`--site-sky` in `src/tokens.css`, still `data-look="white"` and preset `white`). The site now starts light instead of dark. Shortcuts: footer Settings (Clouds, Lavender, Dark), `?look=white|lavender|dark`, and Me, Settings, Page colour, which also gained Dark. Semester pass: 6 months from purchase (`supabase/functions/_shared/passLength.ts`), so `SEMESTER_PASS_ENDS_ON` is no longer read, including in the older owner steps below. The four billing functions were deployed 31 Oct; no Stripe secrets or products exist yet (owner working through STRIPE.md from step 1, 2 Nov). The plans panel has no yearly card, so `pro_yearly` can be created but not bought.
+
+Coin gauntlet: students now see gold coins instead of diamonds, in the words, the header counter (`src/game/app/ui/CoinCounter.tsx`), the shop and the chest. The chest opening has a painted chest (`src/game/chest/ChestModel.tsx`, lazy) and a coin stream into its counter. Stored data did not change: `diamonds` fields and localStorage keys stayed, so every balance survives. Won against the Clash of Clans bar so far: the coin art (round 1), the HUD counter (round 7), the chest payout (round 2). The name sweep is clean. Not won: the reward moments, which have had no comparison yet.
+
+## Built 2026-10-31, uncommitted
+
+Chest opening is just the chest: opaque layer, no top bar, Bloom or buttons, tap anywhere to open and to continue (Escape still leaves). White look: `:root[data-look="white"]` in `src/tokens.css`, set by `?look=white` (undo `?look=lavender`) or Settings, Page colour. Not the default. The game's own screens were not checked in white. Red in the tree from other sessions' unit work: `nodeDifficulty` (move counts), `sectionDecks` (u2 decks stale).
+
 ## Owner rules, 2026-10-29 (read before touching the pathway, lessons or any new screen)
 
 - Pathway side tabs: Shop, Challenges, Tasks and Quests are tabs down the LEFT edge, each with an icon. They are not in the middle of the page and not in the bottom bar.

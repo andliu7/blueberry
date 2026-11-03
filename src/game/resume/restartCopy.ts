@@ -50,5 +50,5 @@ export function isRestart(model: ChargeGateModel, questions: string | undefined)
 export function leaveRewardLine(clearedBefore: boolean): string {
   return clearedBefore
     ? "Your XP and streak credit land when you finish it."
-    : "Your XP, diamonds and streak credit land when you finish it.";
+    : "Your XP, coins and streak credit land when you finish it.";
 }

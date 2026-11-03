@@ -192,8 +192,8 @@ function SceneSky() {
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
       </defs>
-      <rect width="800" height="320" fill="url(#lrn-sky)" />
-      <rect width="800" height="320" fill="url(#lrn-glow)" />
+      <rect className="lrn-scene-fill" width="800" height="320" fill="url(#lrn-sky)" />
+      <rect className="lrn-scene-glow" width="800" height="320" fill="url(#lrn-glow)" />
       {/* A few sparkles, four-point stars. */}
       {[
         [92, 54, 7],

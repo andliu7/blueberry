@@ -35,13 +35,18 @@ describe("every Unit 2 node is playable", () => {
   // Spine vs gate is listed for the owner.
   it("keeps the briefed kinds: five playable gates in teaching order, then the side quest", () => {
     expect(isCheckpointUnit(u2)).toBe(true);
-    expect(u2.nodes.map((node) => node.kind)).toEqual(["gate", "gate", "gate", "gate", "gate", "branch"]);
+    expect(u2.nodes.map((node) => node.kind)).toEqual(["gate", "gate", "gate", "gate", "gate", "gate", "gate", "gate", "gate", "gate", "gate", "gate"]);
+    // CHANGED 2026-10-29 (round 4): the two naming quests are main-line gates, so the priority and locant material cannot be skipped.
+    // CHANGED 2026-10-29 (units-2-3 piece): three tools gates in front (induction, pKa, resonance), the donor/withdrawer gate
+    // after the heterocycles, and the naming-priority side quest after the first naming quest.
     // CHANGED 2026-10-17 (round 4): was video, practice, practice, practice, video, practice.
-    expect(u2.nodes.map((node) => node.role)).toEqual(["video", "video", "video", "video", "video", "practice"]);
+    expect(u2.nodes.map((node) => node.role)).toEqual(["video", "video", "video", "video", "video", "video", "video", "video", "video", "video", "practice", "practice"]);
   });
 
-  it("links all six rows to their own beat, and each plans a lesson", () => {
-    expect(u2.nodes.map((node) => node.id)).toEqual(["u2-huckel", "u2-charged", "u2-annulene", "u2-hetero", "u2-nmr", "u2-nomen"]);
+  it("links every row to their own beat, and each plans a lesson", () => {
+    expect(u2.nodes.map((node) => node.id)).toEqual([
+      "u2-induction", "u2-keq-pka", "u2-energy", "u2-resonance", "u2-huckel", "u2-charged", "u2-annulene", "u2-hetero", "u2-ewg-edg", "u2-nmr", "u2-nomen", "u2-nomen-priority",
+    ]);
     for (const node of u2.nodes) {
       expect(node.playable, node.id).toEqual({ kind: "beat", id: node.id });
       expect(planLesson(node.id), node.id).not.toBeNull();

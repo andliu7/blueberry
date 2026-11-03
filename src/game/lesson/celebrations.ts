@@ -67,7 +67,7 @@ export const CELEBRATIONS: readonly Celebration[] = [
     line: "Substitution is done. Next up, elimination.",
     tiles: [
       { label: "Lessons", value: "7 of 7", tone: "green" },
-      { label: "Gems", value: "+50", tone: "violet" },
+      { label: "Coins", value: "+50", tone: "violet" },
       { label: "Total XP", value: "180", tone: "gold" },
     ],
     cta: "Start Unit 2",

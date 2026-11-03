@@ -90,6 +90,7 @@ import { RecipeStrip } from "./RecipeStrip";
 import { LessonPreview } from "./LessonPreview";
 import { LessonRecap } from "./LessonRecap";
 import { PoolItemsStep } from "./PoolItemsStep";
+import { hasReactionLesson } from "../reactionLessons/ids";
 // Straight from story.ts, as demo/pathwayMap.ts does, so the U0 pools never join this chunk.
 import { sceneChapterFor } from "../content/u0/story";
 import { markPrimed, opensOnPreview, primedThisSession, primingFor } from "./priming";
@@ -122,6 +123,7 @@ import { ResumePrompt } from "../resume/ResumePrompt";
 import { skipAheadTestId, unitIdForNode, type LessonRating, type Pace } from "./pace";
 import { hrefForLesson, hrefForReview, hrefForTab } from "../app/routes";
 import { guideParam } from "../guide/guideLink";
+import { QuestionHelp } from "./QuestionHelp";
 import "./beat-chrome.css";
 
 // The resolution API lives in template.ts now: one table and one ordering
@@ -143,6 +145,7 @@ function matchBoardsForNode(node: string) {
 // needed, and CLAUDE.md's budget row counts the game route's initial payload.
 // A Suspense fallback that is a blank rectangle is banned by the same file, so
 // the fallback below says what it is waiting for.
+const LessonHelp = lazy(() => import("./LessonHelp"));
 const McqRunner = lazy(() => import("./mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
 // Lazy like the rest, and for the reason the header gives for app/progress:
 // StreakScreen reads the progress store, which this file only ever imports
@@ -159,6 +162,8 @@ const SynthesisGapBeat = lazy(() =>
 // full-viewport by construction, so inside a lesson it covers the header and
 // the strip exactly as it covers the tab bar: one screen, wherever it opens.
 const TrainerScreen = lazy(() => import("../tabs/trainer/engine/TrainerScreen").then((m) => ({ default: m.TrainerScreen })));
+// The reaction walk (reactionLessons/): the step-by-step lesson that comes before a reaction's trainer.
+const ReactionLessonView = lazy(() => import("../reactionLessons/ReactionLessonView").then((m) => ({ default: m.ReactionLessonView })));
 // The mistake-to-card toast. Lazy for the same budget reason as the surfaces
 // above, and it only mounts once a run has actually produced an offer, so a
 // clean run never loads it at all. A null fallback is right here: the toast
@@ -220,6 +225,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // drawings are finished, and how they went, so the trainer's result adds to
   // them rather than replacing them. -1 while the drawings are still playing.
   const [drawsDoneAt, setDrawsDoneAt] = useState(-1);
+  // A reaction's walk plays before its drawings and trainer; the step index it finished at (-1 until then).
+  const [walkDoneAt, setWalkDoneAt] = useState(-1);
   const drawTally = useRef<{ cleared: number; total: number; missed: readonly string[] }>({ cleared: 0, total: 0, missed: [] });
   // The recycle pass replays missed drawings first, then missed quick
   // questions. Set once the drawings are done, with how they went.
@@ -663,7 +670,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
 
   const step = currentStep(run);
   // A trainer step that opens with drawings names the activity on screen, not the trainer still to come.
+  const walkId = step?.beat.kind === "mechanism" && step.beat.play.kind === "reaction" && hasReactionLesson(step.beat.play.id) ? step.beat.play.id : null;
+  const walkPending = walkId !== null && walkDoneAt !== run.index;
   const drawingFirst =
+    !walkPending &&
     (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") &&
     step.beat.draws !== undefined &&
     drawsDoneAt !== run.index;
@@ -749,19 +759,24 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
   // the header is not drawn at all: one exit on screen, one exit reachable.
   // A trainer step whose "Draw it" items have not finished yet plays them first, in the lesson chrome.
   const drawsPending = drawingFirst;
-  const inEngine = (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") && !drawsPending;
+  const inEngine = (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") && !drawsPending && !walkPending;
   const strip = (
-    <RecipeStrip
-      segments={segments}
-      {...(inMcq ? { currentFraction: mcqFraction } : {})}
-      reducedMotion={reducedMotion}
-    />
+    <div className="flex items-center gap-2">
+      <div className="min-w-0 flex-1">
+        <RecipeStrip
+          segments={segments}
+          {...(inMcq ? { currentFraction: mcqFraction } : {})}
+          reducedMotion={reducedMotion}
+        />
+      </div>
+      {challenge ? null : <QuestionHelp node={node} />}
+    </div>
   );
 
   // The pool items each kind of pool step plays, named once so the save can check them.
   const itemEntries =
-    step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw"
-      ? lessonPoolItems(step.beat.node, step.beat.kind === "poolSort" ? "sort" : step.beat.kind === "poolMatch" ? "match" : "draw")
+    step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw" || step?.beat.kind === "poolKeq"
+      ? lessonPoolItems(step.beat.node, step.beat.kind === "poolSort" ? "sort" : step.beat.kind === "poolMatch" ? "match" : step.beat.kind === "poolKeq" ? "keqTyped" : "draw")
       : [];
   const drawEntries =
     drawsPending && (step?.beat.kind === "mechanism" || step?.beat.kind === "resonance") ? lessonPoolItems(step.beat.draws ?? "", "draw") : [];
@@ -905,7 +920,7 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           />
         ) : null}
 
-        {step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw" ? (
+        {step?.beat.kind === "poolSort" || step?.beat.kind === "poolMatch" || step?.beat.kind === "draw" || step?.beat.kind === "poolKeq" ? (
           // The node's pool ladders, boards or drawings, one after another (PoolItemsStep.tsx).
           <PoolItemsStep
             key={`${step.beat.kind}:${run.index}`}
@@ -914,6 +929,10 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
             onDone={(cleared, total, missedDraws) => advanceStep(cleared, total, undefined, missedDraws)}
             bloomLook={bloomLook}
           />
+        ) : null}
+
+        {walkPending && walkId !== null ? (
+          <ReactionLessonView key={`walk:${run.index}`} reactionId={walkId} reducedMotion={reducedMotion} onDone={() => setWalkDoneAt(run.index)} />
         ) : null}
 
         {drawsPending && step !== null && (step.beat.kind === "mechanism" || step.beat.kind === "resonance") ? (
@@ -1208,7 +1227,7 @@ function RewardSlot({
             <p className="lesson-banked">
               <GemMark />
               <span>
-                +{plural(banked, "diamond", "diamonds")}
+                +{plural(banked, "coin", "coins")}
               </span>
             </p>
           ) : null}
@@ -1351,6 +1370,11 @@ function PaceRow({ node, pace }: { readonly node: string; readonly pace: Pace })
             Review your flashcards
           </a>
         </p>
+      ) : null}
+      {leaning === -1 ? (
+        <Suspense fallback={null}>
+          <LessonHelp node={node} stage={stage} openNow />
+        </Suspense>
       ) : null}
       {testId !== null ? (
         <a className="text-scale-sm font-semibold text-bb-primary-ink underline" href={hrefForLesson(testId)}>

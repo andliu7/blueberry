@@ -32,7 +32,7 @@
  *                                        light card  light page   dark card   dark page
  *   mark unlit     --hud-out                  7.58:1      7.07:1      6.66:1      7.61:1
  *   flame lit      --streak                   4.26:1      3.97:1      6.87:1      7.85:1
- *   diamond        --diamond                  4.10:1      3.82:1      7.26:1      8.29:1
+ *   coin           --diamond                  5.93:1      5.23:1      9.60:1     10.57:1
  *   charge cell    --good                     7.68:1      7.16:1      8.09:1      9.24:1
  *   goal ring      --bb-primary               6.69:1      6.24:1      3.10:1      3.54:1
  *   goal ring met  --good                     7.68:1      7.16:1      8.09:1      9.24:1
@@ -52,7 +52,11 @@
  *                                        light card  light hover   dark card   dark hover
  *   streak         #c2410c / --streak-ink     5.18:1      4.74:1      9.22:1      7.56:1
  *   streak zero    --bb-muted-foreground      6.21:1      5.68:1      7.37:1      6.05:1
- *   diamonds       #0369a1 / --diamond-ink    5.93:1      5.43:1      9.32:1      7.65:1
+ *   coins          #8a5a00 / --diamond-ink    5.93:1      5.42:1     11.12:1      8.84:1
+ *
+ * The coins row is the token, kept and measured for gold type on this ground.
+ * The header's coin digits themselves are now white on their own rail (the coin
+ * counter block below, measured in coinCounter.test.ts).
  *   charge         #047857 / --good-ink       5.48:1      5.02:1     10.20:1      8.36:1
  *
  * That split is the same one --good/--good-ink and --bb-primary/--bb-primary-ink
@@ -153,12 +157,12 @@
      numbers": the theme's -ink tokens are navy, rust and forest, chosen for
      the reward screens where a number sits on a tinted card. Here each number
      is in its mark's own hue, one step darker, at AA on both of this cell's
-     grounds: orange-700, sky-700 and emerald-700, 4.74:1 at worst (orange on
+     grounds: orange-700, a deep gold and emerald-700, 4.74:1 at worst (orange on
      the hover ground). The battery's fill is emerald-600 rather than --good,
      because --good is so dark in light that a full battery was the heaviest
      object in the row in grayscale. hudAnatomy.test.ts measures all of it. */
   --hud-ink-streak: #c2410c;
-  --hud-ink-diamond: #0369a1;
+  --hud-ink-diamond: #8a5a00;
   --hud-ink-charge: #047857;
   --hud-charge-mark: #059669;
   --hud-hover: #f2f5fa;
@@ -188,9 +192,6 @@
 }
 .hud-ink-streak {
   color: var(--hud-ink-streak);
-}
-.hud-ink-diamond {
-  color: var(--hud-ink-diamond);
 }
 .hud-ink-charge {
   color: var(--hud-ink-charge);
@@ -676,6 +677,315 @@
 @keyframes hud-bump {
   40% {
     transform: scale(1.25);
+  }
+}
+
+/* --------------------------------------------------- the coin counter ---- */
+/*
+ * The header's coin cell, its sheet and the shop balance (CoinCounter.tsx). One
+ * object under one light, from above and a little left: the coin's field and the
+ * rail's fill take the same three golds (--cc-fill-hi, --cc-fill, --cc-fill-lo), and
+ * the coin drops a soft contact shadow on the rail.
+ *
+ * THE RAIL IS A METER. A dark track, and flat gold on it with a straight leading edge
+ * at --cc-frac (CoinCounter.tsx says what that measures). There is no gold anywhere
+ * else on the rail: the track's rim is bronze, so an empty treasury looks empty.
+ *
+ * THE SIZES ARE ONE RULE. --cc-h is the rail. Its inner height is that less the 1px
+ * rim on each side, and --cc-cap is about 55% of it, so with its line and wall a digit
+ * inks about two thirds of the height and has room above and below. --cc-track is the
+ * least the track measures, so short numbers still have a meter to read and digits
+ * straddle the edge. --cc-coin is the width the coin takes in the row and --cc-draw
+ * the box it is drawn in, because the mark inks only part of its box. The rail starts
+ * under the coin's centre (--cc-bite) and the gold starts under the coin too, so the
+ * fill runs straight into the face with no notch and no fade.
+ *
+ * THE GLOSS RUNS THE WHOLE RAIL at one height, gold side and dark side alike, so fill
+ * and track are one continuous band with the digits over it.
+ *
+ * The rail is opaque in both themes, so the digits' pairs never depend on the page.
+ * coinCounter.test.ts measures them, and the rule above. The rail's dark outline
+ * holds its edge on a pale header and the bronze rim holds it on night navy.
+ *
+ * The rail is on a child, so `.hud-item` keeps no ground of its own. The roll, the
+ * fill, the kick, the spin, the glint and the pop are all transform or opacity.
+ */
+.coin-counter,
+.treasury-shelf {
+  --cc-fill-hi: #ffe45c;
+  --cc-fill: #ffc21a;
+  --cc-fill-lo: #d98a12;
+}
+.coin-counter {
+  --cc-rail-hi: #4f2f0a;
+  --cc-rail: #38210a;
+  --cc-rail-lo: #241405;
+  --cc-rim-hi: #a88650;
+  --cc-rim: #94703a;
+  --cc-rim-lo: #5e4420;
+  --cc-gloss: 46%;
+  --cc-digit: #ffffff;
+  --cc-digit-line: #140a00;
+  --cc-gain: #ffe45c;
+  --cc-h: 1.5rem;
+  --cc-cap: 0.75rem;
+  --cc-track: 3.25rem;
+  --cc-coin: 1.625rem;
+  --cc-draw: 2.4375rem;
+  --cc-bite: calc(var(--cc-coin) / 2);
+  --cc-lead: 0.1875rem;
+  --cc-pad: 0.375rem;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  isolation: isolate;
+  font-family: var(--font-display);
+  white-space: nowrap;
+}
+.coin-counter--hero {
+  --cc-h: 2.75rem;
+  --cc-cap: 1.4375rem;
+  --cc-track: 6.75rem;
+  --cc-coin: 3.375rem;
+  --cc-draw: 5rem;
+  --cc-lead: 0.375rem;
+  --cc-pad: 0.75rem;
+}
+.coin-counter-rail {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: var(--cc-bite);
+  right: 0;
+  height: var(--cc-h);
+  margin-top: calc(var(--cc-h) / -2);
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0) var(--cc-gloss)),
+    linear-gradient(to bottom, var(--cc-rail-hi), var(--cc-rail) 48%, var(--cc-rail-lo));
+  /* The rim takes the same light: bright along the top, deep along the bottom. */
+  box-shadow:
+    inset 0 1px 0 var(--cc-rim-hi),
+    inset 0 -1px 0 var(--cc-rim-lo),
+    inset 0 0 0 1px var(--cc-rim),
+    0 0 0 0.75px var(--coin-line);
+}
+/* Where the coin sits on the bar: soft, low and to the right, away from the light.
+   It is cut by the rail's own edge, so it never smudges the page. */
+.coin-counter-rail::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: radial-gradient(
+    circle at 0.0625rem 58%,
+    rgb(92 46 0 / 0.5) calc(var(--cc-draw) * 0.33),
+    rgb(92 46 0 / 0) calc(var(--cc-draw) * 0.33 + var(--cc-h) * 0.22)
+  );
+  pointer-events: none;
+}
+/* The gold. It starts under the coin at every balance and slides by --cc-frac, so its
+   straight edge is the reading: at zero it sits under the coin's right side, and at
+   one the track is gold to its end. Flat, with the same light along the top as the
+   track and one deep line along the base. It runs the rail's full height, over the
+   rim, so gold and dark meet the outline the same way. */
+.coin-counter-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform: translateX(calc((var(--cc-frac, 0) - 1) * (100% - var(--cc-bite))));
+  background: linear-gradient(to bottom, var(--cc-fill-hi), var(--cc-fill) var(--cc-gloss), var(--cc-fill) 86%, var(--cc-fill-lo));
+}
+.coin-counter-glint {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1rem;
+  opacity: 0;
+  background: linear-gradient(to right, transparent, rgb(255 255 255 / 0.7), transparent);
+  transform: translateX(-1.5rem) skewX(-20deg);
+}
+.coin-counter-stack {
+  position: relative;
+  flex: none;
+  display: block;
+  width: var(--cc-coin);
+  height: var(--cc-coin);
+  /* Lifts the coin as discs go under it, so the pile stays centred on the rail. */
+  transform: translateY(calc(var(--cc-discs, 0) * var(--cc-draw) / -24));
+}
+.coin-counter-coin,
+.coin-counter-pile {
+  position: absolute;
+  top: calc((var(--cc-coin) - var(--cc-draw)) / 2);
+  left: calc((var(--cc-coin) - var(--cc-draw)) / 2);
+  width: var(--cc-draw);
+}
+.coin-counter-coin {
+  display: block;
+  height: var(--cc-draw);
+}
+/* The coin is the one mark drawn past the row's shared box: it is the hero of the
+   treasury cell and it inks only two thirds of the box it is given. */
+.coin-counter-coin > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.coin-counter-pile {
+  height: auto;
+  overflow: visible;
+}
+.coin-counter-value {
+  position: relative;
+  font-size: var(--cc-cap);
+  display: inline-flex;
+  box-sizing: border-box;
+  min-width: var(--cc-track);
+  line-height: 1;
+  padding-inline: var(--cc-lead) var(--cc-pad);
+}
+.coin-numerals {
+  display: block;
+  flex: none;
+}
+.coin-counter[data-phase="rolling"][data-dir="up"] {
+  animation: coin-kick 460ms var(--bb-ease-spring);
+}
+.coin-counter[data-phase="rolling"][data-dir="up"] .coin-counter-coin {
+  animation: coin-spin 1100ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.coin-counter[data-phase="rolling"][data-dir="up"] .coin-counter-glint {
+  animation: coin-glint 1100ms linear;
+}
+.coin-counter[data-phase="rolling"][data-dir="down"] {
+  animation: coin-dip 420ms var(--bb-ease-out);
+}
+.coin-counter[data-phase="landed"][data-dir="up"] .coin-counter-value {
+  animation: coin-pop 420ms var(--bb-ease-spring);
+}
+@keyframes coin-kick {
+  35% {
+    transform: scale(1.14);
+  }
+}
+@keyframes coin-spin {
+  0% {
+    transform: perspective(60px) translateY(0) rotateY(0deg);
+  }
+  30% {
+    transform: perspective(60px) translateY(-14%) rotateY(400deg);
+  }
+  100% {
+    transform: perspective(60px) translateY(0) rotateY(1080deg);
+  }
+}
+@keyframes coin-glint {
+  0% {
+    opacity: 0;
+    transform: translateX(-1.5rem) skewX(-20deg);
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(6rem) skewX(-20deg);
+  }
+}
+@keyframes coin-dip {
+  40% {
+    transform: translateY(2px) scale(0.97);
+  }
+}
+@keyframes coin-pop {
+  45% {
+    transform: scale(1.1);
+  }
+}
+/* The amount, hung under the rail in the same lettering on a piece of the same
+   dark rail, so its pair holds on any page. Gold for a gain, white for a spend. */
+.coin-counter-gain {
+  --cc-digit: var(--cc-gain);
+  position: absolute;
+  z-index: 2;
+  top: calc(50% + var(--cc-h) / 2 + 0.3125rem);
+  right: 0;
+  display: block;
+  padding: 0.1875rem 0.375rem;
+  border-radius: 999px;
+  background: var(--cc-rail);
+  box-shadow: 0 0 0 0.75px var(--coin-line);
+  font-size: 0.8125rem;
+  line-height: 1;
+  pointer-events: none;
+  animation: coin-gain 1700ms var(--bb-ease-out) both;
+}
+.coin-counter[data-dir="down"] .coin-counter-gain {
+  --cc-digit: #ffffff;
+}
+@keyframes coin-gain {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.5);
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0) scale(1.1);
+  }
+  22%,
+  78% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0.25rem) scale(1);
+  }
+}
+/* The sheet: stacks standing on the balance's rail. */
+.hud-panel-mark {
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+}
+.treasury-shelf {
+  display: block;
+  width: min(100%, 15rem);
+  margin-bottom: -0.5rem;
+}
+.treasury-note {
+  margin-top: 0.75rem;
+}
+.treasury-stack {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: treasury-rise 420ms var(--bb-ease-spring) both;
+  animation-delay: calc(var(--i) * 55ms);
+}
+@keyframes treasury-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scaleY(0.2);
+  }
+}
+html[data-motion="reduced"] .coin-counter,
+html[data-motion="reduced"] .coin-counter *,
+html[data-motion="reduced"] .treasury-stack {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coin-counter,
+  .coin-counter *,
+  .treasury-stack {
+    animation: none !important;
   }
 }
 

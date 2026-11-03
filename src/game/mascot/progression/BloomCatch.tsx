@@ -95,7 +95,7 @@ export function BloomCatch({ amount, startMs = 0, reducedMotion }: BloomCatchPro
       <span
         className="bloom-catch-count"
         style={reducedMotion ? undefined : { animationDelay: ms(beats.arriveAt) }}
-        aria-label={`Plus ${amount} ${amount === 1 ? "diamond" : "diamonds"}`}
+        aria-label={`Plus ${amount} ${amount === 1 ? "coin" : "coins"}`}
       >
         <DiamondMark className="bloom-catch-count-gem" />
         <span aria-hidden>

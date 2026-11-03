@@ -33,12 +33,18 @@ export const SECTION_CARD_COUNTS: Readonly<Record<string, number>> = {
   "u1-da-stereo": 4,
   "u1-da-3d": 2,
   "u1-ied": 2,
+  "u2-induction": 4,
+  "u2-keq-pka": 3,
+  "u2-energy": 1,
+  "u2-resonance": 3,
   "u2-huckel": 3,
   "u2-charged": 5,
   "u2-annulene": 4,
   "u2-hetero": 5,
+  "u2-ewg-edg": 2,
   "u2-nmr": 3,
   "u2-nomen": 14,
+  "u2-nomen-priority": 2,
   "u3-arenium": 7,
   "u3-directing": 5,
   "u3-birch": 3,
@@ -205,12 +211,18 @@ export const SECTION_UNIT_LESSONS: Readonly<Record<string, readonly string[]>> =
     "u1-ied"
   ],
   "u2": [
+    "u2-induction",
+    "u2-keq-pka",
+    "u2-energy",
+    "u2-resonance",
     "u2-huckel",
     "u2-charged",
     "u2-annulene",
     "u2-hetero",
+    "u2-ewg-edg",
     "u2-nmr",
-    "u2-nomen"
+    "u2-nomen",
+    "u2-nomen-priority"
   ],
   "u3": [
     "u3-arenium",

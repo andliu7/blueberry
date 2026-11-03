@@ -7,6 +7,7 @@ import { FIND_ME_EMAIL, GITHUB_URL, LINKEDIN_URL, REPO_URL, SITE_NAME } from "@/
 import { SITE_CONTAINER } from "@/components/ui/site-nav";
 import { isReducedMotion } from "@/lib/motionPref";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/AuthContext";
 import { adsEnabled } from "@/lib/ads/adsConfig";
 import { clearAdConsent } from "@/lib/ads/consent";
 import { readAnalyticsConsent, setAnalyticsConsent } from "@/lib/analytics";
@@ -68,6 +69,8 @@ const HEAD = "page-title text-base text-[var(--site-foot-head)]";
 
 export function SiteFooter({ className }: { className?: string }) {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const { role } = useAuth();
+  const staff = role === "admin" || role === "owner";
   const footRef = useRef<HTMLElement>(null);
   const [fits, setFits] = useState(false);
 
@@ -153,7 +156,7 @@ export function SiteFooter({ className }: { className?: string }) {
               <h3 className={HEAD}>Settings</h3>
               <ul className="mt-2 text-sm">
                 <li>
-                  <ThemeSwitch />
+                  <LookShortcuts />
                 </li>
                 <li>
                   <MotionSwitch />
@@ -161,6 +164,14 @@ export function SiteFooter({ className }: { className?: string }) {
                 <li>
                   <UsageStatsSwitch />
                 </li>
+                {/* Staff only (owner, 2 Nov): the admin dashboard from every settings surface. */}
+                {staff && (
+                  <li>
+                    <a href="#/app/admin/home" className={LINK}>
+                      Admin dashboard
+                    </a>
+                  </li>
+                )}
                 {/* Only when the build has ads (owner G4): forgets the ad answer, so the next ad slot asks again. */}
                 {adsEnabled && (
                   <li>
@@ -255,28 +266,70 @@ function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle:
   );
 }
 
+type Look = "white" | "lavender" | "dark";
+
+const LOOKS: readonly { id: Look; label: string; chip: string }[] = [
+  { id: "white", label: "Clouds", chip: "linear-gradient(180deg, #cfeaf6, #ffffff)" },
+  { id: "lavender", label: "Lavender", chip: "linear-gradient(180deg, #ece4ff, #d8e6ff)" },
+  { id: "dark", label: "Dark", chip: "#101827" },
+];
+
+function currentLook(): Look {
+  if (typeof document === "undefined") return "white";
+  const root = document.documentElement;
+  if (root.classList.contains("dark")) return "dark";
+  return root.getAttribute("data-look") === "white" ? "white" : "lavender";
+}
+
 /**
- * Dark theme on or off. The same three steps as the theme toggler on the deck
- * pages: crossfade every surface for the swap, flip the `dark` class, and save the
- * choice so index.html's pre-paint script restores it on the next load.
+ * The look shortcuts. The same steps as the theme toggler on the deck pages:
+ * crossfade every surface for the swap, set the attributes, and save the choice so
+ * index.html's pre-paint script restores it on the next load. Dark leaves the saved
+ * page colour alone. It writes the key by hand so the footer does not load the
+ * game's settings; `blueberry:look` tells that store if it is already running.
  */
-function ThemeSwitch() {
-  const [dark, setDark] = useState(
-    () => typeof document !== "undefined" && document.documentElement.classList.contains("dark"),
-  );
-  const toggle = () => {
+function LookShortcuts() {
+  const [look, setLook] = useState(currentLook);
+  const choose = (next: Look) => {
     const root = document.documentElement;
     root.classList.add("theme-transition");
     window.setTimeout(() => root.classList.remove("theme-transition"), 260);
-    const next = root.classList.toggle("dark");
-    setDark(next);
+    root.classList.toggle("dark", next === "dark");
+    if (next !== "dark") {
+      root.toggleAttribute("data-look", next === "white");
+      if (next === "white") root.setAttribute("data-look", "white");
+      document.getElementById("bb-ground-override")?.remove();
+    }
+    setLook(next);
     try {
-      localStorage.setItem("theme", next ? "dark" : "light");
+      localStorage.setItem("theme", next === "dark" ? "dark" : "light");
+      if (next !== "dark") {
+        localStorage.setItem("blueberry.ground.v1", JSON.stringify({ preset: next, custom: "#5a3fd8" }));
+      }
     } catch {
       /* private mode: the choice lasts until reload */
     }
+    window.dispatchEvent(new Event("blueberry:look"));
   };
-  return <Switch label="Dark theme" on={dark} onToggle={toggle} />;
+  return (
+    <div role="group" aria-label="Page look" className="flex flex-wrap gap-1.5 py-1.5">
+      {LOOKS.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          aria-pressed={look === option.id}
+          onClick={() => choose(option.id)}
+          className={cn(
+            "inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-full border px-2.5 text-xs text-[var(--site-foot-ink)]",
+            look === option.id ? "border-[var(--site-foot-ring)] font-semibold" : "border-[var(--site-foot-line)]",
+          )}
+        >
+          <span aria-hidden className="size-3 rounded-full border border-[var(--site-foot-quiet)]" style={{ background: option.chip }} />
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 /**

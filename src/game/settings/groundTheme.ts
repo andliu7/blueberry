@@ -13,16 +13,15 @@
  * the light theme the ground stays pale (lightness 88 to 94); in the dark theme
  * it stays deep (lightness 10 to 17).
  *
- * "lavender" writes nothing at all: the page keeps exactly the theme.css values,
- * so the default is a no-op and a student who never opens this setting sees no
- * change. Same store shape as arrowStyle.ts and pka.ts.
+ * "lavender" writes nothing at all: the page keeps exactly the theme.css values.
+ * Same store shape as arrowStyle.ts and pka.ts.
  */
 
 import { browserStorage, type SettingsStorage } from "./pka";
 
-export type GroundPreset = "lavender" | "deepblue" | "custom";
+export type GroundPreset = "lavender" | "white" | "deepblue" | "custom";
 
-export const GROUND_PRESETS: readonly GroundPreset[] = Object.freeze(["lavender", "deepblue", "custom"]);
+export const GROUND_PRESETS: readonly GroundPreset[] = Object.freeze(["lavender", "white", "deepblue", "custom"]);
 
 export interface GroundChoice {
   readonly preset: GroundPreset;
@@ -30,10 +29,12 @@ export interface GroundChoice {
   readonly custom: string;
 }
 
-/** Lavender stays the default until the owner decides (see the report). */
-export const DEFAULT_GROUND: GroundChoice = Object.freeze({ preset: "lavender", custom: "#5a3fd8" });
+/** Clouds, the "white" preset, is the default (owner, 1 Nov). tokens.css paints it. */
+export const DEFAULT_GROUND: GroundChoice = Object.freeze({ preset: "white", custom: "#5a3fd8" });
 
 export const GROUND_KEY = "blueberry.ground.v1";
+
+const LOOK_CHANGED = "blueberry:look";
 
 /** The hue the "Deep blue" preset uses, degrees. */
 export const DEEP_BLUE_HUE = 225;
@@ -87,14 +88,14 @@ export function groundFor(hue: number): { readonly light: GroundStops; readonly 
   };
 }
 
-/** The hue a choice stands for, or null for lavender (which writes nothing). */
+/** The hue a choice stands for, or null for lavender and white (which write no hue). */
 export function hueForChoice(choice: GroundChoice): number | null {
   if (choice.preset === "deepblue") return DEEP_BLUE_HUE;
   if (choice.preset === "custom") return hueOf(choice.custom);
   return null;
 }
 
-/** The stylesheet text for a choice. Empty for lavender. */
+/** The stylesheet text for a choice. Empty for lavender and white. */
 export function groundCss(choice: GroundChoice): string {
   const hue = hueForChoice(choice);
   if (hue === null) return "";
@@ -125,9 +126,15 @@ function load(storage: SettingsStorage): GroundChoice {
 
 const STYLE_ID = "bb-ground-override";
 
-/** Writes (or clears) the one style element. A no-op where there is no document. */
+/**
+ * Writes (or clears) the one style element and the white look's attribute. White
+ * is more than a hue, so it lives in src/tokens.css under html[data-look="white"],
+ * which also repaints the site around the game. A no-op where there is no document.
+ */
 export function applyGround(choice: GroundChoice): void {
   if (typeof document === "undefined") return;
+  document.documentElement.toggleAttribute("data-look", false);
+  if (choice.preset === "white") document.documentElement.setAttribute("data-look", "white");
   const css = groundCss(choice);
   let el = document.getElementById(STYLE_ID);
   if (!css) {
@@ -151,6 +158,13 @@ export interface GroundSource {
 export function createGround(storage: SettingsStorage = browserStorage()): GroundSource {
   let snapshot = load(storage);
   const listeners = new Set<() => void>();
+  // The site footer's shortcuts save the same key without loading this store.
+  if (typeof window !== "undefined") {
+    window.addEventListener(LOOK_CHANGED, () => {
+      snapshot = load(storage);
+      for (const listener of listeners) listener();
+    });
+  }
   return {
     getSnapshot: () => snapshot,
     subscribe(listener) {

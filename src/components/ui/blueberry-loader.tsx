@@ -87,7 +87,8 @@ export function BlueberryLoader({ className }: { className?: string }) {
   });
 
   const [dark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
-  const ground = dark ? GROUND_DARK : GROUND_LIGHT;
+  const [white] = useState(() => typeof document !== "undefined" && document.documentElement.getAttribute("data-look") === "white");
+  const ground = dark ? GROUND_DARK : white ? "#ffffff" : GROUND_LIGHT;
   // The glass is an upgrade: decided once, after mount, so the first paint is just Bloom.
   const [glass, setGlass] = useState(false);
   useEffect(() => {

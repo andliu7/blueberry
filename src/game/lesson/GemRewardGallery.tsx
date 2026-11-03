@@ -1,4 +1,4 @@
-/** Development surface at #/app/gallery/gems?state=gems|xp|streak|chest. Lazy. */
+/** Development surface at #/app/gallery/coins?state=coins|xp|streak|chest|epic. Lazy. */
 import GemReward, { type RewardKind } from "./GemReward";
 
 export default function GemRewardGallery() {
@@ -13,7 +13,7 @@ export default function GemRewardGallery() {
       kind={kind}
       reducedMotion={still}
       gems={kind === "streak" ? 20 : 50}
-      reason="You earned 50 gems for finishing your first unit!"
+      reason="You earned 50 coins for finishing your first unit!"
       xp={23}
       accuracy={93}
       timeLabel="2:49"

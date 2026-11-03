@@ -315,7 +315,7 @@ export function FreezeSheet({ days, freezes, balance, onRefill, onClose }: Freez
       <button type="button" className="spage-sheet-scrim" aria-label="Close" onClick={onClose} />
       <div className="spage-sheet">
         <span className="spage-grabber" aria-hidden />
-        <span className="spage-sheet-balance" aria-label={`${balance} diamonds`}>
+        <span className="spage-sheet-balance" aria-label={`${balance} coins`}>
           <DiamondMark className="h-4 w-4" />
           {balance}
         </span>
@@ -453,8 +453,8 @@ export function StreakPageView(props: StreakPageViewProps) {
               model.freezes.full
                 ? "Streak freezes full"
                 : model.freezes.affordable
-                  ? `Buy a streak freeze for ${model.freezes.cost} diamonds`
-                  : `A streak freeze costs ${model.freezes.cost} diamonds. Not enough yet.`
+                  ? `Buy a streak freeze for ${model.freezes.cost} coins`
+                  : `A streak freeze costs ${model.freezes.cost} coins. Not enough yet.`
             }
           >
             {model.freezes.full ? (

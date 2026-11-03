@@ -304,11 +304,11 @@ function topUpReadout(snapshot: EconomySnapshot): TopUpReadout {
     affordable,
     label: `Fill the meter · ${cost}`,
     // Not "you can't afford it". The shortfall is a fact and the sentence that
-    // carries it also says where diamonds come from, because a student who has
+    // carries it also says where coins come from, because a student who has
     // just been stopped twice needs a route rather than a verdict.
     note: affordable
-      ? `Takes you back to ${snapshot.charge.cap}. You have ${balance} diamonds.`
-      : `You have ${balance} diamonds. Clearing nodes and flawless runs earn the rest.`,
+      ? `Takes you back to ${snapshot.charge.cap}. You have ${balance} coins.`
+      : `You have ${balance} coins. Clearing nodes and flawless runs earn the rest.`,
   };
 }
 

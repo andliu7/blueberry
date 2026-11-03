@@ -60,7 +60,7 @@ export const BIBLE_ROWS: readonly BibleRow[] = Object.freeze([
   parked("B. Answer reactions", "Panic, last 10s timed", "Timed mode only, and there is no timed mode."),
 
   row("C. Progression", "XP pop", "The Hud pop, and \"+N XP\" off Bloom on the lesson-complete screen.", { mood: "cheer", behaviour: "celebrate" }),
-  row("C. Progression", "Diamond catch", "Lesson complete and the chest: the diamond lands on Bloom's head.", { mood: "curious", behaviour: "wideEyed" }),
+  row("C. Progression", "Coin catch", "Lesson complete and the chest: the coin lands on Bloom's head.", { mood: "curious", behaviour: "wideEyed" }),
   row("C. Progression", "Lesson complete", "BeatRunner's reward slot; Continue live by 1500ms.", { mood: "cheer", behaviour: "celebrate" }),
   row("C. Progression", "Unit complete, quiz passed", "ExamEnd: proud, the trophy, 40 pieces of confetti.", { mood: "proud", behaviour: "celebrate", costume: "referee" }),
   row("C. Progression", "Level up", "The Hud's stage change, lazy; the hat joke once per stage.", { mood: "proud", behaviour: "celebrate" }),

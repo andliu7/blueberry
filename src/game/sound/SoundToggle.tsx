@@ -34,7 +34,7 @@ export function SoundToggle() {
     <button type="button" role="switch" aria-checked={on} className="me-row" onClick={toggle} data-sound-toggle>
       <span className="me-row-text">
         <span className="me-row-title">Sound</span>
-        <span className="me-row-detail">{on ? "Chimes for right answers and gems" : "Off. The game stays silent"}</span>
+        <span className="me-row-detail">{on ? "Chimes for right answers and coins" : "Off. The game stays silent"}</span>
       </span>
       <span className="me-switch" aria-hidden>
         <span className="me-switch-knob" />

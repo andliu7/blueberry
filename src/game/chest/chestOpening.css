@@ -5,76 +5,295 @@
 
 /* ------------------------------------------------------ the opening -- */
 
-/* While diamonds fly, the top bar is lifted over the opening so the counter
-   they land in is on screen (ChestOpening.tsx sets the attribute). */
-:root[data-chest-lift] [data-app-header] {
-  z-index: 75;
-}
-
+/* Just the chest (owner, 31 Oct): opaque, above every bar and rail in the app.
+   Coin gauntlet: it is a place now. A sky, far hills, and a lit ground plane the
+   chest stands on, in each look's own colours. The words stand on the foot of the
+   ground, which is dark in every look, so one white ink holds on all three. */
 .chest-open {
+  /* Night. */
+  --chest-ground: #0a0f2e;
+  --chest-sky:
+    radial-gradient(1.5px 1.5px at 12% 14%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 34% 8%, #dfe6ff, transparent),
+    radial-gradient(2px 2px at 58% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 81% 10%, #dfe6ff, transparent),
+    radial-gradient(1.5px 1.5px at 92% 26%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 22% 31%, #cdd6ff, transparent),
+    linear-gradient(180deg, #0a0f2e 0%, #1c2a5e 100%);
+  --chest-hill-far: #1a2554;
+  --chest-hill-near: #151e47;
+  --chest-land-far: #222f63;
+  --chest-land-near: #1a2553;
+  --chest-land-foot: #0c1230;
+  --chest-stripe: rgb(170 190 255 / 0.07);
+  --chest-tuft: #33478c;
+  --chest-pebble: #6a78a8;
+  --chest-pebble-low: #1a2148;
+  --chest-flower: #a9b6ec;
+  --chest-flower-mid: #ffe27a;
+  --chest-dust: 214 206 236;
+  --chest-shadow: 2 4 18;
+  --chest-rays: 255 207 72;
+  --chest-ink: #ffffff;
+  --chest-quiet: #dbe0f7;
+  --chest-gold: #ffe27a;
+  --chest-gold-shadow: rgba(40, 20, 0, 0.7);
+  --rig-w: min(20rem, 74vw, 44vh);
+  --rig-h: calc(var(--rig-w) * 1.0424);
   position: fixed;
   inset: 0;
-  z-index: 70;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  z-index: 500;
+  display: block;
   padding: 1rem;
-  background: rgba(24, 16, 60, 0.82);
+  background: var(--chest-ground);
   overflow: hidden;
-  outline: none;
 }
-.chest-open__close {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 5rem);
-  right: 1rem;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: 0 1rem;
-  border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  background: transparent;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 800;
-  cursor: pointer;
+/* The clouds look (src/tokens.css), the default: the site's own sky, over a sunlit meadow. */
+:root[data-look="white"]:not(.dark) .chest-open {
+  --chest-ground: #cfeaf6;
+  --chest-sky:
+    radial-gradient(38% 9% at 16% 14%, rgb(255 255 255 / 0.9), transparent 70%),
+    radial-gradient(30% 7% at 32% 20%, rgb(255 255 255 / 0.75), transparent 70%),
+    radial-gradient(42% 9% at 82% 9%, rgb(255 255 255 / 0.85), transparent 70%),
+    radial-gradient(28% 6% at 66% 24%, rgb(255 255 255 / 0.65), transparent 70%),
+    linear-gradient(180deg, #cfeaf6 0%, #e6f5fb 34%, #ffffff 55%);
+  --chest-hill-far: #bfe6c8;
+  --chest-hill-near: #9ddc8d;
+  --chest-land-far: #a4dd6c;
+  --chest-land-near: #5fb143;
+  --chest-land-foot: #1d5a22;
+  --chest-stripe: rgb(255 255 255 / 0.1);
+  --chest-tuft: #3f9134;
+  --chest-pebble: #d5d2c0;
+  --chest-pebble-low: #3e7a30;
+  --chest-flower: #ffffff;
+  --chest-flower-mid: #ffcc33;
+  --chest-dust: 247 236 200;
+  --chest-shadow: 18 44 12;
+  --chest-quiet: #e3f4dd;
 }
-.chest-open__close:focus-visible,
-.chest-open__chest:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 6px;
+/* The lavender look: the same place at a violet hour. */
+:root:not([data-look="white"]):not(.dark) .chest-open {
+  --chest-ground: #efe9ff;
+  --chest-sky:
+    radial-gradient(38% 9% at 18% 14%, rgb(255 255 255 / 0.8), transparent 70%),
+    radial-gradient(42% 9% at 80% 10%, rgb(255 255 255 / 0.7), transparent 70%),
+    linear-gradient(180deg, #e8e1ff 0%, #f3efff 34%, #fbf6ff 55%);
+  --chest-hill-far: #c9bcf5;
+  --chest-hill-near: #a896ec;
+  --chest-land-far: #9583e6;
+  --chest-land-near: #5f49c4;
+  --chest-land-foot: #2b1c78;
+  --chest-stripe: rgb(255 255 255 / 0.08);
+  --chest-tuft: #4a36a8;
+  --chest-pebble: #cfc8ee;
+  --chest-pebble-low: #3c2c92;
+  --chest-flower: #fff4d6;
+  --chest-flower-mid: #ffcc33;
+  --chest-dust: 236 228 255;
+  --chest-shadow: 22 10 70;
+  --chest-quiet: #e6e0ff;
 }
 
-/* The chest and Bloom beside it. Bloom stands off the chest's lower left
-   corner, outside the tap target, so it never shakes with the box. */
-.chest-open__seat {
-  position: relative;
-}
-.chest-open__bloom {
+/* ------------------------------------------------------------ the place -- */
+
+.chest-world,
+.chest-world__foot {
   position: absolute;
-  right: calc(100% - 14px);
-  bottom: 0;
-  z-index: 4;
-  line-height: 0;
+  inset: 0;
   pointer-events: none;
 }
-.chest-open__chest {
-  position: relative;
-  width: min(17rem, 62vw);
-  aspect-ratio: 120 / 104;
-  height: auto;
+.chest-world {
+  display: block;
+  background: var(--chest-sky);
+  --horizon: calc(62% - 0.295 * var(--rig-h));
+}
+.chest-world__hills {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 15vh;
+  top: calc(var(--horizon) - 15vh + 1px);
+}
+.chest-world__hill-far { fill: var(--chest-hill-far); }
+.chest-world__hill-near { fill: var(--chest-hill-near); }
+/* The ground: bright where it recedes into the light, darker toward the viewer. */
+.chest-world__ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--horizon);
+  overflow: hidden;
+  perspective: 34vh;
+  perspective-origin: 50% 0;
+  background: linear-gradient(180deg, var(--chest-land-far) 0%, var(--chest-land-near) 62%);
+}
+/* Mown squares on a real plane, so the ground visibly runs away from the viewer. */
+.chest-world__plane {
+  position: absolute;
+  left: -300%;
+  width: 700%;
+  top: 0;
+  height: 800%;
+  transform-origin: 50% 0;
+  transform: rotateX(72deg);
+  background: repeating-conic-gradient(var(--chest-stripe) 0 25%, transparent 0 50%) 50% 0 / 5.5rem 5.5rem;
+}
+.chest-world__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 34% at 50% 26%, rgb(255 255 255 / 0.14), transparent 75%),
+    radial-gradient(120% 90% at 50% 20%, transparent 55%, rgb(var(--chest-shadow) / 0.3) 100%);
+}
+/* The foot of the ground, painted over the tufts: the ground under the words is one colour. */
+.chest-world__foot {
+  --foot: 7.25rem;
+  z-index: 2;
+  background: linear-gradient(to top, var(--chest-land-foot) 0, var(--chest-land-foot) var(--foot), transparent calc(var(--foot) + 4.5rem));
+}
+/* The XP line, or the whole result in words when nothing flew (it can wrap on a phone). */
+.chest-open[data-words="line"] .chest-world__foot { --foot: 10.25rem; }
+.chest-open[data-words="tall"] .chest-world__foot { --foot: 13.25rem; }
+
+/* The rig stands the chest on the ground. Nothing on it has a transform, so the
+   ground's foot can pass between what lies on the floor and the chest. */
+.chest-open__rig {
+  position: absolute;
+  display: block;
+  left: calc(50% - var(--rig-w) / 2);
+  top: calc(62% - 0.915 * var(--rig-h));
+  width: var(--rig-w);
+  height: var(--rig-h);
+}
+.chest-floor {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.cf-tuft { fill: var(--chest-tuft); }
+.cf-pebble { fill: var(--chest-pebble); }
+.cf-pebble-shade { fill: var(--chest-pebble-low); }
+.cf-flower { fill: var(--chest-flower); }
+.cf-flower-mid { fill: var(--chest-flower-mid); }
+/* The shadow it throws away from the light, soft at the far end. */
+.chest-floor__cast {
+  fill: rgb(var(--chest-shadow));
+  fill-opacity: 0.3;
+  filter: blur(6px);
+}
+/* Gold light from the open box, lying on the ground around it. */
+.chest-open__pool {
+  position: absolute;
+  z-index: 1;
+  left: -32%;
+  right: -32%;
+  top: 56%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 214 96 / 0.72), rgb(255 190 60 / 0.3) 52%, rgb(255 190 60 / 0));
+  opacity: var(--light, 0);
+  transition: opacity 500ms var(--bb-ease-ui);
+  pointer-events: none;
+}
+/* Where the feet meet the ground: tight and nearly black, so it stands and does not float. */
+.chest-open__contact {
+  position: absolute;
+  z-index: 2;
+  left: -3%;
+  right: -7%;
+  top: 72%;
+  height: 28%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--chest-shadow) / 0.82) 0%, rgb(var(--chest-shadow) / 0.62) 58%, rgb(var(--chest-shadow) / 0));
+  transform-origin: 47% 60%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* The one control: the whole screen, drawing nothing but a focus ring. */
+.chest-open__tap {
+  position: absolute;
+  inset: 0;
+  z-index: 76;
   padding: 0;
   border: 0;
-  border-radius: 1rem;
   background: none;
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.chest-open__chest .chest-art {
+.chest-open__tap:focus {
+  outline: none;
+}
+/* Two tones, so it holds on the pale sky and on the dark foot alike. */
+.chest-open__tap:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: -10px;
+}
+.chest-open__tap:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 13px;
+  border: 3px solid #1d1d1f;
+  pointer-events: none;
+}
+.chest-open__chest {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  display: block;
+  transform-origin: 47% 91.5%;
+  will-change: transform;
+}
+.chest-model {
   position: relative;
   z-index: 3;
+  display: block;
   width: 100%;
   height: 100%;
+  overflow: visible;
+}
+/* One lid frame at a time. The lid is a real hinge: see gen-chest-model.mjs. */
+.cr-f { display: none; }
+.chest-model[data-lid="0"] .cr-f0,
+.chest-model[data-lid="1"] .cr-f1,
+.chest-model[data-lid="2"] .cr-f2,
+.chest-model[data-lid="3"] .cr-f3,
+.chest-model[data-lid="4"] .cr-f4,
+.chest-model[data-lid="5"] .cr-f5 { display: inline; }
+/* Light off the gold, lying over the walls. It breathes with --light. */
+.cr-mouth { opacity: calc(0.4 + var(--light, 0) * 0.6); transition: opacity 400ms var(--bb-ease-ui); }
+.crs-a { stop-color: #fff0a8; stop-opacity: 0.8; }
+.crs-b { stop-color: #ffb030; stop-opacity: 0.34; }
+.crs-c { stop-color: #ff9000; stop-opacity: 0; }
+/* Points of light on the gold left in the box, in and out. Elements of their own, not
+   part of the svg: animating inside it would repaint the whole chest every frame.
+   They stand still and lit under reduced motion. */
+.chest-open__star {
+  position: absolute;
+  z-index: 4;
+  width: 9%;
+  aspect-ratio: 1;
+  margin: -4.5% 0 0 -4.5%;
+  background: #ffffff;
+  clip-path: polygon(50% 0, 56% 44%, 100% 50%, 56% 56%, 50% 100%, 44% 56%, 0 50%, 44% 44%);
+  pointer-events: none;
+  animation: cr-twinkle 1900ms ease-in-out infinite;
+}
+.chest-open[data-chest-phase="tapping"] .chest-open__star { display: none; }
+.chest-open__star--a { left: 37.8%; top: 52.5%; }
+.chest-open__star--b { left: 63.5%; top: 55.2%; animation-delay: 520ms; }
+.chest-open__star--c { left: 73.7%; top: 60.8%; width: 6%; margin: -3% 0 0 -3%; animation-delay: 1100ms; }
+@keyframes cr-twinkle {
+  0%, 62%, 100% { opacity: 0; transform: scale(0.2); }
+  78% { opacity: 1; transform: scale(1); }
 }
 
 /* The light behind the box: spinning rays and a soft glow. Both grow with
@@ -82,7 +301,7 @@
 .chest-open__rays,
 .chest-open__glow {
   position: absolute;
-  left: 50%;
+  left: 48%;
   top: 50%;
   pointer-events: none;
   z-index: 1;
@@ -92,7 +311,7 @@
   width: 38rem;
   height: 38rem;
   margin: -19rem 0 0 -19rem;
-  opacity: calc(var(--light, 0) * 0.9);
+  opacity: calc(var(--light, 0) * 0.8);
   transform: scale(calc(0.3 + var(--light, 0) * 0.9));
   -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 62%);
   mask-image: radial-gradient(circle, #000 12%, transparent 62%);
@@ -119,7 +338,6 @@
 
 /* Each tap shakes harder: --a is the swing, set per tap. */
 .chest-open__chest.is-shaking {
-  transform-origin: 50% 90%;
   animation: chest-shake 460ms var(--bb-ease-ui);
 }
 @keyframes chest-shake {
@@ -129,39 +347,28 @@
   55% { transform: rotate(calc(var(--a, 4deg) * -0.7)); }
   75% { transform: rotate(calc(var(--a, 4deg) * 0.4)) scale(1.03); }
 }
-.chest-open__chest.is-burst {
-  transform-origin: 50% 100%;
-  animation: chest-squash 420ms var(--bb-ease-spring);
-}
-@keyframes chest-squash {
-  0% { transform: scale(1.12, 0.9); }
-  50% { transform: scale(0.92, 1.12) translateY(-10px); }
-  100% { transform: none; }
-}
 
+/* The words under the chest. Fixed to the foot of the screen so the chest does
+   not move when the result arrives. */
+.chest-open__words {
+  position: absolute;
+  z-index: 74;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;
+}
 .chest-open__hint {
   min-height: 1.75rem;
-  margin: 2rem 0 0;
+  margin: 1rem 0 0;
   font-family: var(--font-display);
   font-size: 1.125rem;
-  font-weight: 900;
-  color: #fff;
-}
-.chest-open__dots {
-  display: flex;
-  gap: 0.625rem;
-  margin-top: 0.625rem;
-}
-.chest-open__dots i {
-  width: 0.875rem;
-  height: 0.875rem;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  transition: background 200ms var(--bb-ease-ui), transform 200ms var(--bb-ease-spring);
-}
-.chest-open__dots i.is-on {
-  background: #ffd23f;
-  transform: scale(1.2);
+  font-weight: 800;
+  color: var(--chest-ink);
 }
 
 /* The white light that fills the screen as the lid goes. */
@@ -177,59 +384,115 @@
   background: radial-gradient(circle, #fff 0%, #fff 55%, rgba(255, 255, 255, 0) 72%);
 }
 
-/* A flying diamond. Fixed to the viewport, above the lifted top bar, so it
-   can land on the counter. */
-.chest-gem {
+/* A counted coin in flight. Fixed to the viewport, so it can land on the tally.
+   The path moves this box; the layers inside only spin. No filter anywhere in
+   here: a filter re-rasters every frame, and two dozen of these fly at once. */
+.chest-coin {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 80;
-  width: 5.5rem;
-  height: 5rem;
-  perspective: 300px;
+  width: 3rem;
+  height: 3rem;
+  perspective: 240px;
   pointer-events: none;
+  will-change: transform;
 }
-.chest-gem__bob.is-hover {
-  animation: chest-gem-bob 900ms ease-in-out infinite alternate;
+.chest-coin__tilt {
+  position: absolute;
+  inset: 0;
+  transform: rotateZ(var(--coin-tilt, 0deg));
+  transform-style: preserve-3d;
 }
-@keyframes chest-gem-bob {
-  from { transform: translateY(3px); }
-  to { transform: translateY(-7px); }
+.chest-coin__spin {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  animation: chest-coin-turn var(--coin-turn, 500ms) linear infinite var(--coin-way, normal);
 }
-.chest-gem__spin {
+/* The pieces wait, mounted and invisible, for the burst: no spinning till then. */
+.chest-open[data-chest-phase="tapping"] .chest-coin__spin {
+  animation-play-state: paused;
+}
+@keyframes chest-coin-turn {
+  from { transform: rotateY(var(--coin-from, 0deg)); }
+  to { transform: rotateY(calc(var(--coin-from, 0deg) + 360deg)); }
+}
+/* Half the coin's thickness, as a share of its box. */
+.chest-coin__face,
+.chest-coin__back {
+  position: absolute;
+  backface-visibility: hidden;
+}
+.chest-coin__face {
+  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
-  animation: chest-gem-spin 1300ms ease-in-out infinite alternate;
-  filter: drop-shadow(0 5px 0 rgba(3, 60, 110, 0.3)) drop-shadow(0 0 18px rgba(120, 210, 255, 0.9));
+  transform: translateZ(0.17rem);
 }
-@keyframes chest-gem-spin {
-  from { transform: rotateY(-42deg) rotateZ(-6deg); }
-  to { transform: rotateY(42deg) rotateZ(6deg); }
+/* The back: a plain struck blank, the drawn coin's colours. */
+.chest-coin__back {
+  inset: 3% 9%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 62% 30%, var(--coin-face-hi), var(--coin-face) 55%, var(--coin-face-lo));
+  box-shadow: inset 0 0 0 0.25rem var(--coin-rim-lo), 0 0 0 0.09rem var(--coin-line);
+  transform: rotateY(180deg) translateZ(0.17rem);
+}
+/* The edge, standing across the coin: all you see of it when it turns side on. */
+.chest-coin__rib {
+  position: absolute;
+  left: calc(50% - 0.17rem);
+  top: 4%;
+  bottom: 4%;
+  width: 0.34rem;
+  border-radius: 0.17rem;
+  background: repeating-linear-gradient(to bottom, var(--coin-edge-lit) 0 0.14rem, var(--coin-edge-deep) 0.14rem 0.26rem);
+  box-shadow: 0 0 0 0.06rem var(--coin-line);
+  transform: rotateY(90deg);
 }
 
-/* What it paid, and the way out. */
-.chest-open__result {
-  position: absolute;
-  z-index: 74;
-  left: 1rem;
-  right: 1rem;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.5rem);
-  max-width: 24rem;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 1.25rem 1rem 1rem;
-  border: 3px solid #ffd23f;
-  border-radius: 1.5rem;
-  background: #1f1559;
-  box-shadow: 0 0 40px rgba(255, 210, 63, 0.45);
-  animation: chest-result-in 420ms var(--bb-ease-spring);
+/* A loose fleck of gold in the eruption. */
+.chest-fleck {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 79;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, var(--coin-shine), var(--coin-face) 48%, var(--coin-ring));
+  pointer-events: none;
+  will-change: transform;
 }
-@keyframes chest-result-in {
-  from { opacity: 0; transform: translateY(14px); }
+/* A puff of dust where something hit the ground. */
+.chest-dust {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 78;
+  width: 3.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(var(--chest-dust) / 0.95), rgb(var(--chest-dust) / 0.5) 55%, rgb(var(--chest-dust) / 0));
+  pointer-events: none;
+  will-change: transform;
 }
+/* A star of light off gold as it hits. */
+.chest-glint {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 83;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: #ffffff;
+  clip-path: polygon(50% 0, 56% 44%, 100% 50%, 56% 56%, 50% 100%, 44% 56%, 0 50%, 44% 44%);
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* What it paid. */
 .chest-open__amount {
   margin: 0;
   text-align: center;
@@ -238,8 +501,8 @@
   font-size: 2.5rem;
   line-height: 1.1;
   font-weight: 900;
-  color: #ffe27a;
-  text-shadow: 0 3px 0 rgba(90, 50, 0, 0.6);
+  color: var(--chest-gold);
+  text-shadow: 0 3px 0 var(--chest-gold-shadow);
   animation: chest-amount-pop 650ms var(--bb-ease-spring);
 }
 @keyframes chest-amount-pop {
@@ -248,81 +511,227 @@
   100% { transform: none; }
 }
 .chest-open__detail {
-  margin: 0 0 0.75rem;
-  color: #d9d2ff;
+  margin: 0.25rem 0 0;
+  color: var(--chest-quiet);
   font-size: 0.9375rem;
   font-weight: 700;
 }
 
-/* Reduced motion: the meaning stays, the movement goes. */
-@media (prefers-reduced-motion: reduce) {
-  .chest-open__rays,
-  .chest-open__glow {
-    transition: none;
-  }
-  .chest-open__rays i,
-  .chest-open__chest.is-shaking,
-  .chest-open__chest.is-burst,
-  .chest-open__result,
-  .chest-open__amount,
-  .chest-open__beam,
-  .chest-spray .coin-art,
-  .chest-open__tally {
-    animation: none;
-  }
-}
-
-/* A coin or stone thrown out of the box. Fixed so it can fly past the card. */
+/* A coin or stone spilled out of the box, onto the floor beside it. */
 .chest-spray {
   position: fixed;
   left: 0;
   top: 0;
   z-index: 79;
-  width: 3.6rem;
-  height: 3.6rem;
-  perspective: 160px;
+  width: 2.75rem;
+  height: 2.75rem;
+  perspective: 200px;
   pointer-events: none;
-  filter: drop-shadow(0 3px 0 rgba(60, 28, 0, 0.55));
+  will-change: transform;
 }
-.chest-spray .coin-art {
-  animation: chest-coin-flip 520ms linear infinite;
+.chest-spray .stone-art {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-.chest-spray.is-landed .coin-art {
+/* At rest it lies flat on the ground: its thick edge shows, and it has a shadow. */
+.chest-spray__shade {
+  position: absolute;
+  left: -8%;
+  right: -8%;
+  bottom: 4%;
+  height: 46%;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(closest-side, rgb(var(--chest-shadow) / 0.7), rgb(var(--chest-shadow) / 0));
+}
+.chest-spray.is-landed .chest-spray__shade { opacity: 1; }
+.chest-spray.is-landed .chest-coin__tilt { transform: none; }
+.chest-spray.is-landed .chest-coin__spin {
   animation: none;
-  transform: rotateX(28deg);
+  transform: rotateX(56deg);
 }
-@keyframes chest-coin-flip {
-  to { transform: rotateY(360deg); }
+.chest-spray.is-landed .chest-coin__rib { display: none; }
+.chest-spray.is-landed .chest-coin__back {
+  inset: 0 3%;
+  background: var(--coin-edge-deep);
+  box-shadow: 0 0 0 0.06rem var(--coin-line);
+  backface-visibility: visible;
+  transform: translateZ(-0.34rem);
 }
+.chest-spray.is-landed .chest-coin__face { transform: translateZ(0.06rem); }
+.chest-spray.is-landed .stone-art { transform: translateY(14%) scale(0.86); }
+/* The shine that keeps moving over gold lying on the ground, so the end is not dead. */
+.chest-spray__shine {
+  position: absolute;
+  left: 30%;
+  top: 22%;
+  width: 62%;
+  height: 62%;
+  opacity: 0;
+  background: #ffffff;
+  clip-path: polygon(50% 0, 56% 44%, 100% 50%, 56% 56%, 50% 100%, 44% 56%, 0 50%, 44% 44%);
+  pointer-events: none;
+}
+.chest-spray.is-landed .chest-spray__shine { animation: cr-twinkle 2400ms ease-in-out infinite; }
 
-/* The running total while the loot flies: big, over the chest, popping. */
+/* The counter: the rail at the top of the screen and the coin at its end, the
+   place the stream is flying to, in the balance's own lettering. A landing adds to
+   the number and fills the rail. The digit's dark line holds it on the gold, on
+   the dark track and on any sky behind. */
 .chest-open__tally {
+  --cc-digit: #ffffff;
+  --cc-digit-line: #140a00;
   position: fixed;
   z-index: 78;
-  left: 0;
-  right: 0;
-  top: calc(env(safe-area-inset-top, 0px) + 6.5rem);
+  right: 0.875rem;
+  top: calc(env(safe-area-inset-top, 0px) + clamp(0.625rem, 2.2vh, 1.25rem));
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
+  pointer-events: none;
+}
+.chest-open__tally-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 4.75rem;
   line-height: 1;
-  font-weight: 900;
-  color: #ffe27a;
-  text-shadow: 0 5px 0 rgba(90, 50, 0, 0.7), 0 0 28px rgba(255, 214, 90, 0.9);
-  pointer-events: none;
-  animation: chest-tally-in 380ms var(--bb-ease-spring);
+  transform-origin: 85% 50%;
+}
+.chest-open__tally-rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 8.5rem;
+  height: 2.625rem;
+  margin-right: -1.5rem;
+  padding: 0 2.125rem 0 0.875rem;
+  overflow: hidden;
+  border: 0.1875rem solid #2a1500;
+  border-radius: 0.875rem;
+  background: linear-gradient(180deg, #21130a, #3e2710);
+  box-shadow: 0 0.1875rem 0 rgb(0 0 0 / 0.28);
+}
+/* The gold rising in the rail, one landing at a time. */
+.chest-open__tally-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, var(--coin-face-hi), var(--coin-face) 44%, var(--coin-ring));
+  transition: width 110ms linear;
 }
 .chest-open__tally-gem {
+  position: relative;
+  z-index: 1;
   display: block;
-  width: 4.5rem;
-  height: 4.1rem;
+  flex: none;
+  width: 3.75rem;
+  height: 3.75rem;
 }
-@keyframes chest-tally-in {
-  from { opacity: 0; transform: scale(0.5); }
+.chest-open__tally-coin {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The light a landing makes behind the coin. */
+.chest-open__tally-flash {
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(255, 246, 200, 1) 0%, rgba(255, 214, 90, 0.75) 34%, rgba(255, 214, 90, 0) 68%);
+}
+.chest-open__tally-num {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+/* The rays behind the total. They stand behind the chest, so they never wash over it. */
+.chest-open__payoff-rays {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: calc(env(safe-area-inset-top, 0px) + clamp(3.75rem, 11vh, 6.25rem) + 2.625rem);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* The total, slammed over the chest when the last coin is in. It stays. */
+.chest-open__payoff {
+  --cc-digit: var(--coin-face-lit);
+  --cc-digit-line: #140a00;
+  position: fixed;
+  z-index: 77;
+  left: 0;
+  right: 0;
+  top: calc(env(safe-area-inset-top, 0px) + clamp(3.75rem, 11vh, 6.25rem));
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  pointer-events: none;
+}
+.chest-open__payoff-num {
+  position: relative;
+  display: block;
+  flex: none;
+}
+
+/* The finish at the counter: a point at the coin that the ring and sparks leave from. */
+.chest-open__fx {
+  position: fixed;
+  z-index: 77;
+  left: 90%;
+  top: 3rem;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.chest-open__sunburst {
+  position: absolute;
+  left: -13rem;
+  top: -13rem;
+  width: 26rem;
+  height: 26rem;
+  opacity: 0;
+  -webkit-mask-image: radial-gradient(circle, #000 18%, transparent 66%);
+  mask-image: radial-gradient(circle, #000 18%, transparent 66%);
+}
+.chest-open__sunburst i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 207, 72, 0.7) 0deg 10deg, rgba(255, 207, 72, 0) 10deg 24deg);
+  animation: chest-spin 18s linear infinite;
+}
+.chest-open__ring {
+  position: absolute;
+  left: -3.5rem;
+  top: -3.5rem;
+  width: 7rem;
+  height: 7rem;
+  border: 0.4rem solid var(--coin-face-hi);
+  border-radius: 50%;
+  opacity: 0;
+}
+.chest-open__spark {
+  position: absolute;
+  left: -0.625rem;
+  top: -0.625rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  opacity: 0;
+  background: var(--coin-face-hi);
+  clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+}
+.chest-open__hint.is-continue {
+  animation: chest-hint-in 320ms var(--bb-ease-out) both;
+}
+@keyframes chest-hint-in {
+  from { opacity: 0; transform: translateY(6px); }
 }
 
 /* The beam: a column of light that shoots up out of the box as the lid goes. */
@@ -341,7 +750,8 @@
   -webkit-mask-image: linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
   mask-image: linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
 }
-.chest-open[data-chest-phase="bursting"] .chest-open__beam {
+.chest-open[data-chest-phase="bursting"] .chest-open__beam,
+.chest-open[data-chest-phase="flying"] .chest-open__beam {
   animation: chest-beam 1500ms cubic-bezier(.19, 1, .22, 1) forwards;
 }
 @keyframes chest-beam {
@@ -353,4 +763,26 @@
 .chest-open[data-chest-phase="bursting"] .chest-open__rays {
   transform: scale(1.9);
   opacity: 1;
+}
+/* The beam shoots out of the mouth, which is the middle of the drawing. */
+.chest-open__beam { bottom: 50%; left: 48%; }
+
+/* Reduced motion: the meaning stays, the movement goes. The site's own switch
+   counts as well as the OS. Last in the file, so no rule above outranks it. */
+html[data-motion="reduced"] .chest-open__rays,
+html[data-motion="reduced"] .chest-open__glow {
+  transition: none;
+}
+html[data-motion="reduced"] .chest-open *,
+html[data-motion="reduced"] .chest-coin__spin {
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chest-open__rays,
+  .chest-open__glow {
+    transition: none;
+  }
+  .chest-open * {
+    animation: none !important;
+  }
 }

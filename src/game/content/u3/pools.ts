@@ -1875,6 +1875,123 @@ export const U3_POOLS: UnitPools = {
       "provenance": "scripts/u3_pools.py: Rules 1 and 2 on 4-nitrotoluene: alkyl leads, its ortho sites are meta to the nitro group. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only.",
       "placeholder": true
     },
+    {
+      "id": "u3-dir-why-nitro",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u3-dir-why-nitro",
+          "node": "u3-directing",
+          "conceptIds": [
+            "ewg_edg_rubric"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Nitrobenzene is attacked meta. Pick the reason from the sigma complex.",
+          "correctOptionId": "worst",
+          "options": [
+            {
+              "id": "lonepair",
+              "text": "Meta attack gets an extra form from a lone pair",
+              "why": "The N in NO2 has no lone pair to give to the ring, so no attack gets an extra form from it."
+            },
+            {
+              "id": "crowd",
+              "text": "Ortho and para are too crowded by NO2",
+              "why": "Para is the furthest position from NO2, so crowding cannot be the reason. The reason is where the + can sit."
+            },
+            {
+              "id": "worst",
+              "text": "Ortho and para put the + on the NO2 carbon",
+              "why": "In an ortho or para sigma complex one form puts the + on the carbon holding NO2, next to the N+. Two positive charges side by side is the worst form. Meta attack never reaches that carbon."
+            }
+          ]
+        }
+      },
+      "explanation": "Meta attack is the only one that keeps the + off the carbon holding the withdrawer. The others are slower still, so meta wins.",
+      "provenance": "scripts/u3_pools.py: sigma complex walk on nitrobenzene: forms with the + on the NO2 carbon, ortho 1, meta 0, para 1. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u3-dir-why-fast",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u3-dir-why-fast",
+          "node": "u3-directing",
+          "conceptIds": [
+            "ewg_edg_rubric"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "Phenol reacts faster than benzene. Pick the reason in the sigma complex.",
+          "correctOptionId": "extra",
+          "options": [
+            {
+              "id": "pi",
+              "text": "Phenol has more pi electrons in the ring",
+              "why": "Both rings have six pi electrons. The O lone pair only joins in when the + needs it."
+            },
+            {
+              "id": "pull",
+              "text": "OH pulls electrons out of the ring",
+              "why": "Oxygen does pull through the sigma bond, but that alone would slow the ring. Its lone pair wins on a cation."
+            },
+            {
+              "id": "extra",
+              "text": "Para attack gets one more form, with O+",
+              "why": "When the + reaches the carbon holding OH, oxygen's lone pair gives a form with full octets. Benzene's cation has no such form, so phenol's cation is steadier and forms faster."
+            }
+          ]
+        }
+      },
+      "explanation": "A group with a lone pair on its first atom adds a form to ortho and para attack, so those cations are steadier and the ring is faster.",
+      "provenance": "scripts/u3_pools.py: sigma complex walk: phenol para 4 forms, benzene 3. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
+    {
+      "id": "u3-dir-bad-count",
+      "item": {
+        "kind": "mcq",
+        "beat": {
+          "kind": "mcq",
+          "id": "u3-dir-bad-count",
+          "node": "u3-directing",
+          "conceptIds": [
+            "ewg_edg_rubric"
+          ],
+          "levels": [
+            2
+          ],
+          "prompt": "In nitrobenzene's sigma complex, count the forms with the + beside the N+.",
+          "correctOptionId": "1-0-1",
+          "options": [
+            {
+              "id": "1-0-1",
+              "text": "Ortho 1, meta 0, para 1",
+              "why": "Ortho and para attack each have one form with the + on the NO2 carbon. From a meta sp3 carbon the + lands on the other three alternate carbons, and the NO2 carbon is not one of them."
+            },
+            {
+              "id": "1-1-0",
+              "text": "Ortho 1, meta 1, para 0",
+              "why": "Para attack reaches the NO2 carbon: the carbon straight across the ring is one of the three the + spreads to."
+            },
+            {
+              "id": "0-1-1",
+              "text": "Ortho 0, meta 1, para 1",
+              "why": "Ortho attack reaches the NO2 carbon, because the carbon next door is one of the three the + spreads to."
+            }
+          ]
+        }
+      },
+      "explanation": "One bad form for ortho, none for meta, one for para. Count the forms and the position that avoids the bad one is the position the group directs to.",
+      "provenance": "scripts/u3_pools.py: sigma complex walk on nitrobenzene: 1-0-1. OpenStax Organic Chemistry 16.4 (CC BY-NC-SA), read as a check only.",
+      "placeholder": true
+    },
     ladder({
       "id": "u3-dir-ladder-rate",
       "node": "u3-directing",
@@ -7101,6 +7218,203 @@ export const U3_VISUALS: Readonly<Record<string, McqVisual>> = {
       ]
     },
     "name": "4-nitrotoluene + Br₂, FeBr₃"
+  },
+  "u3-dir-why-nitro": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 60.0,
+          "y1": 32.2,
+          "x2": 60.0,
+          "y2": 40.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 40.4,
+          "x2": 72.4,
+          "y2": 47.6,
+          "order": 2
+        },
+        {
+          "x1": 72.4,
+          "y1": 47.6,
+          "x2": 72.4,
+          "y2": 61.8
+        },
+        {
+          "x1": 72.4,
+          "y1": 61.8,
+          "x2": 60.1,
+          "y2": 69.0,
+          "order": 2
+        },
+        {
+          "x1": 60.1,
+          "y1": 69.0,
+          "x2": 47.7,
+          "y2": 61.9
+        },
+        {
+          "x1": 47.7,
+          "y1": 61.9,
+          "x2": 47.6,
+          "y2": 47.6,
+          "order": 2
+        },
+        {
+          "x1": 47.6,
+          "y1": 47.6,
+          "x2": 60.0,
+          "y2": 40.4
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 31.2,
+          "t": "NO_2",
+          "size": 13
+        }
+      ],
+      "rings": [
+        {
+          "x": 60.0,
+          "y": 40.4,
+          "r": 7
+        }
+      ]
+    },
+    "name": "nitrobenzene"
+  },
+  "u3-dir-why-fast": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 39.2,
+          "y1": 61.0,
+          "x2": 51.3,
+          "y2": 54.0
+        },
+        {
+          "x1": 51.3,
+          "y1": 54.0,
+          "x2": 51.4,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 51.4,
+          "y1": 34.0,
+          "x2": 68.7,
+          "y2": 24.0
+        },
+        {
+          "x1": 68.7,
+          "y1": 24.0,
+          "x2": 86.0,
+          "y2": 34.0,
+          "order": 2
+        },
+        {
+          "x1": 86.0,
+          "y1": 34.0,
+          "x2": 86.0,
+          "y2": 54.0
+        },
+        {
+          "x1": 86.0,
+          "y1": 54.0,
+          "x2": 68.6,
+          "y2": 64.0,
+          "order": 2
+        },
+        {
+          "x1": 68.6,
+          "y1": 64.0,
+          "x2": 51.3,
+          "y2": 54.0
+        }
+      ],
+      "labels": [
+        {
+          "x": 34.0,
+          "y": 69.0,
+          "t": "OH",
+          "size": 13
+        }
+      ]
+    },
+    "name": "phenol"
+  },
+  "u3-dir-bad-count": {
+    "kind": "structure",
+    "figure": {
+      "bonds": [
+        {
+          "x1": 60.0,
+          "y1": 32.2,
+          "x2": 60.0,
+          "y2": 40.4
+        },
+        {
+          "x1": 60.0,
+          "y1": 40.4,
+          "x2": 72.4,
+          "y2": 47.6,
+          "order": 2
+        },
+        {
+          "x1": 72.4,
+          "y1": 47.6,
+          "x2": 72.4,
+          "y2": 61.8
+        },
+        {
+          "x1": 72.4,
+          "y1": 61.8,
+          "x2": 60.1,
+          "y2": 69.0,
+          "order": 2
+        },
+        {
+          "x1": 60.1,
+          "y1": 69.0,
+          "x2": 47.7,
+          "y2": 61.9
+        },
+        {
+          "x1": 47.7,
+          "y1": 61.9,
+          "x2": 47.6,
+          "y2": 47.6,
+          "order": 2
+        },
+        {
+          "x1": 47.6,
+          "y1": 47.6,
+          "x2": 60.0,
+          "y2": 40.4
+        }
+      ],
+      "labels": [
+        {
+          "x": 60.0,
+          "y": 31.2,
+          "t": "NO_2",
+          "size": 13
+        }
+      ],
+      "rings": [
+        {
+          "x": 60.0,
+          "y": 40.4,
+          "r": 7
+        }
+      ]
+    },
+    "name": "nitrobenzene"
   },
   "u3-blk-step2": {
     "kind": "structure",

@@ -21,8 +21,9 @@
  * secret: the UI decides who sees them, and stripe-checkout decides who pays.
  */
 
-import { CORS, PLANS, json, priceIdFor, semesterPassEnd, stripe } from "../_shared/billing.ts";
+import { CORS, PLANS, json, priceIdFor, stripe } from "../_shared/billing.ts";
 import { proCheckoutOpen } from "../_shared/checkoutGate.ts";
+import { PASS_MONTHS } from "../_shared/passLength.ts";
 
 /** One minute at the edge. Prices change roughly never; this is not a feed. */
 const CACHE = "public, max-age=60";
@@ -36,8 +37,8 @@ interface PriceRow {
   currency: string;
   /** 'month' or 'year' for a subscription, null for the pass. */
   interval: string | null;
-  /** The pass's end date, so a card can say what "a semester" means. */
-  endsOn: string | null;
+  /** How long the pass lasts, so a card can say what "a semester" means. */
+  lastsMonths: number | null;
 }
 
 Deno.serve(async (req) => {
@@ -46,16 +47,11 @@ Deno.serve(async (req) => {
   const checkoutOpen = proCheckoutOpen(Deno.env.get("PRO_CHECKOUT_OPEN"));
   if (!Deno.env.get("STRIPE_SECRET_KEY")) return json({ ok: true, prices: [], checkoutOpen });
 
-  const passEnd = semesterPassEnd();
   const rows: PriceRow[] = [];
 
   for (const plan of PLANS) {
     const id = priceIdFor(plan);
     if (!id) continue;
-    // The pass is not offered without an end date, for the reason in
-    // `semesterPassEnd`. Not listing it keeps the card and the checkout
-    // agreeing about what is for sale.
-    if (plan.kind === "pass" && !passEnd) continue;
 
     try {
       const price = await stripe.prices.retrieve(id);
@@ -67,7 +63,7 @@ Deno.serve(async (req) => {
         amount: price.unit_amount,
         currency: price.currency,
         interval: price.recurring?.interval ?? null,
-        endsOn: plan.kind === "pass" && passEnd ? passEnd.toISOString().slice(0, 10) : null,
+        lastsMonths: plan.kind === "pass" ? PASS_MONTHS : null,
       });
     } catch (err) {
       // A price id that has been archived or mistyped should take that one

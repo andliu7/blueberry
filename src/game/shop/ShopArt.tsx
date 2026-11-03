@@ -1,7 +1,7 @@
 /**
  * Shop illustrations, drawn in SVG so they stay light: a faceted ice crystal
  * for the streak freeze and a fanned stack of cards for a deck. Flat shapes,
- * a soft highlight, no photo. Colours come from theme tokens (--diamond for
+ * a soft highlight, no photo. Colours come from theme tokens (--ice for
  * ice) and a small fixed palette per deck so each deck has its own face.
  */
 

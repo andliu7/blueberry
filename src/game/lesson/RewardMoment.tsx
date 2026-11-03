@@ -120,7 +120,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { Receipt, ReceiptLine } from "@blueberry/economy";
 import { Press } from "../app/ui/Press";
-import { FlameMark } from "../app/ui/HudIcons";
+import { DiamondMark, FlameMark } from "../app/ui/HudIcons";
 import { Berry } from "../mascot/Berry";
 import type { BerryBehaviour } from "../mascot/berryBehaviour";
 import type { BerryMood } from "../mascot/berryMood";
@@ -425,47 +425,9 @@ function Confetti({ reducedMotion }: { readonly reducedMotion: boolean }) {
   );
 }
 
-/**
- * THE GEM IS A TEAL HEXAGON, and both committed images say so.
- *
- * blueberry_r6-lesson-complete and blueberry_r7-feed-v2 draw the currency as a
- * flat teal hexagon, sampled at #26bdb6 and #2eb3b0. The build drew a sky-blue
- * kite: --diamond is #0284c7, and the shape was the four-point rhombus a
- * jewellery brief would draw rather than the six-sided gem the product's own
- * art does. Two things were wrong at once, the hue and the silhouette, and the
- * silhouette is the half a reader notices first.
- *
- * THE HUE IS A LOCAL TOKEN, NOT AN EDIT TO --diamond. theme.css is the
- * integrator's file, and --diamond is also the header's gem, the Feed's band
- * wash and a confetti hue, so moving it is a product-wide change with its own
- * contrast row. This screen is a full-bleed overlay with no header under it,
- * so nothing here can disagree with a gem drawn elsewhere in the same frame.
- * The token change is REPORTED; --gem is what this surface paints with.
- *
- * IT CLEARS ITS FLOOR THE WAY THE IMAGE DRAWS IT. A bright teal face is about
- * 2.2:1 on cream and could not identify itself, so the shape carries
- * --gem-edge #0e7f7a as its boundary at 3.36:1. That is the contrast audit's
- * own "a shape is one component" rule being satisfied, not waived.
- */
+/** The coin this moment catches and counts: the header's own mark, so there is one coin. */
 function DiamondIcon({ className = "h-6 w-6" }: { readonly className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      {/* The edge on the face too, not only on the outline drawn last: the
-          outline is a separate mark, so the face alone was judged (2.1:1). */}
-      <path d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z" fill="var(--gem)" stroke="var(--gem-edge)" strokeWidth="1.3" strokeLinejoin="round" />
-      {/* The top table, lighter, and one shaded flank: the house volume cue,
-          the same device as the flask's meniscus and the visor's glint. */}
-      <path d="M12 1.6 21 6.8l-9 5.2-9-5.2z" fill="var(--gem-light)" />
-      <path d="M12 12 21 6.8v10.4z" fill="#000000" fillOpacity="0.12" />
-      <path
-        d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z"
-        fill="none"
-        stroke="var(--gem-edge)"
-        strokeWidth="1.3"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
+  return <DiamondMark className={className} />;
 }
 
 /* ------------------------------------------------------ the rounded face -- */
@@ -1025,7 +987,7 @@ export function RewardMoment({
       <DiamondIcon className="h-8 w-8" />
     </span>
   );
-  const diamondName = `Diamonds earned: ${diamondTotal}. ${receipt.diamonds
+  const diamondName = `Coins earned: ${diamondTotal}. ${receipt.diamonds
     .map((line) => `${line.label} plus ${line.amount}`)
     .join(", ")}`;
 
@@ -1045,7 +1007,7 @@ export function RewardMoment({
           +{diamondsShown}
         </span>
       </div>
-      <div className="reward-chip__caption">{diamondTotal === 1 ? "diamond" : "diamonds"}</div>
+      <div className="reward-chip__caption">{diamondTotal === 1 ? "coin" : "coins"}</div>
     </section>
   );
 
@@ -1155,7 +1117,7 @@ export function RewardMoment({
             />
             {firstDiamond && hasDiamonds && (catchStage === "held" || catchStage === "flying") ? (
               <p className="reward-reveal absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-bb-border bg-bb-card px-3 py-1 text-scale-xs font-bold uppercase tracking-[0.18em] text-diamond-ink">
-                Your first diamond
+                Your first coin
               </p>
             ) : null}
           </div>
@@ -1340,7 +1302,7 @@ export function RewardMoment({
                 >
                   +{diamondsShown}
                 </span>
-                <span aria-hidden>{diamondTotal === 1 ? "diamond" : "diamonds"}</span>
+                <span aria-hidden>{diamondTotal === 1 ? "coin" : "coins"}</span>
               </p>
             ) : null}
             {milestone !== null ? (

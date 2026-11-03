@@ -5,7 +5,9 @@
  * load and the page. Everything stays a draft.
  */
 import { U2_POOLS } from "../content/u2";
+import { U2T_POOLS } from "../content/u2tools";
+import { U2E_POOLS } from "../content/u2energy";
 import { U2_GUIDE } from "../guide/u2Guide";
 import { describeUnitGuide } from "./guideSuite";
 
-describeUnitGuide({ unitId: "u2", guide: U2_GUIDE, pools: U2_POOLS, script: "scripts/guide_u2.py", minStructures: 10 });
+describeUnitGuide({ unitId: "u2", guide: U2_GUIDE, pools: { ...U2_POOLS, ...U2T_POOLS, ...U2E_POOLS }, script: "scripts/guide_u2.py", minStructures: 10 });

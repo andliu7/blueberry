@@ -25,6 +25,7 @@ import sys
 from rdkit import Chem
 
 import u2_pools as u2
+import u2_tools_pools as tools
 from guide_kit import canon, focus, header, mol, named, pool_smiles, run, arrow
 
 POOL = pool_smiles("u2")
@@ -150,6 +151,66 @@ def build() -> dict:
     ex["u2-nomen"] = {
         "caption": "Count the ring bonds between the two groups: one is ortho (1,2), two is meta (1,3), three is para (1,4).",
         "panels": [focus(named(xylene(p), f"{p[0]}-Xylene", hi=("[CH3]-[#6]",))) for p in ("ortho", "meta", "para")],
+    }
+    # TOOLS LESSONS (29 Oct 2026, scripts/u2_tools_pools.py). Every number below is that script's own derivation.
+    acetic, chloro = "CC(=O)O", "OC(=O)CCl"
+    d_cl = tools.halogen_distance(chloro)
+    assert tools.ref(chloro) < tools.ref(acetic) and not tools.halogen_resonance_path(chloro)
+    ex["u2-induction"] = {
+        "caption": "Cl is more electronegative than carbon and pulls electron density along the sigma bonds. That steadies the carboxylate, so chloroacetic acid is the stronger acid.",
+        "panels": [
+            focus(named(acetic, "Acetic acid", "no Cl")),
+            BREAK,
+            focus(named(chloro, "Chloroacetic acid", f"Cl is {d_cl} bonds from the acid carbon, stronger", hi=("[Cl]",))),
+        ],
+    }
+
+    ethanol = "CCO"
+    pk = lambda smi: f"{tools.pka_of(smi):g}"  # noqa: E731
+    assert tools.pka_of(acetic) < tools.pka_of(ethanol)
+    ex["u2-keq-pka"] = {
+        "caption": "The lower the pKa, the stronger the acid. An equilibrium rests on the side of the weaker acid, the one with the higher pKa.",
+        "panels": [
+            focus(named(acetic, "Acetic acid", f"pKa about {pk(acetic)}, stronger")),
+            BREAK,
+            focus(named(ethanol, "Ethanol", f"pKa about {pk(ethanol)}, weaker")),
+        ],
+    }
+
+    ex["u2-energy"] = {
+        "caption": "Cold with steps that cannot be undone, the lower hump wins. Warm with steps that can, the deeper well wins. A Keq between 10 to the minus 7 and 10 to the 7 means a step runs both ways.",
+        "panels": [{"kind": "energy"}],
+    }
+
+    benz_len = tools.cc_lengths("c1ccccc1")
+    assert max(benz_len) - min(benz_len) < 0.01
+    cp = species("cp_anion")
+    assert len(tools.charge_carriers(cp)) == 5
+    ex["u2-resonance"] = {
+        "caption": "Resonance forms differ only in where the pi electrons are drawn. The real benzene is one blend, so its six C-C bonds are equal, and the cyclopentadienyl anion spreads its charge over all five carbons.",
+        "panels": [
+            focus(named(species("benzene"), "Benzene", "six equal C-C bonds")),
+            BREAK,
+            focus(mol(cp, "Cyclopentadienyl anion: charge on all 5 C")),
+        ],
+    }
+
+    anisole, nitro = "COc1ccccc1", "[O-][N+](=O)c1ccccc1"
+    assert tools.substituent_kind(anisole) == "res_donor" and tools.substituent_kind(nitro) == "res_withdrawer"
+    ex["u2-ewg-edg"] = {
+        "caption": "A lone pair next to the ring donates into it by resonance. A group with a pi bond leading out of the ring withdraws by resonance. Donors speed an electrophile's attack and withdrawers slow it.",
+        "panels": [
+            focus(named(anisole, "Anisole", "donor, ring richer", hi=("[OX2]",))),
+            BREAK,
+            focus(mol(nitro, "Nitrobenzene: withdrawer, ring poorer")),
+        ],
+    }
+
+    hba = "OC(=O)c1ccc(O)cc1"
+    assert tools.principal(hba) == "carboxylic acid"
+    ex["u2-nomen-priority"] = {
+        "caption": "When a ring has an acid and an alcohol, the acid sets the suffix and the OH becomes the prefix hydroxy. Number the ring so the lowest locants go to the rest.",
+        "panels": [focus(named(hba, "4-hydroxybenzoic acid", "acid first", hi=("[CX3](=O)[OX2H1]",)))],
     }
     return ex
 

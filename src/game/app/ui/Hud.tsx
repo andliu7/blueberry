@@ -94,7 +94,7 @@
  * `deriveEconomy`, which is the same rule the reward moment follows.
  *
  * THE MARKS ARE BORROWED PATTERN, NOT BORROWED ART. Every hue is a Blueberry
- * token (purple for the goal, sky for diamonds, orange for the streak, emerald
+ * token (purple for the goal, gold for coins, orange for the streak, emerald
  * for charge), one hue per system, so two numbers never answer the same
  * question in the same colour.
  *
@@ -180,6 +180,7 @@ import { economyOptions } from "../progress";
 import { useProgress, useReducedMotion } from "../hooks";
 import { Berry } from "../../mascot/Berry";
 import { stageChanged } from "../../mascot/progression/levelChange";
+import { CoinCounter, TreasuryShelf, treasuryNote } from "./CoinCounter";
 import { ChargeMark, DiamondMark, FlameMark, XpRing } from "./HudIcons";
 import {
   hudModel,
@@ -270,11 +271,11 @@ interface ItemProps {
  * as the hover title (audit 23 Oct, section 5 #10: a first-timer could not
  * tell the three icons apart); the row itself stays one mark and one number.
  * LIMIT: a title never shows on a phone or iPad. There the name comes from a
- * tap, which opens the sheet whose headline says it ("3 day streak", "12
- * diamonds", "Mistakes never cost charge"). A visible word on the row would break the
+ * tap, which opens the sheet whose headline says it ("3 day streak", "Your coin
+ * treasury", "Mistakes never cost charge"). A visible word on the row would break the
  * one-mark-one-number ruling above, so that is left for the owner.
  */
-const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };
+const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Coins", charge: "Charge" };
 
 /**
  * One readout. 44px minimum in both directions, pressed on pointer down.
@@ -361,51 +362,6 @@ function ChargeReading({ charge }: { readonly charge: ChargeReadout }) {
       </span>
     </>
   );
-}
-
-/**
- * A number that counts from its old value to its new one, over about 600 ms.
- *
- * Used by the diamond counter, so a chest paying out reads as the balance
- * climbing rather than as a digit swapping. The first render shows the real
- * value with no count: a counter that counted up from zero on every page load
- * would be claiming a payout that did not happen. Under reduced motion it
- * jumps straight to the new value.
- *
- * THE PATTERN: a requestAnimationFrame loop inside an effect, with the
- * cleanup cancelling the frame. That is the React way to run a short
- * animation that writes state: the effect starts it, and the cleanup stops it
- * if the value changes again mid count or the header unmounts.
- */
-const COUNT_MS = 600;
-
-function useCountUp(target: number, reducedMotion: boolean): number {
-  const [shown, setShown] = useState(target);
-  // Where the count starts: whatever is on screen right now. A ref, not
-  // state, because updating it must not cause a render of its own.
-  const shownRef = useRef(target);
-  useEffect(() => {
-    const from = shownRef.current;
-    if (from === target || reducedMotion) {
-      shownRef.current = target;
-      setShown(target);
-      return;
-    }
-    const start = performance.now();
-    let frame = 0;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / COUNT_MS);
-      // Ease out, so the last few units land slowly enough to be read.
-      const eased = 1 - (1 - t) * (1 - t) * (1 - t);
-      const value = Math.round(from + (target - from) * eased);
-      shownRef.current = value;
-      setShown(value);
-      if (t < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [target, reducedMotion]);
-  return shown;
 }
 
 /**
@@ -645,7 +601,6 @@ export function Hud() {
   const [open, setOpen] = useState<HudButtonId | null>(null);
   const [spot, setSpot] = useState<Spot | null>(null);
   const { stage, xp, diamonds, streak, charge } = model;
-  const diamondCount = useCountUp(diamonds.balance, reducedMotion);
   // Diamonds from a chest still in the air (hudTargets.ts): the counter waits for them.
   const inFlight = useSyncExternalStore(hudDiamondsHold.subscribe, hudDiamondsHold.get, hudDiamondsHold.get);
 
@@ -705,12 +660,20 @@ export function Hud() {
         </HudButton>
 
         <HudButton id="diamonds" label={diamonds.label} rank="peer" onOpen={openItem}>
-          {/* SOLID, ALWAYS. A balance has no cap, so there is no level to draw
-              and inventing one would be drawing a fraction that does not
-              exist. That is the second of the row's three differences. */}
-          <DiamondMark className="hud-mark" />
-          {/* Counts up from the old balance when it changes (useCountUp). */}
-          <span className="hud-value hud-ink-diamond">{inFlight === null ? diamondCount : diamonds.balance - inFlight}</span>
+          {/* THE ONE CELL WITH A GROUND, coin gauntlet, Nov 2026. Rounds five and
+              six ruled every cell bare; the owner's coin brief asks for a stored
+              treasury in this cell, so the rail lives on a child (the cell itself
+              stays bare) and the coin stays in the shared mark box. A balance has
+              no cap, so the coin is solid and how much is stored is the pile.
+              CoinCounter.tsx carries the rest. */}
+          <CoinCounter
+            value={inFlight === null ? diamonds.balance : diamonds.balance - inFlight}
+            reducedMotion={reducedMotion}
+            remember
+            pile
+            instant={inFlight !== null}
+            mark={<DiamondMark heavy className="hud-mark" />}
+          />
         </HudButton>
 
         <HudButton id="charge" label={charge.label} rank="peer" onOpen={openItem}>
@@ -813,7 +776,7 @@ function HudSheet({
                 onClick={onClose}
                 className={`${pressClassName({ variant: "secondary", block: true })} mt-1`}
               >
-                Spend diamonds in the shop
+                Spend coins in the shop
               </a>
             ) : null}
             <Press block onClick={onClose} className="mt-1">
@@ -900,10 +863,10 @@ function WeekStrip({
  *
  * Charge draws Bloom at 76px over the pip row: at that size the halo's
  * thickness is legible as a meter gaining and losing weight, which is what
- * makes it a reading rather than a decoration. Diamonds has no unit row and
- * that is honest rather than lazy: the balance has no cap, so there is no row
- * of units to draw, and inventing one would be drawing a fraction that does not
- * exist.
+ * makes it a reading rather than a decoration. Coins have no unit row, because
+ * the balance has no cap and a row would be drawing a fraction that does not
+ * exist: they draw what has been stored instead, stacks on a shelf above the
+ * balance (CoinCounter.tsx).
  */
 function HudSheetStrip({
   model,
@@ -918,10 +881,15 @@ function HudSheetStrip({
     case "diamonds":
       return (
         <span className="hud-panel-mark">
-          <DiamondMark className="h-14 w-14" />
-          <span className="text-scale-2xl font-bold leading-none tabular-nums text-diamond-ink">
-            {model.diamonds.value}
-          </span>
+          <TreasuryShelf balance={model.diamonds.balance} />
+          <CoinCounter
+            value={model.diamonds.balance}
+            reducedMotion={reducedMotion}
+            size="hero"
+            mark={<DiamondMark heavy className="h-full w-full" />}
+          />
+          {/* What the rail's gold is drawing, in words. */}
+          <span className="hud-week-goal treasury-note">{treasuryNote(model.diamonds.balance)}</span>
         </span>
       );
     case "streak":

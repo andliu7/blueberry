@@ -40,7 +40,8 @@
  */
 
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { TOOL_TABS, hrefForTab, type ToolId } from "../routes";
+import { ALL_TABS, hrefForTab, type ToolId } from "../routes";
+import { useVisibleTools } from "./toolAccess";
 import { TabIcon } from "./TabIcon";
 import { TabSkeleton } from "./Skeleton";
 import "./tools.css";
@@ -49,6 +50,7 @@ import { closeOnBackdrop } from "./dismiss";
 const PeriodicTab = lazy(() => import("../../tabs/periodic/PeriodicTab"));
 const SearchTab = lazy(() => import("../../tabs/search/SearchTab"));
 const FocusTab = lazy(() => import("../../tabs/focus/FocusTab"));
+const SpectraTab = lazy(() => import("../../tabs/spectra/SpectraTab"));
 
 /**
  * The two buttons. `size` is "regular" in the shell header and "compact" in a
@@ -62,9 +64,10 @@ function ToolButtons({
   readonly onOpen: (tool: ToolId) => void;
   readonly className?: string;
 }) {
+  const tools = useVisibleTools();
   return (
     <div className={`flex shrink-0 items-center gap-1.5 ${className}`} role="group" aria-label="Tools">
-      {TOOL_TABS.map((tool) => (
+      {tools.map((tool) => (
         <button
           key={tool.id}
           type="button"
@@ -103,7 +106,7 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
     if (tool === null && dialog.open) dialog.close();
   }, [tool]);
 
-  const definition = tool === null ? undefined : TOOL_TABS.find((entry) => entry.id === tool);
+  const definition = tool === null ? undefined : ALL_TABS.find((entry) => entry.id === tool);
 
   return (
     <dialog
@@ -139,7 +142,7 @@ export function ToolSheet({ tool, onClose }: { readonly tool: ToolId | null; rea
           </div>
           <div className="tool-body">
             <Suspense fallback={<TabSkeleton label={definition.label} />}>
-              {tool === "periodic" ? <PeriodicTab selected={null} /> : tool === "focus" ? <FocusTab /> : <SearchTab query="" />}
+              {tool === "periodic" ? <PeriodicTab selected={null} /> : tool === "focus" ? <FocusTab /> : tool === "spectra" ? <SpectraTab /> : <SearchTab query="" />}
             </Suspense>
           </div>
         </div>

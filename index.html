@@ -35,15 +35,30 @@
       // would show a flash of the light theme on every load for dark users.
       (function () {
         try {
-          // Dark unless the visitor has explicitly chosen light before. The OS
-          // preference is deliberately not consulted, so the first impression is
-          // the same for everyone.
+          // Light unless the visitor has explicitly chosen dark before (owner, 1 Nov:
+          // clouds is the default). The OS preference is deliberately not consulted,
+          // so the first impression is the same for everyone.
+          document.documentElement.setAttribute('data-look', 'white');
           var saved = localStorage.getItem('theme');
-          document.documentElement.classList.toggle('dark', saved !== 'light');
+          document.documentElement.classList.toggle('dark', saved === 'dark');
           // The entry gate's second setting, applied here for the same reason
           // as the first: a framed visitor should never see one unframed paint.
           if (localStorage.getItem('device-frame') === 'on') {
             document.documentElement.setAttribute('data-device-frame', '');
+          }
+          // The clouds look (tokens.css) is the default. Settings, the footer or a link
+          // change it: ?look=white, ?look=lavender and ?look=dark save the choice.
+          var key = 'blueberry.ground.v1';
+          var look = /[?&]look=(white|lavender|dark)\b/.exec(location.search);
+          if (look) {
+            if (look[1] !== 'dark') localStorage.setItem(key, JSON.stringify({ preset: look[1], custom: '#5a3fd8' }));
+            localStorage.setItem('theme', look[1] === 'dark' ? 'dark' : 'light');
+            document.documentElement.classList.toggle('dark', look[1] === 'dark');
+          }
+          if (((JSON.parse(localStorage.getItem(key)) || {}).preset || 'white') !== 'white') {
+            document.documentElement.removeAttribute('data-look');
+          } else if (!document.documentElement.classList.contains('dark')) {
+            document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = '#cfeaf6'; });
           }
         } catch (e) {}
         // The game's front door (#boot, in the body) is shown on the way into
@@ -81,6 +96,7 @@
         --boot-ink: #5a3fd8; --boot-lip: #cfc4fb; --boot-name: #4a3f7a; --boot-floor: rgb(58 38 160 / 0.32); }
       .dark { --boot-top: #1d1747; --boot-bottom: #0f1830; --boot-glow: rgba(109, 90, 224, 0.28);
         --boot-ink: #ece8ff; --boot-lip: #3a2b9a; --boot-name: #b9b0e8; --boot-floor: rgb(150 128 255 / 0.34); }
+      :root[data-look="white"]:not(.dark) { --boot-top: #cfeaf6; --boot-bottom: #fff; --boot-glow: rgb(255 255 255 / 0.8); --boot-name: #1d1d1f; }
       #boot { display: none; }
       html[data-boot] #boot {
         position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; overflow: hidden;

@@ -16,6 +16,8 @@ import { dueTodayCount } from "../../cards/scheduler";
 import { isSuspended } from "../../cards/types";
 import { PATHWAY_UNITS, pathwayNode } from "../../demo/pathwayMap";
 import { deriveMapPathway } from "../pathway/pathwayState";
+import { clearedIdsOf } from "../pathway/sectionStarts";
+import { useSyllabusMap } from "../../syllabus/useSyllabusMap";
 import { reminderSettings, type NudgeInput } from "../messages/messagesModel";
 
 export function useStudyState() {
@@ -24,11 +26,15 @@ export function useStudyState() {
   const { name } = useDisplayName();
   const deckSnapshot = useDeckSnapshot(decks);
   const now = Date.now();
-  // useMemo: only re-derive the path when the journal changes, not per keystroke.
-  const nextLessonId = useMemo(
-    () => (snapshot.course === "orgo_2" ? deriveMapPathway(PATHWAY_UNITS, snapshot.journal).currentNodeId : null),
-    [snapshot.course, snapshot.journal],
-  );
+  const syllabus = useSyllabusMap();
+  // useMemo: only re-derive the path when the journal or the syllabus changes, not per keystroke.
+  // The student's syllabus moves START here as it does on the map (STATUS C1, syllabus/syllabusStart.ts).
+  const nextLessonId = useMemo(() => {
+    if (snapshot.course !== "orgo_2") return null;
+    const status = deriveMapPathway(PATHWAY_UNITS, snapshot.journal);
+    if (syllabus === null) return status.currentNodeId;
+    return syllabus.map.withSyllabusStart(PATHWAY_UNITS, { status, gatedBy: new Map() }, syllabus.plan, clearedIdsOf(snapshot.journal)).status.currentNodeId;
+  }, [snapshot.course, snapshot.journal, syllabus]);
   const nextLesson = nextLessonId === null ? null : (pathwayNode(nextLessonId)?.title ?? null);
   const cardsDue = useMemo(
     () => dueTodayCount(Object.values(deckSnapshot.review).filter((state) => !isSuspended(state)), new Date()),

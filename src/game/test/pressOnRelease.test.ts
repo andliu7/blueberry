@@ -50,6 +50,7 @@ const ALLOWED: Readonly<Record<string, number>> = {
   "beats/trace/GuidedCanvas.tsx": 1, // drawing
   "beats/trace/ScratchpadCanvas.tsx": 1, // drawing
   "cards/ui/Run.tsx": 1, // swipe to grade
+  "tabs/spectra/SpectraTab.tsx": 2, // drag a range on the spectrum, drag or calibrate on the student image
   "tabs/trainer/engine/TrainerCanvas.tsx": 1, // arrow drawing
   "tabs/trainer/engine/StepStrip.tsx": 1, // scrub
   "lesson/RewardMoment.tsx": 1, // tap anywhere skips the animation

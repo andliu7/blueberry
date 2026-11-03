@@ -23,13 +23,14 @@ import { TabSkeleton } from "./app/ui/Skeleton";
 import { BootReady, Loader } from "./app/Loader";
 import { reviewCheckpointFor } from "./tabs/pathway/reviewCheckpoints";
 import { progress } from "./app/progress";
-import { paceForNode } from "./beats/pace";
+import { adviceForNode } from "./beats/difficulty";
 import { claimAppOpenGifts, watchEarnedChests } from "./chest/chestFlow";
 import { isLocalHost } from "@/lib/appGate";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "./admin/staff";
 import { AdminSignIn } from "./admin/AdminSignIn";
 import { getSupabase } from "@/lib/supabase";
+import { AssessmentScope } from "./app/ui/toolAccess";
 
 const Onboarding = lazy(() => import("./onboarding/Onboarding"));
 const BeatRunner = lazy(() => import("./beats/BeatRunner").then((m) => ({ default: m.BeatRunner })));
@@ -93,7 +94,7 @@ const StreakGallery = lazy(() => import("./lesson/StreakGallery"));
 const StartPopGallery = lazy(() => import("./charge/StartPopGallery"));
 const ElixirGallery = lazy(() => import("./elixir/ElixirGallery"));
 
-/** The gem and XP reward screens, at #/app/gallery/gems?state=xp. Development only, lazy. */
+/** The coin and XP reward screens, at #/app/gallery/coins?state=xp. Development only, lazy. */
 const GemRewardGallery = lazy(() => import("./lesson/GemRewardGallery"));
 const ChestGallery = lazy(() => import("./chest/ChestGallery"));
 
@@ -221,7 +222,8 @@ function Body({
         </Suspense>
       );
     }
-    if (route.name === "gems") {
+    // "gems" is the old address, kept so links already handed out still land here.
+    if (route.name === "coins" || route.name === "gems") {
       return (
         <Suspense fallback={<TabSkeleton label="the reward screens" />}>
           <BootReady />
@@ -269,7 +271,9 @@ function Body({
     return (
       <Suspense fallback={<TabSkeleton label="the test-out" />}>
         <BootReady />
-        <TestOutRun key={route.node} id={route.node} reducedMotion={reducedMotion} onExit={() => navigate(hrefForTab("pathway"))} />
+        <AssessmentScope>
+          <TestOutRun key={route.node} id={route.node} reducedMotion={reducedMotion} onExit={() => navigate(hrefForTab("pathway"))} />
+        </AssessmentScope>
       </Suspense>
     );
   }
@@ -282,6 +286,7 @@ function Body({
         {/* Keyed on node AND mode: a key change makes React throw the old
             runner away and mount a fresh one, so a Practice run can never
             carry its progress into a Challenge on the same node. */}
+        <AssessmentScope active={challenge}>
         <LessonLeave
           node={route.node}
           saves={!challenge}
@@ -294,12 +299,13 @@ function Body({
               node={route.node}
               challenge={challenge}
               // The unit's pace from the real journal (beats/pace.ts). A Challenge plays the authored lesson.
-              pace={challenge ? 0 : paceForNode(progress.storedJournal(), route.node)}
+              pace={challenge ? 0 : adviceForNode(progress.storedJournal(), route.node).pace}
               reducedMotion={reducedMotion}
               onExit={exit}
             />
           )}
         </LessonLeave>
+        </AssessmentScope>
       </Suspense>
     );
   }

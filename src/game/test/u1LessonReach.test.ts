@@ -53,7 +53,7 @@ describe("the meet step plays the L0 questions before anything is graded", () =>
 describe("the four trainer nodes open their lesson from the map", () => {
   const FOUR = {
     "u1-allylic": ["meet", "resonance"],
-    "u1-12v14": ["meet", "mechanism"],
+    "u1-12v14": ["meet", "mcq", "mechanism"],
     "u1-x2": ["meet", "mcq", "mechanism"],
     "u1-da": ["mcq", "mechanism"],
   } as const;

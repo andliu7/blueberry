@@ -221,24 +221,105 @@
     color-mix(in srgb, var(--bb-primary-ink) 45%, transparent);
 }
 
-/* radical: not a ring at all. One unpaired electron, sitting above the seam
-   between the two halves. */
+/* radical: not a ring and not a pair. ONE unpaired electron on ONE whole berry
+   (single-headed fishhook semantics: a half-arrow, one electron). The dot sits
+   off-centre at the upper right so it can never pair with a second dot at the
+   same height, and it shimmers (opacity and scale on an irregular, short loop)
+   instead of bobbing. The berry itself never cleaves; its jitter comes from
+   jitterPx in berryState.ts. */
 .berry-origin[data-halo="unpaired"] .berry-halo {
-  left: 44.5%;
-  top: 9%;
-  width: 11%;
-  height: 11%;
+  left: 68.5%;
+  top: 5.5%;
+  width: 15%;
+  height: 15%;
   background: var(--warn-ink-strong);
-  box-shadow: 0 0 calc(var(--berry-size, 96px) * 0.09) var(--warn-ink-strong);
-  animation: berry-unpaired 1600ms ease-in-out infinite;
+  box-shadow:
+    0 0 calc(var(--berry-size, 96px) * 0.1) var(--warn-ink-strong);
+  animation: berry-unpaired 1100ms ease-in-out infinite;
 }
 @keyframes berry-unpaired {
   0%,
   100% {
-    transform: translateY(0) scale(1);
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
   }
-  50% {
-    transform: translateY(-12%) scale(1.18);
+  22% {
+    opacity: 0.6;
+    transform: translate(8%, -9%) scale(0.85);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(-7%, 5%) scale(1.15);
+  }
+  68% {
+    opacity: 0.72;
+    transform: translate(5%, 8%) scale(0.9);
+  }
+  85% {
+    opacity: 1;
+    transform: translate(-5%, -6%) scale(1.1);
+  }
+}
+
+/* The fishhook: a curved arrow with ONE barb, drawn from the dot. A full
+   arrowhead moves an electron pair; a half head moves one electron. It draws,
+   holds and fades on its own loop so the lesson reads: this single dot goes. */
+.berry-fishhook {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--warn-ink-strong);
+}
+.berry-fishhook path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.berry-fishhook .berry-fishhook-arc {
+  stroke-dasharray: 60;
+  animation: berry-fishhook 1800ms ease-in-out infinite;
+}
+.berry-fishhook .berry-fishhook-target {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-dasharray: 3 3;
+  animation: berry-fishhook-barb 1800ms ease-in-out infinite;
+}
+.berry-fishhook .berry-fishhook-barb {
+  animation: berry-fishhook-barb 1800ms ease-in-out infinite;
+}
+@keyframes berry-fishhook {
+  0% {
+    stroke-dashoffset: 60;
+    opacity: 1;
+  }
+  45%,
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes berry-fishhook-barb {
+  0%,
+  40% {
+    opacity: 0;
+  }
+  55%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 
@@ -456,6 +537,9 @@
   .berry-origin[data-ghosts="2"] .berry-face,
   .berry-origin[data-ghosts="2"] .berry-ghost,
   .berry-origin[data-halo="unpaired"] .berry-halo,
+  .berry-fishhook .berry-fishhook-target,
+  .berry-fishhook .berry-fishhook-arc,
+  .berry-fishhook .berry-fishhook-barb,
   .berry-half--l,
   .berry-half--r,
   .berry-spark,
@@ -469,13 +553,7 @@
   .berry-origin[data-ghosts="2"] .berry-ghost {
     opacity: 0.5;
   }
-  /* Radical: the halves stay apart. */
-  .berry-half--l {
-    transform: translateX(-5%) rotate(-2.5deg);
-  }
-  .berry-half--r {
-    transform: translateX(5%) rotate(2.5deg);
-  }
+  /* Radical: one whole berry, one steady dot, the hook fully drawn. */
   /* Carbocation and charred: one frame of each, mid flight and visible. */
   .berry-spark {
     opacity: 1;

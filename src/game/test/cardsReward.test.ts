@@ -94,7 +94,7 @@ describe("what the summary says when a run pays nothing", () => {
 
   it("states the rule, and that only due cards count, after a short run", () => {
     const line = rewardLine(2, 0);
-    expect(line).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds`);
+    expect(line).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} coins`);
     expect(line).toContain("due");
   });
 
@@ -106,7 +106,7 @@ describe("what the summary says when a run pays nothing", () => {
     const html = renderToStaticMarkup(
       createElement(Run, { cards: [], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
     );
-    expect(html).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds`);
+    expect(html).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} coins`);
   });
 });
 

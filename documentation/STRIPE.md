@@ -26,7 +26,7 @@ Three plans, keyed by name and not by price id, because a price id changes when
 a price is archived and re-made:
 
 - `pro_monthly` and `pro_yearly`: subscriptions
-- `semester_pass`: one payment, runs out on a date you set
+- `semester_pass`: one payment, runs out 6 months after purchase
 
 The panel has a card for `pro_monthly` and one for `semester_pass`. `pro_yearly`
 is a key the functions accept, not a third card, so creating that price alone
@@ -41,11 +41,11 @@ nothing, and a card that cannot say what it costs is not shown. In their place
 is one card that says the paid tiers are being built and names no price. Create
 a product and its real card appears, with a number on it, with no code change.
 
-**The semester pass has no default length and will not invent one.** It is sold
-only while `SEMESTER_PASS_ENDS_ON` is a future date. Unset or past, the pass is
-absent from the price list and checkout refuses it with a message; the
-subscriptions carry on. A guessed end date is a promise the site made up, and
-the way it fails is a student losing access they paid for.
+**The semester pass lasts 6 months from purchase** (owner, 1 Nov 2026; this
+replaced `SEMESTER_PASS_ENDS_ON`, which is no longer read). The webhook works out
+the end date from when Stripe recorded the purchase. When it passes, Pro stops
+and the account stays. The length is `PASS_MONTHS` in
+`supabase/functions/_shared/passLength.ts`.
 
 **Access is never decided in the browser.** `useEntitlements` tells the UI which
 button to draw. When you build something Pro actually unlocks, that feature
@@ -66,17 +66,10 @@ prices. Pick your own numbers.
 Copy the three price ids. They look like `price_1Q...` and they are on the
 **price** row, not the product row. A `prod_...` is not what you want.
 
-## Step 2: push the migration
+## Step 2: the billing tables
 
-From `grignard-app-source`. Dry run first so you see what it will do:
-
-```powershell
-npx supabase db push --dry-run
-npx supabase db push
-```
-
-It should report the one migration `20260907120000_billing`. Everything before
-it is already applied.
+Already live. **Do not run `npx supabase db push`:** the live migration history
+was re-stamped on 27-28 Oct, so a push would try to replay old migrations.
 
 ## Step 3: deploy the four functions
 
@@ -103,11 +96,11 @@ came out `true`, Stripe gets a 401 on every delivery and nothing works.
 
 ## Step 4: give the functions their secrets
 
-One command, all six, from `grignard-app-source`. **Run this yourself** and do
+One command, all five, from `grignard-app-source`. **Run this yourself** and do
 not paste the result anywhere:
 
 ```powershell
-npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_PRO_MONTHLY=price_... STRIPE_PRICE_PRO_YEARLY=price_... STRIPE_PRICE_SEMESTER_PASS=price_... SEMESTER_PASS_ENDS_ON=2026-12-20 SITE_URL=https://andliu7.github.io/blueberry
+npx supabase secrets set STRIPE_SECRET_KEY=sk_test_... STRIPE_PRICE_PRO_MONTHLY=price_... STRIPE_PRICE_PRO_YEARLY=price_... STRIPE_PRICE_SEMESTER_PASS=price_... SITE_URL=https://andliu7.github.io/blueberry
 ```
 
 `STRIPE_WEBHOOK_SECRET` comes from step 5 and is set there.
@@ -130,6 +123,10 @@ like a linking problem when it is a directory problem.
 
 Dashboard, test mode, Developers > Webhooks > Add endpoint.
 
+- **Scope:** Your account
+- **Payload style:** Snapshot. The webhook reads the whole object off the event,
+  and a thin event would not carry it
+- **API version:** `2026-08-26.dahlia`, the one the pinned SDK sends
 - **URL:** `https://kwoqzfvssoxxuvlzzhrp.supabase.co/functions/v1/stripe-webhook`
 - **Events:** `checkout.session.completed`, `customer.subscription.created`,
   `customer.subscription.updated`, `customer.subscription.deleted`

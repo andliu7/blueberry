@@ -25,6 +25,8 @@ import type { BloomLook } from "./BloomVerdictBerry";
 
 const SortBeatView = lazy(() => import("./sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
 const MatchBoardFromSpec = lazy(() => import("./match/MatchBoard").then((m) => ({ default: m.Board })));
+const NmrProductQuestion = lazy(() => import("../tabs/spectra/NmrProductQuestion").then((m) => ({ default: m.NmrProductQuestion })));
+const KeqTypedQuestion = lazy(() => import("../energy/KeqTypedQuestion").then((m) => ({ default: m.KeqTypedQuestion })));
 const DrawBeatView = lazy(() => import("./draw/DrawBeatView").then((m) => ({ default: m.DrawBeatView })));
 
 /** The first failable rung an item allows, so a miss counts; its first rung otherwise. */
@@ -94,6 +96,10 @@ export function PoolItemsStep({ entries, onDone, resume = null, onCommit, bloomL
       {item.kind === "draw" ? (
         <DrawBeatView key={entry.id} beat={item.beat} level={poolItemLevel(item.beat.levels)} onResult={keep} onContinue={next} />
       ) : null}
+      {item.kind === "keqTyped" ? (
+        <KeqTypedQuestion key={entry.id} question={item.question} level={poolItemLevel([2])} onResult={keep} onContinue={next} />
+      ) : null}
+      {item.kind === "nmrProduct" ? <NmrProductQuestion key={entry.id} question={item.question} level={1} onResult={keep} onContinue={next} /> : null}
     </Suspense>
   );
 }

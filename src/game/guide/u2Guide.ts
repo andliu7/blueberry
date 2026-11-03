@@ -16,6 +16,138 @@ import { U2_GUIDE_EXAMPLES } from "./u2Guide.figures";
 
 const STAGES: readonly GuideStage[] = [
   {
+    id: "t",
+    label: "Stage 0",
+    title: "Three tools before the rings",
+    optional: false,
+    checkpoint: null,
+    lessons: [
+      {
+        node: "u2-induction",
+        ideas: [
+          {
+            text: "Electronegative atoms pull shared electrons toward themselves, and that pull passes along the sigma bonds. This is induction.",
+            mark: "passes along the sigma bonds",
+            source: "u2t-ind-meet-bond",
+            quote: "Induction is that pull passed along a chain of sigma bonds.",
+          },
+          {
+            text: "Induction fades with each bond it passes through, so the closer the Cl, the stronger the acid.",
+            source: "u2t-ind-distance",
+            quote: "Induction fades with each bond it passes through.",
+          },
+          {
+            text: "At the same distance, each extra electronegative atom adds to the pull.",
+            source: "u2t-ind-count",
+            quote: "At the same distance, each extra electronegative atom adds to the pull.",
+          },
+          {
+            text: "Induction works on bases too: a withdrawing atom close to N makes the amine a weaker base.",
+            source: "u2t-ind-amine",
+            quote: "Induction works on bases too.",
+          },
+        ],
+        example: { source: "u2t-ind-meet-why", quote: "Cl is electronegative and pulls electron density along the sigma bonds." },
+      },
+      {
+        node: "u2-keq-pka",
+        ideas: [
+          {
+            text: "A higher pKa means a weaker acid, and the equilibrium rests on the side of the weaker acid.",
+            mark: "A higher pKa means a weaker acid",
+            source: "u2t-keq-meet-weaker",
+            quote: "A higher pKa means a weaker acid, and a weaker acid holds its proton more tightly",
+          },
+          {
+            text: "Check the acid formed: if it is the weaker one, the products win.",
+            source: "u2t-keq-ethoxide-phenol",
+            quote: "The acid formed is the weaker one.",
+          },
+          {
+            text: "A base wins only when its conjugate acid is weaker than the acid it meets.",
+            source: "u2t-keq-alkyne-base",
+            quote: "A base wins when its conjugate acid is weaker than the acid it meets.",
+          },
+        ],
+        example: { source: "u2t-keq-meet-weaker", quote: "A higher pKa means a weaker acid" },
+      },
+      {
+        node: "u2-energy",
+        ideas: [
+          {
+            text: "A step with a Keq inside the window, 10 to the minus 7 up to 10 to the 7, runs both ways, so some product turns back into reactant.",
+            mark: "runs both ways",
+            source: "u2e-meet-window",
+            quote: "so the step runs both ways",
+          },
+          {
+            text: "A reversible step can lead to a dead end. The reaction goes back and tries again.",
+            source: "u2e-meet-deadend",
+            quote: "A reversible step can lead to a dead end.",
+          },
+          {
+            text: "Once an irreversible step is taken, the reaction follows that path down the energy graph.",
+            source: "u2e-first-door",
+            quote: "the reaction follows that path down the energy graph",
+          },
+          {
+            text: "Cold and irreversible, the lower hump wins. Warm and reversible, the deeper well wins.",
+            source: "u2e-kinetic-cold",
+            quote: "Cold and irreversible: the product over the lower hump (kinetic) wins.",
+          },
+        ],
+        example: { source: "u2e-kinetic-cold", quote: "Cold and irreversible: the product over the lower hump (kinetic) wins." },
+      },
+      {
+        node: "u2-resonance",
+        ideas: [
+          {
+            text: "Resonance forms differ only in where the pi electrons are drawn. The real molecule is one blend, so benzene's six C-C bonds are equal.",
+            mark: "one blend",
+            source: "u2t-res-meet-lengths",
+            quote: "Resonance forms differ only in where the pi electrons are drawn.",
+          },
+          {
+            text: "In a ring of p orbitals a charge runs all the way round and is shared equally.",
+            source: "u2t-res-meet-cp",
+            quote: "In a ring of five p orbitals it runs all the way round",
+          },
+          {
+            text: "Acidity follows the conjugate base: the more the base spreads its charge, the stronger the acid.",
+            source: "u2t-res-cp-acid",
+            quote: "Acidity follows the conjugate base.",
+          },
+          {
+            text: "Equal bond lengths are the sign of true delocalisation.",
+            source: "u2t-res-lengths-cot",
+            quote: "Equal bond lengths are the sign of true delocalisation.",
+          },
+        ],
+        example: { source: "u2t-res-meet-lengths", quote: "all six benzene C-C bonds are equal" },
+      },
+    ],
+    mistakes: [
+      {
+        mistake: "Thinking a far-off Cl helps as much as a near one.",
+        fix: "Count the bonds. The pull fades with each one.",
+        source: "u2t-ind-distance",
+        quote: "Induction fades with each bond it passes through.",
+      },
+      {
+        mistake: "Reading the pKa gap the wrong way round.",
+        fix: "A higher pKa is the weaker acid, and the equilibrium rests there.",
+        source: "u2t-keq-meet-weaker",
+        quote: "A higher pKa means a weaker acid",
+      },
+      {
+        mistake: "Picturing benzene flipping between two drawings.",
+        fix: "It is one blend, with six equal bonds.",
+        source: "u2t-res-meet-lengths",
+        quote: "The real molecule is one blend",
+      },
+    ],
+  },
+  {
     id: "a",
     label: "Stage A",
     title: "The four tests",
@@ -161,6 +293,33 @@ const STAGES: readonly GuideStage[] = [
         example: { source: "u2-het-meet-contrast", quote: "Yes (pyridine): it gives 1 and the pair sits out." },
       },
       {
+        node: "u2-ewg-edg",
+        ideas: [
+          {
+            text: "A lone pair next to a ring can donate into it by resonance. That is the pattern of OH, OR and NR2.",
+            mark: "donate into it by resonance",
+            source: "u2t-ewg-meet-anisole",
+            quote: "A lone pair next to a ring can donate into it by resonance.",
+          },
+          {
+            text: "A group that pulls through the pi system withdraws by resonance and leaves ortho and para electron poor.",
+            source: "u2t-ewg-meet-nitro",
+            quote: "A group that pulls through the pi system withdraws by resonance",
+          },
+          {
+            text: "A group on an sp3 carbon cannot reach the pi system, so it works by induction alone.",
+            source: "u2t-ewg-cf3",
+            quote: "A group on an sp3 carbon cannot reach the pi system, so it works by induction alone.",
+          },
+          {
+            text: "A donor raises the ring's density and speeds the reaction. A withdrawer slows it.",
+            source: "u2t-ewg-eas",
+            quote: "A donor raises the ring's density and speeds the reaction",
+          },
+        ],
+        example: { source: "u2t-ewg-meet-anisole", quote: "A lone pair next to a ring can donate into it by resonance." },
+      },
+      {
         node: "u2-nmr",
         ideas: [
           {
@@ -276,6 +435,28 @@ const STAGES: readonly GuideStage[] = [
         ],
         example: { source: "u2-nom-meta", quote: "Count the ring bonds between the two groups: one is ortho, two is meta, three is para." },
       },
+      {
+        node: "u2-nomen-priority",
+        ideas: [
+          {
+            text: "Groups are ranked and the highest takes the suffix: acid, ester, amide, nitrile, aldehyde, ketone, alcohol, amine.",
+            mark: "the highest takes the suffix",
+            source: "u2t-np-acid",
+            quote: "Groups are ranked, and the highest takes the suffix.",
+          },
+          {
+            text: "Go whichever way round the ring gives the lowest set of locants: 2,4 beats 4,6.",
+            source: "u2t-np-locants",
+            quote: "Then go whichever way round gives the lowest set of locants to the rest",
+          },
+          {
+            text: "If the locants tie, the group first alphabetically gets the lower number.",
+            source: "u2t-np-alpha",
+            quote: "If they tie, the group that comes first alphabetically gets the lower number.",
+          },
+        ],
+        example: { source: "u2t-np-acid", quote: "the highest takes the suffix" },
+      },
     ],
     mistakes: [
       {
@@ -321,7 +502,7 @@ const STAGES: readonly GuideStage[] = [
 export const U2_GUIDE: UnitGuide = {
   unitId: "u2",
   intro:
-    "When a ring is aromatic, and what that changes: the four tests, charged rings, annulenes, heterocycles and the NMR signal that proves it. Read a stage before its lessons, or come back when one trips you up.",
+    "When a ring is aromatic, and what that changes: three tools first (induction, pKa, resonance), then the four tests, charged rings, annulenes, heterocycles, donors and withdrawers, and the NMR signal that proves it. Read a stage before its lessons, or come back when one trips you up.",
   stages: STAGES,
   examples: U2_GUIDE_EXAMPLES,
   placeholder: true,

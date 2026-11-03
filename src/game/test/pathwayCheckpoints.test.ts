@@ -498,7 +498,7 @@ describe("round 4: an open field of round buttons", () => {
     const openBranch = /if \(state === "open"\) \{([\s\S]*?)\n    \}/.exec(chest);
     expect(openBranch).not.toBeNull();
     expect(openBranch![1]).toContain("You already opened this chest.");
-    expect(openBranch![1]).not.toMatch(/diamonds|\+\$\{/);
+    expect(openBranch![1]).not.toMatch(/diamonds|coins|\+\$\{/);
     expect(openBranch![1]).toContain("return;");
   });
 

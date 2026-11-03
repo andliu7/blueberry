@@ -38,7 +38,7 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
  * section is the side quests.
  */
 const NAMED_ONLY: Readonly<Record<string, readonly string[]>> = {
-  u2: ["Side quest: naming benzene rings"],
+  u2: [], // naming became two main-line gates (29 Oct, round 4), so Unit 2 has no side-quest section
   u6: ["Side quests: 2D NMR and UV-Vis"],
   u11: ["Phenol acidity and phenoxide"],
   u14: ["Protecting amino acids"],

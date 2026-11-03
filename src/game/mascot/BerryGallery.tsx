@@ -214,7 +214,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
           <ReactionLab reduced={reduced} />
         </Panel>
 
-        <Panel title="Progression" note="Lesson complete (with the XP chip and the diamond catch), unit complete, and the level up with its hat.">
+        <Panel title="Progression" note="Lesson complete (with the XP chip and the coin catch), unit complete, and the level up with its hat.">
           <div className="flex flex-wrap items-start gap-10">
             <div className="flex flex-col items-center gap-3">
               <BloomLessonComplete key={lessonKey} reducedMotion={reduced} xp={15} diamonds={3}>

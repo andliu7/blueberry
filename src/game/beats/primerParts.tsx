@@ -11,6 +11,7 @@
  * student to REBUILD it after the lesson, when the order is something they can
  * reason out rather than guess.
  */
+import { EnergyVisualCard } from "../energy/EnergyVisualCard";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { pathwayNode } from "../demo/pathwayMap";
@@ -99,7 +100,7 @@ export function GuessOptions({
   );
   return (
     <>
-      {visual !== null ? <McqVisualCard visual={visual} /> : null}
+      {visual !== null ? <McqVisualCard visual={visual} /> : showVisual ? <EnergyVisualCard beatId={questionId} /> : null}
       {/* aria-pressed buttons, the same pattern as the question screen's
           options. Once locked, a tap does nothing. */}
       <div

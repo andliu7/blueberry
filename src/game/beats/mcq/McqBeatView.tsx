@@ -105,6 +105,7 @@ import { type McqReveal } from "./grade";
 import { AnswerTray, TrayWhy } from "../AnswerTray";
 import { BloomVerdictBerry } from "../BloomVerdictBerry";
 import { OptionMark } from "./OptionMark";
+import { EnergyVisualCard } from "../../energy/EnergyVisualCard";
 import type { McqProgress } from "./session";
 import "../beat-chrome.css";
 import "../../lesson/scheme.css";
@@ -376,7 +377,7 @@ export function McqBeatView({
             which case the question falls back to its words and
             test/mcqFigures.test.ts fails; see mcqFigures.ts for why that
             fallback exists and what stops a student ever seeing it. */}
-        {visual === null ? null : <McqVisualCard visual={visual} />}
+        {visual === null ? <EnergyVisualCard beatId={beat.id} /> : <McqVisualCard visual={visual} />}
 
         {/* A group of aria-pressed buttons rather than a radiogroup: a real
             radiogroup needs roving tabindex and arrow key handling, and this

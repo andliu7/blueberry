@@ -4,14 +4,17 @@
  * quizzes, test-outs and exams only when the student's syllabus covers them;
  * default no. With no syllabus every source list is exactly today's; a
  * covered side quest joins its section's test and its unit's exam, and the
- * checkpoint mix, but is never in what a pass lights.
+ * checkpoint mix, but is never in what a pass lights. The test-out half is
+ * syllabusTestOutFor (syllabus/syllabusTests.ts), a layer over testOutFor
+ * that keeps the side quest rule off #/app's first open.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { PATHWAY_UNITS, pathwayNode, type PathwayUnit } from "../demo/pathwayMap";
-import { checkpointPlan } from "../beats/template";
+import { PATHWAY_UNITS, type PathwayUnit } from "../demo/pathwayMap";
+import { checkpointPlan, planLesson } from "../beats/template";
 import { nodeSheetModel, type SheetNode } from "../pathway-sheet/nodeSheetModel";
-import { coveredSideQuests, syllabusStore, type SyllabusPlan } from "../syllabus/syllabusPlan";
-import { branchSection, testOutFor, unitExamId, unitSections } from "../tabs/pathway/testOuts";
+import { branchSection, coveredSideQuests, sectionKey, syllabusStore, type SyllabusPlan } from "../syllabus/syllabusPlan";
+import { syllabusTestOutFor as testOutFor } from "../syllabus/syllabusTests";
+import { testOutFor as mainLineTestOutFor, unitExamId, unitSections } from "../tabs/pathway/testOuts";
 
 const unit = (id: string) => PATHWAY_UNITS.find((entry) => entry.id === id)!;
 const plan = (sideQuests: string[]): SyllabusPlan => ({ version: 1, updatedAt: 1, weeks: [], unitOrder: ["u10"], sectionOrder: {}, notCovered: [], sideQuests, exams: [] });
@@ -30,6 +33,7 @@ describe("with no syllabus", () => {
       const test = testOutFor(id);
       if (test === null) continue;
       expect(test, id).toEqual(testOutFor(id, PATHWAY_UNITS, new Set()));
+      expect(test, id).toEqual(mainLineTestOutFor(id));
       expect(test.sources.filter((source) => branches.includes(source)), id).toEqual([]);
     }
   });
@@ -74,31 +78,61 @@ describe("with a syllabus that covers Gabriel synthesis", () => {
     syllabusStore.replace({ ...plan(["u10-gabriel"]), notCovered: ["u10-gabriel"] });
     expect(coveredSideQuests()).toEqual(new Set());
   });
+
+  it("nor does one inside a unit or a section the student marked not covered", () => {
+    syllabusStore.replace({ ...plan(["u10-gabriel", "u10-azo"]), notCovered: ["u10"] });
+    expect(coveredSideQuests()).toEqual(new Set());
+    syllabusStore.replace({ ...plan(["u10-gabriel", "u10-azo"]), notCovered: [sectionKey("u10", 1)] });
+    expect(coveredSideQuests()).toEqual(new Set(["u10-azo"]));
+  });
 });
 
-describe("the unit checkpoint mix", () => {
-  // A unit with its side quest first, so a covered side quest can take a slot (checkpointPlan keeps one step per slot).
-  const birch = pathwayNode("u3-birch")!;
-  const test: PathwayUnit = { id: "u3", title: "Unit 3 · Test", note: "", nodes: [birch, pathwayNode("u3-arenium")!] };
-  const nodesIn = (covered: boolean) => {
-    syllabusStore.replace(covered ? { ...plan(["u3-birch"]), unitOrder: ["u3"] } : null);
-    return (checkpointPlan(test, "u3-check")?.steps ?? []).map((step) => JSON.stringify(step.beat));
-  };
+describe("the unit checkpoint mix, on the real map", () => {
+  const nodesIn = (unitId: string, covered: ReadonlySet<string>) => (checkpointPlan(unit(unitId), `${unitId}-check`, covered)?.steps ?? []).map((step) => JSON.stringify(step.beat));
+  // A side quest can sit on a check only with a step a check can ask: not a first meeting, not an in-a-row run.
+  const askable = (id: string) => (planLesson(id)?.steps ?? []).some((step) => step.beat.kind !== "meet" && step.beat.kind !== "practice");
+  const sideQuestsOf = (entry: PathwayUnit) => entry.nodes.filter((node) => node.kind === "branch" && askable(node.id)).map((node) => node.id);
 
-  it("skips an uncovered side quest and includes a covered one", () => {
-    const without = nodesIn(false);
-    const withIt = nodesIn(true);
-    expect(without.some((beat) => beat.includes("u3-birch"))).toBe(false);
-    expect(withIt.some((beat) => beat.includes("u3-birch"))).toBe(true);
+  it("with no syllabus, no checkpoint asks a side quest", () => {
+    for (const entry of PATHWAY_UNITS) {
+      for (const id of entry.nodes.filter((node) => node.kind === "branch").map((node) => node.id)) {
+        expect(nodesIn(entry.id, new Set()).some((beat) => beat.includes(`"${id}"`)), id).toBe(false);
+      }
+    }
+  });
+
+  it("every askable side quest, covered alone, is on its unit's checkpoint", () => {
+    const checked = PATHWAY_UNITS.flatMap((entry) => sideQuestsOf(entry).map((id) => [entry.id, id] as const));
+    expect(checked.length).toBeGreaterThan(10);
+    for (const [unitId, id] of checked) {
+      expect(nodesIn(unitId, new Set([id])).some((beat) => beat.includes(`"${id}"`)), id).toBe(true);
+    }
+  });
+
+  it("covering every side quest leaves the main line most of the mix", () => {
+    for (const entry of PATHWAY_UNITS) {
+      const all = new Set(entry.nodes.filter((node) => node.kind === "branch").map((node) => node.id));
+      const steps = checkpointPlan(entry, `${entry.id}-check`, all)?.steps ?? [];
+      const fromSideQuests = steps.filter((step) => [...all].some((id) => JSON.stringify(step.beat).includes(`"${id}"`)));
+      expect(fromSideQuests.length, entry.id).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("reads the saved plan by default", () => {
+    const [unitId, id] = PATHWAY_UNITS.flatMap((entry) => sideQuestsOf(entry).map((quest) => [entry.id, quest] as const))[0]!;
+    syllabusStore.replace({ ...plan([id]), unitOrder: [unitId] });
+    expect((checkpointPlan(unit(unitId), `${unitId}-check`)?.steps ?? []).some((step) => JSON.stringify(step.beat).includes(`"${id}"`))).toBe(true);
   });
 });
 
 describe("the node sheet's side quest line", () => {
-  const sheet = (id: string): SheetNode => ({ id, kind: "branch", state: "open", title: "Gabriel synthesis", blurb: "", practiceHref: "#/app/lesson/" + id });
+  const sheet = (id: string, onSyllabus?: boolean): SheetNode => ({ id, kind: "branch", state: "open", title: "Gabriel synthesis", blurb: "", practiceHref: "#/app/lesson/" + id, ...(onSyllabus === undefined ? {} : { onSyllabus }) });
 
-  it("says optional with no syllabus, and on your syllabus when covered", () => {
+  it("says optional with no syllabus, and names exactly where it counts when covered", () => {
     expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("Optional side quest. It is not on the unit checkpoint.");
+    // PathwayTab sets onSyllabus from the plan; the sheet model never reads the store (first-open bytes).
     syllabusStore.replace(plan(["u10-gabriel"]));
-    expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("On your syllabus, so it counts on the unit checkpoint, its section test and the unit exam.");
+    expect(nodeSheetModel(sheet("u10-gabriel")).practiceDetail).toBe("Optional side quest. It is not on the unit checkpoint.");
+    expect(nodeSheetModel(sheet("u10-gabriel", true)).practiceDetail).toBe("On your syllabus, so it counts on the unit checkpoint, its section test and the unit exam.");
   });
 });

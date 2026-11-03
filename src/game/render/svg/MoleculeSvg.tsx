@@ -271,6 +271,7 @@ export function MoleculeSvg({
               cy={c.y}
               r={Math.max(r, HIT_R)}
               fill="transparent"
+              data-atom-id={atom.id}
               style={{ cursor: onAtomPointerDown ? "pointer" : "default" }}
               onPointerDown={onAtomPointerDown ? () => onAtomPointerDown(atom.id) : undefined}
             />

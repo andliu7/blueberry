@@ -472,3 +472,13 @@ html[data-motion="reduced"] .gf-root *::after {
   animation: none !important;
 }
 html[data-motion="reduced"] .gf-tilt { transform: none; }
+
+/* Clouds look (light mode, owner 2 Nov: no purple gradients). The folder's violet marble art
+   and the lavender fades go; the folder is flat light grey behind white sheets, the add key is
+   one flat brand fill, the more key flat white. Dark and lavender keep the art. */
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-back { background: #e5e5ea; }
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-art { display: none; }
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-sheet:not(.gf-sheet--art) { background: #ffffff; }
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-tint { background: rgb(255 255 255 / 0.72); }
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-key--add { background: #5a3fd8; }
+:root[data-look="white"]:not(.dark) .gf-root:not([data-tone="dark"]) .gf-key--more { background: #ffffff; }

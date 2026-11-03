@@ -121,9 +121,9 @@ describe("the resume screen's X leaves at once", () => {
 });
 
 describe("the leave sheet is honest about rewards", () => {
-  it("says XP, diamonds and streak land on finishing, and drops diamonds on a replay", () => {
-    expect(leaveRewardLine(false)).toBe("Your XP, diamonds and streak credit land when you finish it.");
-    expect(leaveRewardLine(true)).not.toContain("diamonds");
+  it("says XP, coins and streak land on finishing, and drops coins on a replay", () => {
+    expect(leaveRewardLine(false)).toBe("Your XP, coins and streak credit land when you finish it.");
+    expect(leaveRewardLine(true)).not.toContain("coins");
     expect(leaveRewardLine(true)).toContain("XP");
   });
 });

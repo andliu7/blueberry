@@ -143,7 +143,7 @@ export function ExamEnd({ node, state, ids, banked, onContinue, reducedMotion, w
         <p className="lesson-banked exam-end__banked">
           <GemMark />
           <span>
-            +{plural(banked, "diamond", "diamonds")}
+            +{plural(banked, "coin", "coins")}
           </span>
         </p>
       ) : null}

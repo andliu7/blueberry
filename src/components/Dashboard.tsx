@@ -515,6 +515,8 @@ function SettingsPanel({
   go: (view: DashboardView) => void;
   onClose: () => void;
 }) {
+  const session = useSession();
+  const staff = session?.role === "admin" || session?.role === "owner";
   return (
     <div>
       <p className="playful-body max-w-xl text-[0.95rem] leading-7 text-slate-600 dark:text-stone-300">
@@ -540,6 +542,21 @@ function SettingsPanel({
           </span>
           <ArrowUpRight className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
         </button>
+
+        {/* Staff only (owner, 2 Nov): the admin dashboard from every settings surface. */}
+        {staff && (
+          <a
+            href="#/app/admin/home"
+            className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white/85 px-4 py-3.5 text-left transition-colors hover:border-[#bbb1eb] hover:bg-white dark:border-stone-700 dark:bg-stone-900/75 dark:hover:border-[#9989e2]/50 dark:hover:bg-stone-900"
+          >
+            <LayoutGrid className="size-4 shrink-0 text-[#6b51dd] dark:text-[#bbb1eb]" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold text-slate-800 dark:text-stone-100">Admin dashboard</span>
+              <span className="block text-xs text-slate-500 dark:text-stone-400">Figures, tasks, activity and the lesson viewer.</span>
+            </span>
+            <ArrowUpRight className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-60" />
+          </a>
+        )}
 
         <SettingStub
           title="Account"

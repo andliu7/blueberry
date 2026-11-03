@@ -19,7 +19,7 @@
  * question screen's option cards and tiles, and the docked footer with the
  * same keys as CHECK and CONTINUE.
  */
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { Berry } from "../mascot/Berry";
 import { pathwayNode } from "../demo/pathwayMap";
@@ -29,6 +29,10 @@ import { GuessOptions, LockMark, MapChain, focusWhenLive, halogenSubscripts } fr
 import { guessFor, type LessonPriming } from "./priming";
 import "./beat-chrome.css";
 import "./preview.css";
+
+// Lazy: the walk-through prose stays out of the entry chunk (LessonHelp.tsx).
+const LessonHelp = lazy(() => import("./LessonHelp"));
+const DrawnLesson = lazy(() => import("./LessonHelp").then((m) => ({ default: m.DrawnLesson })));
 
 export interface LessonPreviewProps {
   readonly node: string;
@@ -148,6 +152,12 @@ export function LessonPreview({ node, priming, strip, reducedMotion, onStart, on
               </h3>
               <MapChain priming={priming} shown={priming.ideas.length} gaps={false} openingVia="This lesson starts with" />
               <p className="primer-map__later">At the end you rebuild this map from memory.</p>
+              <Suspense fallback={null}>
+                <div className="mt-3 flex flex-col gap-3">
+                  <DrawnLesson node={node} />
+                  <LessonHelp node={node} skipExplainer />
+                </div>
+              </Suspense>
             </section>
           ) : null}
         </section>

@@ -2171,6 +2171,49 @@ def node_kvt() -> None:
         level=0, concepts=CONCEPT_KVT, derived="warm" if d["thermo"] == "A" and d["kinetic"] == "B" else None,
     )
 
+    # Added 30 Oct (unit style guide pass): the video node had three items and
+    # only one climbed above rung 0. These read the same diagram numbers with
+    # ed(), so every answer is computed from the drawing, not typed.
+    p = (7.0, 2.6, 8.6, 0.8)
+    d = ed(*p)
+    mcq(
+        node, "u1-kvt-read-both", "Pick the statement this diagram supports.",
+        [
+            ("both", "A forms faster, B is more stable", "A has the lower hump, so it forms faster. B has the deeper well, so it is the more stable one. Speed and stability are read from different parts of the diagram."),
+            ("a_all", "A is both faster and more stable", "A is faster, but its well is shallower than B's, so B is the more stable product. One product does not have to win both."),
+            ("b_all", "B is both faster and more stable", "B is more stable, but its hump is taller, so it forms more slowly. Depth says stability, height says speed."),
+        ],
+        "both", "Speed is the height of the hump and stability is the depth of the well. They are read separately and can disagree.",
+        prov("both readings taken from the diagram's numbers: A has the lower transition state, B the deeper well", OS_14_3),
+        energy("A: lower hump. B: deeper well.", *p),
+        level=1, concepts=CONCEPT_KVT, derived="both" if d["kinetic"] == "A" and d["thermo"] == "B" else None,
+    )
+    mcq(
+        node, "u1-kvt-back-easy", "Warm, both products can return to the cation. Which returns more easily.",
+        [
+            ("b", "B, because it is the more stable", "Stable means deep, and a deep well is the hardest to climb out of. B has the longer climb back, so it returns less easily."),
+            ("a", "A, it has the shorter climb out", "Going back means climbing from the well up to the same hump. A starts higher and its hump is lower, so its climb is shorter."),
+            ("same", "Both return equally easily", "They would need equal climbs. Compare the distance from each well up to its own hump."),
+        ],
+        "a", "The product with the shorter climb from well to hump goes back more easily, here the kinetic product A.",
+        prov("climb out of each well read from the diagram's numbers: hump minus well, A shorter than B", OS_14_3),
+        energy("A: lower hump. B: deeper well.", *p),
+        level=2, concepts=CONCEPT_KVT, conditions=WARM, derived="a" if d["back"] == "A" else None,
+    )
+    mcq(
+        node, "u1-kvt-settle", "Pure A is warmed with the acid still there. Pick what it does over time.",
+        [
+            ("stay", "It stays A, since A formed first", "Forming first does not make a product permanent. Warm, A climbs its short barrier back to the cation."),
+            ("settle", "It returns and settles toward B", "A has the shorter climb out, so it reverts to the cation, and each pass can fall into the deeper well of B. Over time the mixture favours B."),
+            ("break", "It breaks down to smaller pieces", "Nothing on the diagram goes past the cation. The only motion shown is between the cation and the two products."),
+        ],
+        "settle", "Warm and reversible, the kinetic product reverts and the mixture settles toward the thermodynamic product.",
+        prov("A has the shorter climb out and B the deeper well, so equilibration ends at B", OS_14_3),
+        energy("A: lower hump. B: deeper well.", *p),
+        level=2, concepts=CONCEPT_KVT, conditions=WARM,
+        derived="settle" if d["back"] == "A" and d["thermo"] == "B" and d["kinetic"] == "A" else None,
+    )
+
 
 def node_energy() -> None:
     node = "u1-energy-diagram"
@@ -2376,6 +2419,40 @@ def node_12v14() -> None:
         prov("1,2 and 1,4 products built from the allylic cation; names checked with OPSIN", OS_14_2),
         scheme_visual(BUTADIENE, "buta-1,3-diene", "HBr"),
         tiles=iupac_tiles(t, "u1-12v14-pick-14"), level=0, derived=pick(r["p14"], t), **k,
+    )
+
+    # Added 30 Oct (unit style guide pass): the 1,2 versus 1,4 lesson now asks
+    # for the reason as well as the product. Both read the products computed
+    # above by diene_addition, so the answers are derived, not typed.
+    t = {
+        "p12": (r["p12"], "3-bromobut-1-ene"),
+        "inner": (inner_product(BUTADIENE, "H", "Br"), "4-bromobut-1-ene"),
+        "p14": (r["p14"], "1-bromobut-2-ene"),
+    }
+    mcq(
+        node, "u1-12v14-more-subst", "Pick the product with the more substituted double bond.",
+        [
+            ("p12", "3-bromobut-1-ene", "Its C=C is at the end of the chain with one carbon attached, so it is monosubstituted. The 1,4 product has a carbon on each side."),
+            ("inner", "4-bromobut-1-ene", "It would come from the primary cation, which is not the one that forms. Its C=C is also at the chain end, with one carbon attached."),
+            ("p14", "1-bromobut-2-ene", "The C=C sits in the middle with a carbon on each end, so it is disubstituted. More substituted means more stable: this is the thermodynamic product."),
+        ],
+        "p14", "The 1,4 product keeps the C=C in the middle of the chain. More substituted is more stable, so it is the thermodynamic product.",
+        prov("alkene substitution counted on both products; the 1,4 product has the more substituted C=C", OS_14_2),
+        scheme_visual(BUTADIENE, "buta-1,3-diene", "HBr"),
+        tiles=iupac_tiles(t, "u1-12v14-more-subst"), level=1, derived=pick(r["thermo"], t), **k,
+    )
+    ok = r["kinetic"] == r["p12"] and r["thermo"] == r["p14"]
+    mcq(
+        node, "u1-12v14-why-fast", "Pick why the 1,2 product forms faster, even though it is less stable.",
+        [
+            ("near", "Bromide starts beside C2, the more charged end", "C2 is the secondary end of the cation, so it carries more of the charge, and the bromide ion sits right next to it after protonation."),
+            ("c4", "C4 holds more of the charge", "C4 is the primary end, so it holds less of the charge than C2. Charge does not favour the 1,4 product."),
+            ("stable", "The 1,2 product is the more stable one", "It is the less stable one: its C=C is monosubstituted. It forms first because it is quicker to reach, not because it is deeper."),
+        ],
+        "near", "The 1,2 product is formed faster because the bromide is closest to C2, the end with more charge. Speed, not stability.",
+        prov("C2 is secondary and C4 primary in the cation; the 1,2 product is the monosubstituted, less stable alkene", OS_14_2),
+        {"kind": "pair", "a": {"figure": numbered(c2), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
+        level=2, derived="near" if ok else None, **k,
     )
 
 

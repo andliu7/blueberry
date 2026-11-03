@@ -825,5 +825,605 @@ export const U2_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
       }
     ],
     "placeholder": true
+  },
+  "u2-induction": {
+    "caption": "Cl is more electronegative than carbon and pulls electron density along the sigma bonds. That steadies the carboxylate, so chloroacetic acid is the stronger acid.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "CC(=O)O",
+        "figure": {
+          "w": 63.8,
+          "h": 62.9,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 49.3,
+              "x2": 28.8,
+              "y2": 37.4
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 28.9,
+              "y2": 22.4,
+              "order": 2
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 41.8,
+              "y2": 44.9
+            }
+          ],
+          "labels": [
+            {
+              "x": 28.9,
+              "y": 18.4,
+              "t": "O"
+            },
+            {
+              "x": 49.6,
+              "y": 54.5,
+              "t": "OH"
+            }
+          ]
+        },
+        "name": "Acetic acid: no Cl",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "OC(=O)CCl",
+        "figure": {
+          "w": 90.8,
+          "h": 62.9,
+          "bonds": [
+            {
+              "x1": 68.8,
+              "y1": 45.0,
+              "x2": 55.8,
+              "y2": 37.5
+            },
+            {
+              "x1": 55.8,
+              "y1": 37.5,
+              "x2": 55.8,
+              "y2": 22.5,
+              "order": 2
+            },
+            {
+              "x1": 55.8,
+              "y1": 37.5,
+              "x2": 35.0,
+              "y2": 49.5
+            },
+            {
+              "x1": 35.0,
+              "y1": 49.5,
+              "x2": 22.0,
+              "y2": 42.0
+            }
+          ],
+          "labels": [
+            {
+              "x": 76.6,
+              "y": 54.5,
+              "t": "OH"
+            },
+            {
+              "x": 55.8,
+              "y": 18.5,
+              "t": "O"
+            },
+            {
+              "x": 14.2,
+              "y": 42.6,
+              "t": "Cl",
+              "hi": true
+            }
+          ]
+        },
+        "name": "Chloroacetic acid: Cl is 2 bonds from the acid carbon, stronger",
+        "focus": true
+      }
+    ],
+    "placeholder": true
+  },
+  "u2-keq-pka": {
+    "caption": "The lower the pKa, the stronger the acid. An equilibrium rests on the side of the weaker acid, the one with the higher pKa.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "CC(=O)O",
+        "figure": {
+          "w": 63.8,
+          "h": 62.9,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 49.3,
+              "x2": 28.8,
+              "y2": 37.4
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 28.9,
+              "y2": 22.4,
+              "order": 2
+            },
+            {
+              "x1": 28.8,
+              "y1": 37.4,
+              "x2": 41.8,
+              "y2": 44.9
+            }
+          ],
+          "labels": [
+            {
+              "x": 28.9,
+              "y": 18.4,
+              "t": "O"
+            },
+            {
+              "x": 49.6,
+              "y": 54.5,
+              "t": "OH"
+            }
+          ]
+        },
+        "name": "Acetic acid: pKa about 5, stronger",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "CCO",
+        "figure": {
+          "w": 63.8,
+          "h": 62.9,
+          "bonds": [
+            {
+              "x1": 55.8,
+              "y1": 34.8,
+              "x2": 35.0,
+              "y2": 22.8
+            },
+            {
+              "x1": 35.0,
+              "y1": 22.8,
+              "x2": 22.0,
+              "y2": 30.3
+            }
+          ],
+          "labels": [
+            {
+              "x": 14.2,
+              "y": 39.8,
+              "t": "OH"
+            }
+          ]
+        },
+        "name": "Ethanol: pKa about 16, weaker",
+        "focus": true
+      }
+    ],
+    "placeholder": true
+  },
+  "u2-energy": {
+    "caption": "Cold with steps that cannot be undone, the lower hump wins. Warm with steps that can, the deeper well wins. A Keq between 10 to the minus 7 and 10 to the 7 means a step runs both ways.",
+    "panels": [
+      {
+        "kind": "energy"
+      }
+    ],
+    "placeholder": true
+  },
+  "u2-resonance": {
+    "caption": "Resonance forms differ only in where the pi electrons are drawn. The real benzene is one blend, so its six C-C bonds are equal, and the cyclopentadienyl anion spreads its charge over all five carbons.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "c1ccccc1",
+        "figure": {
+          "w": 57.6,
+          "h": 74.9,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 49.5,
+              "x2": 8.0,
+              "y2": 25.5
+            },
+            {
+              "x1": 8.0,
+              "y1": 25.5,
+              "x2": 28.8,
+              "y2": 13.5,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 28.8,
+              "y1": 13.5,
+              "x2": 49.6,
+              "y2": 25.5
+            },
+            {
+              "x1": 49.6,
+              "y1": 25.5,
+              "x2": 49.6,
+              "y2": 49.5,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 49.6,
+              "y1": 49.5,
+              "x2": 28.8,
+              "y2": 61.5
+            },
+            {
+              "x1": 28.8,
+              "y1": 61.5,
+              "x2": 8.0,
+              "y2": 49.5,
+              "order": 2,
+              "inner": 1
+            }
+          ]
+        },
+        "name": "Benzene: six equal C-C bonds",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "c1cc[cH-]c1",
+        "figure": {
+          "w": 54.6,
+          "h": 74.9,
+          "bonds": [
+            {
+              "x1": 41.7,
+              "y1": 64.3,
+              "x2": 17.9,
+              "y2": 66.9
+            },
+            {
+              "x1": 17.9,
+              "y1": 66.9,
+              "x2": 8.0,
+              "y2": 45.1,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 8.0,
+              "y1": 45.1,
+              "x2": 25.8,
+              "y2": 28.9
+            },
+            {
+              "x1": 25.8,
+              "y1": 28.9,
+              "x2": 46.6,
+              "y2": 40.8
+            },
+            {
+              "x1": 46.6,
+              "y1": 40.8,
+              "x2": 41.7,
+              "y2": 64.3,
+              "order": 2,
+              "inner": 1
+            }
+          ],
+          "halos": [
+            {
+              "x": 25.8,
+              "y": 28.9
+            }
+          ],
+          "signs": [
+            {
+              "x": 24.1,
+              "y": 14.0,
+              "t": "−"
+            }
+          ]
+        },
+        "name": "Cyclopentadienyl anion: charge on all 5 C",
+        "focus": true
+      }
+    ],
+    "placeholder": true
+  },
+  "u2-ewg-edg": {
+    "caption": "A lone pair next to the ring donates into it by resonance. A group with a pi bond leading out of the ring withdraws by resonance. Donors speed an electrophile's attack and withdrawers slow it.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "COc1ccccc1",
+        "figure": {
+          "w": 99.1,
+          "h": 105.4,
+          "bonds": [
+            {
+              "x1": 8.0,
+              "y1": 62.2,
+              "x2": 21.0,
+              "y2": 69.7
+            },
+            {
+              "x1": 36.6,
+              "y1": 69.6,
+              "x2": 49.6,
+              "y2": 62.1
+            },
+            {
+              "x1": 49.6,
+              "y1": 62.1,
+              "x2": 70.4,
+              "y2": 74.0,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 70.4,
+              "y1": 74.0,
+              "x2": 91.1,
+              "y2": 61.9
+            },
+            {
+              "x1": 91.1,
+              "y1": 61.9,
+              "x2": 91.0,
+              "y2": 37.9,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 91.0,
+              "y1": 37.9,
+              "x2": 70.2,
+              "y2": 26.0
+            },
+            {
+              "x1": 70.2,
+              "y1": 26.0,
+              "x2": 49.5,
+              "y2": 38.1,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 49.5,
+              "y1": 38.1,
+              "x2": 49.6,
+              "y2": 62.1
+            }
+          ],
+          "labels": [
+            {
+              "x": 28.8,
+              "y": 79.2,
+              "t": "O",
+              "hi": true
+            }
+          ]
+        },
+        "name": "Anisole: donor, ring richer",
+        "focus": true
+      },
+      {
+        "kind": "break"
+      },
+      {
+        "kind": "mol",
+        "smiles": "[O-][N+](=O)c1ccccc1",
+        "figure": {
+          "w": 63.8,
+          "h": 105.4,
+          "bonds": [
+            {
+              "x1": 20.4,
+              "y1": 18.0,
+              "x2": 25.6,
+              "y2": 21.0
+            },
+            {
+              "x1": 41.2,
+              "y1": 20.9,
+              "x2": 46.4,
+              "y2": 17.9,
+              "order": 2
+            },
+            {
+              "x1": 33.4,
+              "y1": 34.4,
+              "x2": 33.4,
+              "y2": 49.4
+            },
+            {
+              "x1": 33.4,
+              "y1": 49.4,
+              "x2": 54.2,
+              "y2": 61.4,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 54.2,
+              "y1": 61.4,
+              "x2": 54.3,
+              "y2": 85.4
+            },
+            {
+              "x1": 54.3,
+              "y1": 85.4,
+              "x2": 33.5,
+              "y2": 97.4,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 33.5,
+              "y1": 97.4,
+              "x2": 12.7,
+              "y2": 85.5
+            },
+            {
+              "x1": 12.7,
+              "y1": 85.5,
+              "x2": 12.7,
+              "y2": 61.5,
+              "order": 2,
+              "inner": 1
+            },
+            {
+              "x1": 12.7,
+              "y1": 61.5,
+              "x2": 33.4,
+              "y2": 49.4
+            }
+          ],
+          "labels": [
+            {
+              "x": 12.6,
+              "y": 18.5,
+              "t": "O^−"
+            },
+            {
+              "x": 33.4,
+              "y": 30.5,
+              "t": "N^+"
+            },
+            {
+              "x": 54.1,
+              "y": 18.4,
+              "t": "O"
+            }
+          ]
+        },
+        "name": "Nitrobenzene: withdrawer, ring poorer",
+        "focus": true
+      }
+    ],
+    "placeholder": true
+  },
+  "u2-nomen-priority": {
+    "caption": "When a ring has an acid and an alcohol, the acid sets the suffix and the OH becomes the prefix hydroxy. Number the ring so the lowest locants go to the rest.",
+    "panels": [
+      {
+        "kind": "mol",
+        "smiles": "OC(=O)c1ccc(O)cc1",
+        "figure": {
+          "w": 127.8,
+          "h": 98.7,
+          "bonds": [
+            {
+              "x1": 97.4,
+              "y1": 76.3,
+              "x2": 97.4,
+              "y2": 61.3,
+              "hi": true
+            },
+            {
+              "x1": 97.4,
+              "y1": 61.3,
+              "x2": 110.4,
+              "y2": 53.8,
+              "order": 2,
+              "hi": true
+            },
+            {
+              "x1": 97.4,
+              "y1": 61.3,
+              "x2": 76.6,
+              "y2": 49.3
+            },
+            {
+              "x1": 76.6,
+              "y1": 49.3,
+              "x2": 76.6,
+              "y2": 25.3
+            },
+            {
+              "x1": 76.6,
+              "y1": 25.3,
+              "x2": 55.8,
+              "y2": 13.4,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 55.8,
+              "y1": 13.4,
+              "x2": 35.0,
+              "y2": 25.4
+            },
+            {
+              "x1": 35.0,
+              "y1": 25.4,
+              "x2": 22.0,
+              "y2": 17.9
+            },
+            {
+              "x1": 35.0,
+              "y1": 25.4,
+              "x2": 35.1,
+              "y2": 49.4,
+              "order": 2,
+              "inner": -1
+            },
+            {
+              "x1": 35.1,
+              "y1": 49.4,
+              "x2": 55.8,
+              "y2": 61.4
+            },
+            {
+              "x1": 55.8,
+              "y1": 61.4,
+              "x2": 76.6,
+              "y2": 49.3,
+              "order": 2,
+              "inner": -1
+            }
+          ],
+          "labels": [
+            {
+              "x": 97.4,
+              "y": 90.4,
+              "t": "OH",
+              "hi": true
+            },
+            {
+              "x": 118.2,
+              "y": 54.4,
+              "t": "O",
+              "hi": true
+            },
+            {
+              "x": 14.2,
+              "y": 18.4,
+              "t": "OH"
+            }
+          ]
+        },
+        "name": "4-hydroxybenzoic acid: acid first",
+        "focus": true
+      }
+    ],
+    "placeholder": true
   }
 };

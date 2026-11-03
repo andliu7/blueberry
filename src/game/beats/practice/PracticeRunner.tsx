@@ -53,6 +53,8 @@ const McqRunner = lazy(() => import("../mcq/McqRunner").then((m) => ({ default: 
 const SortBeatView = lazy(() => import("../sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
 const MatchBoardFromSpec = lazy(() => import("../match/MatchBoard").then((m) => ({ default: m.Board })));
 const DrawBeatView = lazy(() => import("../draw/DrawBeatView").then((m) => ({ default: m.DrawBeatView })));
+const KeqTypedQuestion = lazy(() => import("../../energy/KeqTypedQuestion").then((m) => ({ default: m.KeqTypedQuestion })));
+const NmrProductQuestion = lazy(() => import("../../tabs/spectra/NmrProductQuestion").then((m) => ({ default: m.NmrProductQuestion })));
 
 /**
  * A missed problem comes back with its options moved round by one, so the
@@ -223,7 +225,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
             <p className="text-scale-base text-bb-foreground">{endSaid(state)}</p>
             {banked !== null && banked > 0 ? (
               <p className="lesson-banked">
-                +{plural(banked, "diamond", "diamonds")}
+                +{plural(banked, "coin", "coins")}
               </p>
             ) : null}
             <ChipPress className="mt-2 w-full" onClick={onFinish ?? onExit}>
@@ -278,6 +280,12 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
           ) : null}
           {item.kind === "draw" ? (
             <DrawBeatView key={key} beat={item.beat} level={levelOf(item.beat.levels)} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />
+          ) : null}
+          {item.kind === "keqTyped" ? (
+            <KeqTypedQuestion key={key} question={item.question} level={levelOf([2])} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />
+          ) : null}
+          {item.kind === "nmrProduct" ? (
+            <NmrProductQuestion key={key} question={item.question} level={levelOf([1])} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />
           ) : null}
         </Suspense>
       </div>

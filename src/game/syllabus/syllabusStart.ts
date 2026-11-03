@@ -17,8 +17,9 @@
  *
  * LAZY, NOT IN pathStatus. #/app's first open is over its byte budget, so
  * PathwayTab loads this file (and syllabusWeeks.ts through it) only when the
- * student has saved a plan; with none, nothing here is fetched. It also hands
- * the map its week chip, so the map makes one dynamic import, not two.
+ * student has saved a plan (useSyllabusMap.ts); with none, nothing here is
+ * fetched. It also hands the map its week chip and the side quests the plan
+ * covers, so the map makes one dynamic import, not two.
  * Pure, no React.
  */
 import type { PathwayUnit } from "../demo/pathwayMap";
@@ -28,7 +29,13 @@ import { unitSections } from "../tabs/pathway/testOuts";
 import { sectionKey, todayIso, type SyllabusPlan } from "./syllabusPlan";
 import { syllabusTarget } from "./syllabusWeeks";
 
-export { sanitisePlan, weekChip } from "./syllabusWeeks";
+export { sanitisePlan, savedPlan, weekChip } from "./syllabusWeeks";
+export { coveredSideQuests, todayIso } from "./syllabusPlan";
+
+/** The week chip's colours by tone, here so the map's entry chunk carries none of them. */
+export function chipClass(tone: "primary" | "muted" | "warn"): string {
+  return tone === "muted" ? "border-bb-border bg-bb-muted text-bb-muted-foreground" : tone === "warn" ? "border-bb-primary bg-bb-primary text-bb-primary-foreground" : "border-bb-primary bg-bb-card text-bb-primary-ink";
+}
 
 /** The lesson START should hang over for this plan, or null to leave START where it is. */
 export function syllabusStartNode(units: readonly PathwayUnit[], gated: GatedPathway, plan: SyllabusPlan, today: string, cleared: ReadonlySet<string>): string | null {

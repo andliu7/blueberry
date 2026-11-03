@@ -16,6 +16,7 @@ import { deriveEconomy, type EconomyEvent } from "@blueberry/economy";
 import { useProgress } from "../app/hooks";
 import { economyOptions, progress } from "../app/progress";
 import { hrefForTab } from "../app/routes";
+import { CoinCounter, formatCoins } from "../app/ui/CoinCounter";
 import { DiamondMark } from "../app/ui/HudIcons";
 import { Press, pressClassName } from "../app/ui/Press";
 import { closeOnBackdrop } from "../app/ui/dismiss";
@@ -145,12 +146,14 @@ function BuySheet({
   held,
   owned,
   onClose,
+  reducedMotion,
 }: {
   readonly pick: Pick | null;
   readonly balance: number;
   readonly held: number;
   readonly owned: ReadonlySet<string>;
   readonly onClose: () => void;
+  readonly reducedMotion: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [done, setDone] = useState(false);
@@ -199,9 +202,8 @@ function BuySheet({
           <span className="shop-grab" aria-hidden />
           <div className="shop-sheet-top">
             <span className="shop-sheet-eyebrow">{done ? "All yours" : isFreeze ? "Streak Freeze" : pick.deck.unitLabel}</span>
-            <span className="shop-balance" aria-label={`${balance} diamonds`}>
-              <DiamondMark className="h-5 w-5" />
-              {balance}
+            <span className="shop-balance" role="img" aria-label={`${balance} coins`}>
+              <CoinCounter value={balance} reducedMotion={reducedMotion} mark={<DiamondMark heavy className="h-full w-full" />} />
             </span>
           </div>
 
@@ -247,14 +249,14 @@ function BuySheet({
             </div>
           )}
 
-          {offer.kind === "buy" && !done ? <p className="shop-after">You will have {offer.left} diamonds left.</p> : null}
+          {offer.kind === "buy" && !done ? <p className="shop-after">You will have {formatCoins(offer.left)} coins left.</p> : null}
           {offer.kind === "short" ? (
             <div className="shop-short" role="status">
               <span className="shop-meter" aria-hidden>
                 <span style={{ width: `${Math.round(progressToward(balance, offer.price) * 100)}%` }} />
               </span>
               <span>
-                {offer.need} more diamonds to go. Clearing a lesson earns them.
+                {formatCoins(offer.need)} more coins to go. Clearing a lesson earns them.
               </span>
             </div>
           ) : null}
@@ -280,7 +282,7 @@ function BuySheet({
               </Press>
             ) : offer.kind === "short" ? (
               <a href={hrefForTab("pathway")} className={pressClassName({ block: true })}>
-                Earn diamonds
+                Earn coins
               </a>
             ) : (
               <Press block disabled>
@@ -335,9 +337,8 @@ export default function ShopPage({ reducedMotion, embedded = false }: { readonly
           <CloseIcon />
         </button>
         <h1 className="shop-title">Shop</h1>
-        <span className="shop-balance shop-balance--head" aria-label={`${balance} diamonds`}>
-          <DiamondMark className="h-6 w-6" />
-          {balance}
+        <span className="shop-balance shop-balance--head" role="img" aria-label={`${balance} coins`}>
+          <CoinCounter value={balance} reducedMotion={reducedMotion} mark={<DiamondMark heavy className="h-full w-full" />} />
         </span>
       </header>
 
@@ -381,11 +382,11 @@ export default function ShopPage({ reducedMotion, embedded = false }: { readonly
 
         <p className="shop-note">
           <DiamondMark className="h-6 w-6" />
-          <span>Every price is paid in diamonds you earn by learning. Nothing here costs real money.</span>
+          <span>Every price is paid in coins you earn by learning. Nothing here costs real money.</span>
         </p>
       </main>
 
-      <BuySheet pick={pick} balance={balance} held={held} owned={owned} onClose={() => setPick(null)} />
+      <BuySheet pick={pick} balance={balance} held={held} owned={owned} onClose={() => setPick(null)} reducedMotion={reducedMotion} />
     </div>
   );
 }

@@ -92,6 +92,11 @@ const ReactionComposerPage = lazy(() => import("@/components/ReactionComposerPag
 const WorkspaceRoute = lazy(() =>
   import("@/components/WorkspaceRoute").then((m) => ({ default: m.WorkspaceRoute })),
 );
+/* DEV ONLY: the owner's Unit 1 sign-off page (#/signoff). `import.meta.env.DEV`
+   is the literal `false` in a build, so the import is dropped and the chunk never
+   ships; in a build #/signoff is an ordinary 404. A site route rather than an
+   #/app one, so it skips the sign-in gate and leaves the game's router alone. */
+const SignoffPage = import.meta.env.DEV ? lazy(() => import("@/game/signoff/SignoffPage")) : null;
 
 
 /**
@@ -173,6 +178,7 @@ export default function App() {
   // Signed out, AppGate sends the visitor to #/signin first (owner, 23 Oct, G1).
   // It owns the lazy GamePage and its LoaderGate.
   if (route === "app" || route.startsWith("app/")) return <AppGate />;
+  if (SignoffPage !== null && route === "signoff") return withBoundary(<SignoffPage />);
   // "#/unit/u7" opens Aldehydes and Ketones. Bare "#/unit" falls to the first,
   // and so does an id that does not exist, because a stale link in somebody's
   // notes should land on the course rather than on nothing.

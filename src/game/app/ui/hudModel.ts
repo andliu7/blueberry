@@ -305,9 +305,10 @@ function diamondReadout(snapshot: EconomySnapshot): DiamondReadout {
   return {
     id: "diamonds",
     value: String(balance),
-    label: `${plural(balance, "diamond", "diamonds")}`,
-    eyebrow: "Diamonds",
-    headline: plural(balance, "diamond", "diamonds"),
+    label: `${plural(balance, "coin", "coins")}`,
+    eyebrow: "Coins",
+    // Not the number: the balance is drawn large directly above this line.
+    headline: "Your coin treasury",
     // ECONOMY.md, rule 2: "Nothing buys correctness." Said plainly, because a
     // student who thinks the currency might buy an answer distrusts the grade.
     line: "Earned by clearing nodes, flawless runs and streak milestones. They buy costumes and freezes, never answers.",

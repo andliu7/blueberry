@@ -89,7 +89,6 @@ import { AdSlot } from "@/components/ads/AdSlot";
 import { useStudyState } from "../social/useStudyState";
 import "../social/social.css";
 import { activityFeed, type ActivityKind } from "./activityModel";
-import { FeedBackdrop } from "./FeedBackdrop";
 import { dailyQuestRows, feedModel, feedReminders, welcomeCard, welcomesBack, type DailyQuestRow, type WelcomeCard } from "./feedModel";
 import { NudgeCard, PostCard, RivalCard, TipCard, WeekCard, useCheers } from "./PostCards";
 import { weekModel } from "./weekModel";
@@ -710,8 +709,6 @@ export default function FeedTab() {
       data-feed-done={questsDone}
       data-feed-streak={model.snapshot.streak.todayCounted ? "true" : "false"}
     >
-      {/* The composed ground: behind everything, decorative, placed by a table (backdropProps.ts). */}
-      <FeedBackdrop />
       <div className="feed-column social-grid">
         <div className="social-main">
           {/* On desktop the shell header already names the screen, so there this heading is for screen readers only. */}

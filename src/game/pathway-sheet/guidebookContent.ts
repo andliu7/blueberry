@@ -37,6 +37,8 @@
  * has somewhere to land.
  */
 
+import { CHAIN_LINKS } from "../content/lessonChain";
+import { U0_PRIMERS } from "../content/u1/primers";
 import { HUMAN_GATE_MARK, type SheetNode, type SheetNodeKind } from "./nodeSheetModel";
 import { pathwayNode, type BackgroundTopic } from "../demo/pathwayMap";
 import { takeawayFor } from "./takeaways";
@@ -85,6 +87,8 @@ export interface GuidebookContent {
    * stands without them until they are filmed. Empty draws no section.
    */
   readonly background: readonly BackgroundTopic[];
+  /** Plain-words primers for what this lesson assumes from before Unit 1, for students without the full background. */
+  readonly context: readonly { readonly title: string; readonly text: string }[];
   readonly workedExample: {
     readonly heading: string;
     /**
@@ -171,6 +175,7 @@ export function guidebookFor(node: SheetNode): GuidebookContent {
     keyIdea: takeaway?.text ?? node.blurb,
     keyIdeaDraft: takeaway?.placeholder === true,
     background: pathwayNode(node.id)?.backgroundTopics ?? [],
+    context: (CHAIN_LINKS[node.id]?.assumes ?? []).flatMap((concept) => U0_PRIMERS[concept] ?? []),
     workedExample: {
       heading: "Worked example",
       lead: "Follow one problem like this from start to finish.",

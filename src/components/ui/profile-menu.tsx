@@ -10,6 +10,7 @@ import {
   User,
   Users,
   MessageCircle,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -33,7 +34,8 @@ interface MenuItem {
   label: string;
   /** Shown on the right, as a badge. */
   value?: string;
-  href: string;
+  /** No href: a plain row that shows a fact and goes nowhere (owner, 2 Nov: Role is not a link). */
+  href?: string;
   icon: React.ReactNode;
   /** Badges are tinted by meaning, not by position in the list. */
   tone?: "role" | "plan";
@@ -62,10 +64,11 @@ export function ProfileMenu({
       label: "Role",
       // `member` is the internal word; "Student" is what the person is.
       value: session.role === "member" ? "Student" : roleLabel(session.role),
-      href: "#/home",
       icon: <Shield className="size-4" />,
       tone: "role",
     },
+    // Staff only: the admin dashboard, reachable from every settings surface (owner, 2 Nov).
+    ...(staff ? [{ label: "Admin dashboard", href: "#/app/admin/home", icon: <LayoutDashboard className="size-4" /> }] : []),
     { label: "Calendar", href: "#/calendar", icon: <CalendarDays className="size-4" /> },
     { label: "Office hours", href: "#/tutoring", icon: <Users className="size-4" /> },
     {
@@ -108,26 +111,38 @@ export function ProfileMenu({
 
         <DropdownMenuSeparator />
 
-        {menuItems.map((item) => (
-          <DropdownMenuItem key={item.label} asChild>
-            <a href={item.href} className="gap-2">
+        {menuItems.map((item) => {
+          const body = (
+            <>
               {item.icon}
-              <span className="flex-1 truncate">{item.label}</span>
-              {item.value && (
-                <span
-                  className={cn(
-                    "shrink-0 rounded-md border px-1.5 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase",
-                    item.tone === "role" && staff
-                      ? "border-[#6b51dd]/20 bg-[#f1f4fa] text-[#5a3fd8] dark:bg-[#6b51dd]/10 dark:text-[#bbb1eb]"
-                      : "border-slate-500/15 bg-slate-100 text-slate-600 dark:bg-stone-800 dark:text-stone-300",
-                  )}
-                >
-                  {item.value}
-                </span>
-              )}
-            </a>
-          </DropdownMenuItem>
-        ))}
+            <span className="flex-1 truncate">{item.label}</span>
+            {item.value && (
+              <span
+                className={cn(
+                  "shrink-0 rounded-md border px-1.5 py-0.5 text-[0.65rem] font-semibold tracking-wide uppercase",
+                  item.tone === "role" && staff
+                    ? "border-[#6b51dd]/20 bg-[#f1f4fa] text-[#5a3fd8] dark:bg-[#6b51dd]/10 dark:text-[#bbb1eb]"
+                    : "border-slate-500/15 bg-slate-100 text-slate-600 dark:bg-stone-800 dark:text-stone-300",
+                )}
+              >
+                {item.value}
+              </span>
+            )}
+            </>
+          );
+          return item.href ? (
+            <DropdownMenuItem key={item.label} asChild>
+              <a href={item.href} className="gap-2">
+                {body}
+              </a>
+            </DropdownMenuItem>
+          ) : (
+            // A fact, not a destination: not focusable as a menu item, no hover state.
+            <div key={item.label} className="flex items-center gap-2 px-2 py-1.5 text-sm">
+              {body}
+            </div>
+          );
+        })}
 
         {/* The assistant's way in, since the corner rail it used to sit in went
             (2026-10-07). The panel listens for this event; see ui/blueberry-bot. */}

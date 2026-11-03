@@ -4,7 +4,7 @@
  * chestOpening.css, so a gift offered on a cold load does not fetch it.
  * Values ported from grignard/reports/wave2-mockups.html.
  *
- * The chest is gold and the diamond is sky in BOTH themes: they are objects,
+ * The chest and its coins are gold in BOTH themes: they are objects,
  * not surfaces, so they keep their colours on a night page like a sticker does.
  */
 
@@ -24,17 +24,36 @@
 .ca-pile-shade { fill: #8a5208; }
 .ca-twinkle { fill: #fff; }
 /* Coins and stones, in the heap and in the air. */
-.cc-edge { fill: #b8780a; }
-.cc-face { fill: #ffcb2e; fill: url(#cc-dome); }
-.cc-rim { fill: #ffe98a; }
-.cc-under { fill: none; stroke: #c98a0a; stroke-opacity: 0.8; }
+/* The coin's colours are theme.css's --coin-*, the one palette its two cuts share. */
+.cc-outline { stroke: var(--coin-outline); }
+.cc-edge { fill: var(--coin-edge); }
+.cc-rim { fill: var(--coin-rim); }
+.cc-recess { fill: var(--coin-ring); }
+.cc-face { fill: var(--coin-face); }
+.cc-crease { fill: var(--coin-edge-deep); }
+.cc-reed { fill: none; stroke: var(--coin-edge-deep); }
+.cc-reed-lit { fill: none; stroke: var(--coin-edge-lit); }
+.cc-lip { fill: none; stroke: var(--coin-edge-lit); }
+.cc-low { fill: none; stroke: var(--coin-rim-lo); }
+.cc-sheen { fill: var(--coin-shine); fill-opacity: 0.42; }
+.cc-beads { fill: none; stroke: var(--coin-ring); }
+.cc-star-shadow { fill: var(--coin-ring); }
+.cc-star-catch { fill: var(--coin-shine); }
+.cc-star-lit { fill: var(--coin-star-lit); }
+.cc-star-dim { fill: var(--coin-star); }
+.cc-shine { fill: none; stroke: var(--coin-shine); }
 .cc-spark { fill: #fff; }
-.cc-stop-a { stop-color: #fff1a8; }
-.cc-stop-b { stop-color: #ffcb2e; }
-.cc-stop-c { stop-color: #e8a010; }
-.cc-ring { fill: none; stroke: #e39a0c; }
-.cc-shine { fill: none; stroke: #fff4b8; }
-.cc-star { fill: #e39a0c; }
+.cc-stop-edge-deep { stop-color: var(--coin-edge-deep); }
+.cc-stop-edge-lit { stop-color: var(--coin-edge-lit); }
+.cc-stop-edge { stop-color: var(--coin-edge); }
+.cc-stop-rim-hi { stop-color: var(--coin-rim-hi); }
+.cc-stop-rim { stop-color: var(--coin-rim); }
+.cc-stop-rim-lo { stop-color: var(--coin-rim-lo); }
+.cc-stop-ring { stop-color: var(--coin-ring); }
+.cc-stop-shine { stop-color: var(--coin-shine); }
+.cc-stop-face-hi { stop-color: var(--coin-face-hi); }
+.cc-stop-face { stop-color: var(--coin-face); }
+.cc-stop-face-lo { stop-color: var(--coin-face-lo); }
 .jw-edge { fill: none; stroke: #2a1536; stroke-opacity: 0.55; }
 .jw-shine { fill: #fff; fill-opacity: 0.75; }
 .jw--ruby .jw-1 { fill: #e11d48; }
@@ -45,10 +64,6 @@
 .jw--emerald .jw-2 { fill: #6ee7b7; }
 .jw--emerald .jw-3 { fill: #059669; }
 .jw--emerald .jw-4 { fill: #047857; }
-.jw--sapphire .jw-1 { fill: #3b82f6; }
-.jw--sapphire .jw-2 { fill: #93c5fd; }
-.jw--sapphire .jw-3 { fill: #2563eb; }
-.jw--sapphire .jw-4 { fill: #1d4ed8; }
 .coin-art,
 .stone-art { display: block; width: 100%; height: 100%; overflow: visible; }
 .ca-lip { fill: #8a420c; }
@@ -113,19 +128,7 @@
 .chest-art.is-open .ca-lid { transform: translateY(-14px) scaleY(0.4); opacity: 0; }
 .chest-art.is-open .ca-plate { opacity: 0; }
 
-/* -------------------------------------------------------- the diamond -- */
 
-.gem-art { display: block; width: 100%; height: 100%; overflow: visible; }
-.ga-1 { fill: #0369a1; }
-.ga-2 { fill: #7dd3fc; }
-.ga-3 { fill: #38bdf8; }
-.ga-4 { fill: #0ea5e9; }
-.ga-5 { fill: #0284c7; }
-.ga-6 { fill: #075985; }
-.ga-shine { fill: #fff; fill-opacity: 0.7; }
-.ga-glint { fill: #fff; fill-opacity: 0.35; }
-.ga-edge { fill: none; stroke: #0c4a6e; }
-.ga-seam { fill: none; stroke: #0c4a6e; stroke-opacity: 0.35; }
 
 /* ------------------------------------------------------ the offer sheet -- */
 

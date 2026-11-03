@@ -1760,6 +1760,50 @@ def node_directing() -> None:
         tiles={"agree": named(opts["agree"], "2-bromo-1-methyl-4-nitrobenzene"), "other": named(opts["other"], "2-bromo-4-methyl-1-nitrobenzene"),
                "ipso": named(opts["ipso"], "1-bromo-4-nitrobenzene")})
 
+    # The reasoning pass (30 Oct, round 3). The classify items above ask the student to
+    # recall a class. These ask for the reason, read off the walked sigma complex, so a
+    # group the student has never met can be handled by the same question: does the +
+    # ever sit beside the group, and does the group help or hurt it there.
+    nb = S("nitrobenzene")
+    nb_bad = {rel: len(sigma_at(nb, rel)["bad_forms"]) for rel in ("ortho", "meta", "para")}
+    nb_ring = substituents(nb)[0][0]
+    derived = "worst" if nb_bad["ortho"] >= 1 and nb_bad["para"] >= 1 and nb_bad["meta"] == 0 else None
+    mcq(node, "u3-dir-why-nitro", "Nitrobenzene is attacked meta. Pick the reason from the sigma complex.",
+        [("worst", "Ortho and para put the + on the NO2 carbon", "In an ortho or para sigma complex one form puts the + on the carbon holding NO2, next to the N+. Two positive charges side by side is the worst form. Meta attack never reaches that carbon."),
+         ("lonepair", "Meta attack gets an extra form from a lone pair", "The N in NO2 has no lone pair to give to the ring, so no attack gets an extra form from it."),
+         ("crowd", "Ortho and para are too crowded by NO2", "Para is the furthest position from NO2, so crowding cannot be the reason. The reason is where the + can sit.")],
+        derived, "worst",
+        "Meta attack is the only one that keeps the + off the carbon holding the withdrawer. The others are slower still, so meta wins.",
+        prov(f"sigma complex walk on nitrobenzene: forms with the + on the NO2 carbon, ortho {nb_bad['ortho']}, meta {nb_bad['meta']}, para {nb_bad['para']}", sec),
+        structure(nb, N("nitrobenzene"), "nitrobenzene", marks=[nb_ring]), level=2)
+
+    ph = S("phenol")
+    bz0 = S("benzene")
+    ph_total = sigma_at(ph, "para")["total"]
+    bz_total = sigma_at(bz0, "para")["total"]
+    derived = "extra" if ph_total == bz_total + 1 else None
+    mcq(node, "u3-dir-why-fast", "Phenol reacts faster than benzene. Pick the reason in the sigma complex.",
+        [("extra", "Para attack gets one more form, with O+", "When the + reaches the carbon holding OH, oxygen's lone pair gives a form with full octets. Benzene's cation has no such form, so phenol's cation is steadier and forms faster."),
+         ("pi", "Phenol has more pi electrons in the ring", "Both rings have six pi electrons. The O lone pair only joins in when the + needs it."),
+         ("pull", "OH pulls electrons out of the ring", "Oxygen does pull through the sigma bond, but that alone would slow the ring. Its lone pair wins on a cation.")],
+        derived, "extra",
+        "A group with a lone pair on its first atom adds a form to ortho and para attack, so those cations are steadier and the ring is faster.",
+        prov(f"sigma complex walk: phenol para {ph_total} forms, benzene {bz_total}", sec),
+        structure(ph, N("phenol"), "phenol"), level=2)
+
+    counts = {rel: len(sigma_at(nb, rel)["bad_forms"]) for rel in ("ortho", "meta", "para")}
+    opts = {"1-0-1": "Ortho 1, meta 0, para 1", "1-1-0": "Ortho 1, meta 1, para 0", "0-1-1": "Ortho 0, meta 1, para 1"}
+    got = f"{counts['ortho']}-{counts['meta']}-{counts['para']}"
+    derived = got if got in opts else None
+    mcq(node, "u3-dir-bad-count", "In nitrobenzene's sigma complex, count the forms with the + beside the N+.",
+        [("1-0-1", opts["1-0-1"], "Ortho and para attack each have one form with the + on the NO2 carbon. From a meta sp3 carbon the + lands on the other three alternate carbons, and the NO2 carbon is not one of them."),
+         ("1-1-0", opts["1-1-0"], "Para attack reaches the NO2 carbon: the carbon straight across the ring is one of the three the + spreads to."),
+         ("0-1-1", opts["0-1-1"], "Ortho attack reaches the NO2 carbon, because the carbon next door is one of the three the + spreads to.")],
+        derived, "1-0-1",
+        "One bad form for ortho, none for meta, one for para. Count the forms and the position that avoids the bad one is the position the group directs to.",
+        prov(f"sigma complex walk on nitrobenzene: {got}", sec),
+        structure(nb, N("nitrobenzene"), "nitrobenzene", marks=[nb_ring]), level=2)
+
     # The rate ladder and the class board. Since the 23 Oct audit (top-25 #14)
     # both play in this lesson: the ladder on the order step, the board on the
     # connect step. The second ladder stays drafted under u3-exam.
@@ -2554,8 +2598,9 @@ def build() -> None:
     exam_boards()
     check_names()
     for node, entries in POOLS.items():
-        if node != "u3-exam" and not 6 <= len(entries) <= 12:
-            fail(f"{node}: {len(entries)} items, outside 6 to 12")
+        cap = 14 if node == "u3-directing" else 12  # directing carries the reasoning pass, the unit's hardest transfer
+        if node != "u3-exam" and not 6 <= len(entries) <= cap:
+            fail(f"{node}: {len(entries)} items, outside 6 to {cap}")
     # The right answer should not sit in one slot every time.
     for slot in range(4):
         share = CORRECT_INDEX.count(slot) / max(1, len(CORRECT_INDEX))

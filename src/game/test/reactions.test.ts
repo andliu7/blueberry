@@ -151,9 +151,9 @@ describe("the pathway map is a truthful ledger", () => {
   // brief kept Unit 2 as gates, so the owner's pin stands at 100 until the owner decides otherwise.
   // CHANGED 2026-10-23, 100 to 102: the learner audit's top-25 #13 (documentation/CONTENT-AUDIT-OCT-23.md)
   // moved u3-fc-alkyl and u3-benzylic-ox from side quests onto the Unit 3 main line. Total unchanged.
-  it("carries the full inventory: 208 nodes, 102 of them spine", () => {
+  it("carries the full inventory: 214 nodes, 102 of them spine", () => {
     const score = coverage();
-    expect(score.total).toBe(208);
+    expect(score.total).toBe(214);
     expect(score.spineTotal).toBe(102);
   });
 });

@@ -11,6 +11,8 @@
  */
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Press } from "../app/ui/Press";
+import { DiamondMark } from "../app/ui/HudIcons";
+import { CoinShapes } from "../chest/ChestArt";
 import { Berry } from "../mascot/Berry";
 import "./gem-reward.css";
 
@@ -67,13 +69,7 @@ function Mascot({ px, still, mood = "excited" }: { readonly px: number; readonly
 }
 
 export function GemMark({ className = "" }: { readonly className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z" fill="var(--gr-gem)" stroke="var(--gr-gem-edge)" strokeWidth="1.3" strokeLinejoin="round" />
-      <path d="M12 1.6 21 6.8l-9 5.2-9-5.2z" fill="var(--gr-gem-light)" />
-      <path d="M12 12 21 6.8v10.4z" fill="#000" fillOpacity="0.12" />
-    </svg>
-  );
+  return <DiamondMark className={className} />;
 }
 
 function Bolt({ className = "" }: { readonly className?: string }) {
@@ -84,7 +80,16 @@ function Bolt({ className = "" }: { readonly className?: string }) {
   );
 }
 
-/** Flat treasure chest, open, overflowing with gems. Hard edges, no gradients. */
+/** One chest coin placed in this box: `r` is its face radius, the drawing's own is 15. */
+function HeapCoin({ x, y, r, tilt = 0 }: { readonly x: number; readonly y: number; readonly r: number; readonly tilt?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${tilt}) scale(${r / 15}) translate(-18 -18)`}>
+      <CoinShapes />
+    </g>
+  );
+}
+
+/** Flat treasure chest, open, overflowing with coins. */
 function Chest({ tier = "gem" }: { readonly tier?: "gem" | "rare" | "epic" }) {
   const inside = tier === "epic" ? "#4c1d95" : tier === "rare" ? "#075985" : "#5b3a1e";
   return (
@@ -102,14 +107,11 @@ function Chest({ tier = "gem" }: { readonly tier?: "gem" | "rare" | "epic" }) {
       <path d="M44 66 64 38h92l20 28z" fill="#e39a1f" />
       <path d="M44 66 52 44l8 22z" fill="#fff" fillOpacity="0.28" />
       <rect x="34" y="78" width="152" height="6" fill="#fff" fillOpacity="0.14" />
-      <circle cx="52" cy="62" r="12" fill="#ffd45c" stroke="#b57a00" strokeWidth="2.5" />
-      <circle cx="170" cy="60" r="11" fill="#ffd45c" stroke="#b57a00" strokeWidth="2.5" />
-      <path d="M50 57.28 L62.48 40 L85.52 40 L98 57.28 L74 94z" fill="var(--gr-gem)" stroke="var(--gr-gem-edge)" strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M50 57.28 H98 M62.48 40 L74 94 L85.52 40" fill="none" stroke="var(--gr-gem-edge)" strokeOpacity="0.55" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M126 55.28 L138.48 38 L161.52 38 L174 55.28 L150 92z" fill="var(--gr-gem)" stroke="var(--gr-gem-edge)" strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M126 55.28 H174 M138.48 38 L150 92 L161.52 38" fill="none" stroke="var(--gr-gem-edge)" strokeOpacity="0.55" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M81 40.4 L97.12 18 L126.88 18 L143 40.4 L112 88z" fill="var(--gr-gem-light)" stroke="var(--gr-gem-edge)" strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M81 40.4 H143 M97.12 18 L112 88 L126.88 18" fill="none" stroke="var(--gr-gem-edge)" strokeOpacity="0.55" strokeWidth="2" strokeLinejoin="round" />
+      <HeapCoin x={50} y={60} r={13} tilt={-16} />
+      <HeapCoin x={172} y={58} r={12} tilt={14} />
+      <HeapCoin x={76} y={58} r={23} tilt={-9} />
+      <HeapCoin x={148} y={56} r={23} tilt={8} />
+      <HeapCoin x={112} y={42} r={29} />
     </svg>
   );
 }
@@ -175,11 +177,11 @@ function GemsScreen(p: GemRewardProps) {
   const still = p.reducedMotion === true;
   const n = useCountUp(p.gems ?? 0, still);
   return (
-    <main className="gr gr--field" data-motion={still ? "still" : "live"} data-reward="gems" aria-label="Gems earned">
-      <h1 className="gr-head gr-in" style={{ animationDelay: "80ms" }} aria-label={`${p.gems ?? 0} gems`}>
+    <main className="gr gr--field" data-motion={still ? "still" : "live"} data-reward="gems" aria-label="Coins earned">
+      <h1 className="gr-head gr-in" style={{ animationDelay: "80ms" }} aria-label={`${p.gems ?? 0} coins`}>
         <span className="gr-num" aria-hidden>+{n}</span>
         <span className="gr-unit" aria-hidden>
-          <GemMark className="gr-head-icon" /> gems
+          <GemMark className="gr-head-icon" /> coins
         </span>
       </h1>
       <div className="gr-stage">
@@ -301,7 +303,7 @@ function StreakScreen(p: GemRewardProps) {
       </ol>
       <div className="gr-foot">
         <Press variant="primary" size="lg" block onClick={p.onShare ?? p.onContinue}>
-          <GemMark className="gr-btn-icon" /> Share +{p.gems ?? 0} gems
+          <GemMark className="gr-btn-icon" /> Share +{p.gems ?? 0} coins
         </Press>
         <button type="button" className="gr-quiet" onClick={p.onContinue}>
           Continue

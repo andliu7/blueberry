@@ -215,11 +215,11 @@
   box-shadow: inset 0 0 0 2px var(--bb-primary);
   color: var(--bb-primary-ink);
 }
-/* Covered by a held freeze. The diamond hue, because a freeze was bought. */
+/* Covered by a held freeze. Ice, because that is what a freeze is. */
 .streak-day[data-kind="freeze"] .streak-day-slot {
-  background: color-mix(in srgb, var(--diamond) 16%, var(--bb-card));
-  box-shadow: inset 0 0 0 2px var(--diamond);
-  color: var(--diamond-ink);
+  background: color-mix(in srgb, var(--ice) 16%, var(--bb-card));
+  box-shadow: inset 0 0 0 2px var(--ice);
+  color: var(--ice-ink);
 }
 /* Today, still open. The ring is the streak hue so the square reads as the
    live one, and there is no glyph in it yet. */
@@ -344,7 +344,7 @@
   gap: 0.25rem;
   font-size: var(--text-scale-base);
   font-weight: 700;
-  /* The diamond mark beside this number is where the sky hue lives. */
+  /* The coin beside this number is where the gold lives. */
   color: var(--bb-foreground);
   font-variant-numeric: tabular-nums;
 }
@@ -385,9 +385,9 @@
   height: 1rem;
 }
 .streak-freeze-slot[data-held="true"] {
-  background: color-mix(in srgb, var(--diamond) 16%, var(--bb-card));
-  box-shadow: inset 0 0 0 2px var(--diamond);
-  color: var(--diamond-ink);
+  background: color-mix(in srgb, var(--ice) 16%, var(--bb-card));
+  box-shadow: inset 0 0 0 2px var(--ice);
+  color: var(--ice-ink);
   opacity: 1;
 }
 .streak-freeze-text {
@@ -409,9 +409,9 @@
   padding: 0 0.8rem;
   /* 14px, over the sticker language's 12px floor. 0.7rem was 11.2. */
   border-radius: 0.875rem;
-  border: 1.5px solid var(--diamond);
-  background: color-mix(in srgb, var(--diamond) 12%, var(--bb-card));
-  color: var(--diamond-ink);
+  border: 1.5px solid var(--ice);
+  background: color-mix(in srgb, var(--ice) 12%, var(--bb-card));
+  color: var(--ice-ink);
   font-size: var(--text-scale-sm);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -557,7 +557,7 @@
 
      theme.css is the integrator's file, and every one of these tokens is
      also painted somewhere this piece does not own: --diamond is the
-     header's gem and the Feed's band wash, --streak is the header's flame,
+     header's coin ink and the Feed's band wash, --streak is the header's flame,
      --progress is the pathway's trail and every filled bar in the product.
      Moving one is a product-wide change with its own contrast row, so the
      move is REPORTED and this surface paints with locals. It can do that
@@ -565,15 +565,12 @@
      other surface is on screen with it, so nothing here can disagree with
      the same object drawn elsewhere in the same frame.
 
-     GEM. Both committed images draw a TEAL hexagon, sampled #26bdb6 and
-     #2eb3b0. --diamond is #0284c7, a sky blue. The bright face is about
-     2.2:1 on cream, so --gem-edge #0e7f7a carries the boundary at 3.36:1
-     and the shape is identified by its outline, which is the contrast
-     audit's own "a shape is one component" rule rather than an exemption.
+     COIN. Since 1 Nov the currency is a gold coin, drawn by DiamondMark with
+     its own outline for the boundary; the confetti below takes its face.
 
      FLAME. The image and blueberry_spec-meter-states draw a flat bright
      orange (#ffa60e over #fc8e01). --streak #d94a06 is markedly darker and
-     redder. Same construction as the gem: the bright body is the fill and
+     redder. Same construction as the coin: the bright body is the fill and
      --streak, already measured at 3.64:1 on the page, is the boundary.
 
      CLAIM. The image fills CLAIM with a soft mint, sampled #9ae1b7;
@@ -584,9 +581,7 @@
      rule prescribes dark ink on green, so the ink stays ours and only the
      hue moves.
      --------------------------------------------------------------------- */
-  --gem: #26bdb6;
-  --gem-light: #5fd8d2;
-  --gem-edge: #0e7f7a;
+  --gem: var(--coin-face);
   --flame-bright: #ffa60e;
   --flame-glow: #ffd166;
   --claim-face: #9ae1b7;
@@ -725,7 +720,7 @@
 /* Five hues, the reference's own. --good is deliberately absent: it is a
    near-black green that reads as a hole in the paper. */
 .reward-flake--pink { background: var(--flake-pink); }
-/* The teal of the gem this screen actually draws, not --diamond's sky blue:
+/* The gold of the coin this screen draws, not --diamond's darker text gold:
    a confetti hue that is not a colour on the screen is a sixth accent. */
 .reward-flake--diamond { background: var(--gem); }
 .reward-flake--streak { background: var(--flame-bright); }

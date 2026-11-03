@@ -43,9 +43,9 @@ describe("pathway states", () => {
 });
 
 describe("unit 2", () => {
-  it("shows no locked first row: the side quest drawn first is open", () => {
+  it("shows no locked first row: the first lesson of the unit is open", () => {
     const { status } = pathStatus(PATHWAY_UNITS, []);
-    expect(status.nodes.get("u2-nomen")!.state).not.toBe("locked");
-    expect(status.nodes.get("u2-huckel")!.state).not.toBe("locked");
+    // CHANGED 2026-10-29: the tools lessons now open the unit, so induction is the first row (Hückel follows resonance).
+    expect(status.nodes.get("u2-induction")!.state).not.toBe("locked");
   });
 });

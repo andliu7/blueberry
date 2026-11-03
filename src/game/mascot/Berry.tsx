@@ -517,6 +517,13 @@ export function Berry({
       role="img"
     >
       {shape.haloKind !== "none" ? <span className="berry-halo" aria-hidden /> : null}
+      {shape.haloKind === "unpaired" ? (
+        <svg className="berry-fishhook" viewBox="0 0 100 100" aria-hidden focusable="false">
+          <path className="berry-fishhook-arc" pathLength={60} d="M 85 9 C 100 6 108 18 102 34" />
+          <path className="berry-fishhook-barb" d="M 102 34 L 109.7 27.6" />
+          <circle className="berry-fishhook-target" cx="100" cy="40" r="5" />
+        </svg>
+      ) : null}
 
       <span className="berry-stack">
         {shape.split ? (

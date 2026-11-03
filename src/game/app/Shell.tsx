@@ -66,7 +66,8 @@
  */
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { NAV_TABS, TOOL_TABS, hrefForTab, tabDefinition, type Route, type TabId, type ToolId } from "./routes";
+import { useVisibleTools } from "./ui/toolAccess";
+import { NAV_TABS, hrefForTab, tabDefinition, type Route, type TabId, type ToolId } from "./routes";
 import { isFlagOn } from "./flags";
 import { TabSkeleton } from "./ui/Skeleton";
 import { BootReady } from "./Loader";
@@ -95,6 +96,7 @@ const SearchTab = lazy(() => import("../tabs/search/SearchTab"));
 const LeaderboardsTab = lazy(() => import("../tabs/leaderboards/LeaderboardsTab"));
 const PeriodicTab = lazy(() => import("../tabs/periodic/PeriodicTab"));
 const FocusTab = lazy(() => import("../tabs/focus/FocusTab"));
+const SpectraTab = lazy(() => import("../tabs/spectra/SpectraTab"));
 const ChatTab = lazy(() => import("../tabs/chat/ChatTab"));
 const MessagesTab = lazy(() => import("../tabs/messages/MessagesTab"));
 
@@ -178,6 +180,8 @@ function Outlet({
       return <PeriodicTab selected={rest[0] ?? null} />;
     case "focus":
       return <FocusTab />;
+    case "spectra":
+      return <SpectraTab />;
     case "leaderboards":
       return (
         <Flagged flag="leaderboards">
@@ -231,6 +235,7 @@ function Outlet({
  * search lens, so the button pictures what is behind it.
  */
 function HeaderTools({ route }: { readonly route: Route }) {
+  const tools = useVisibleTools();
   const [menuOpen, setMenuOpen] = useState(false);
   const [tool, setTool] = useState<ToolId | null>(null);
   const menu = useRef<HTMLDialogElement>(null);
@@ -300,7 +305,7 @@ function HeaderTools({ route }: { readonly route: Route }) {
             </button>
           </div>
           <ul className="tools-menu__list">
-            {TOOL_TABS.map((entry) => (
+            {tools.map((entry) => (
               <li key={entry.id}>
                 <button
                   type="button"

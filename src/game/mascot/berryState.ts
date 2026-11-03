@@ -29,7 +29,7 @@ export type BerryState =
   | "protonated"
   /** Positional jitter, spark particles, a plus badge. SN1/E1 and rearrangement. */
   | "carbocation"
-  /** Split into two halves with an unpaired-electron halo. Radical halogenation. */
+  /** One whole berry, jittery, one shimmering unpaired-electron dot. Radical halogenation. */
   | "radical"
   /** Two translucent copies trading opacity, never one. Delocalization. */
   | "resonance"
@@ -161,7 +161,10 @@ export const STATE_SHAPE: Record<BerryState, StateShape> = {
   // `stressed` behaviour records. Sparks are a handful, not a fountain.
   carbocation: { ...plain, jitterPx: 1.5, sparkRate: 3, badge: "+" },
 
-  radical: { ...plain, split: true, haloKind: "unpaired", haloStrength: 0.9, badge: "•" },
+  // One species, never cleaved: a radical is a single unpaired electron, so the
+  // berry stays whole, jitters like the carbocation but faster and smaller, and
+  // carries ONE shimmering dot. No split, no badge (a second dot reads as a lone pair).
+  radical: { ...plain, haloKind: "unpaired", haloStrength: 0.9, jitterPx: 2.4 },
 
   // Two copies and NEVER one: the CSS trades their opacity so at no frame is
   // the berry a single solid drawing. That is the whole lesson.

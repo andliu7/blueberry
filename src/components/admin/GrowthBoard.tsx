@@ -43,64 +43,8 @@ export type { DeviceKey, DeviceSlice, FunnelStage, PlanPoint };
 export type GrowthBoardData = FinanceBentoData;
 
 /* ------------------------------------------------------------------ */
-/* Sample data. Made up. Never shown without the "Sample data" chip.   */
+/* No sample figures live here. With no data the board shows shapes only.    */
 /* ------------------------------------------------------------------ */
-
-const MONTHS = 30;
-
-function scaled(s: number): DeviceSlice {
-  const learners: PlanPoint[] = Array.from({ length: MONTHS }, (_, i) => {
-    const t = i / (MONTHS - 1);
-    const d = new Date(Date.UTC(2024, 4 + i, 1));
-    const wobble = 1 + Math.sin(i * 0.9) * 0.04;
-    return {
-      month: d.toISOString().slice(0, 10),
-      free: Math.round((400 + t * 5200) * wobble * s),
-      ad: Math.round((120 + t * 2600) * wobble * s),
-      pro: Math.round((30 + t * 1500) * wobble * s),
-    };
-  });
-  const row = (base: number[], k: number) => base.map((v) => Math.round(v * k * s));
-  return {
-    learners,
-    funnel: [
-      { label: "Signed up", count: Math.round(1000 * s) },
-      { label: "Started a lesson", count: Math.round(720 * s) },
-      { label: "Cleared first node", count: Math.round(510 * s) },
-      { label: "Back on day 7", count: Math.round(280 * s) },
-    ],
-    previousDay7Return: 0.25,
-    flow: {
-      months: ["May", "Jun", "Jul", "Aug", "Sep", "Oct"],
-      seriesLabels: ["2026", "2025", "2024"],
-      signups: [row([240, 360, 540, 640, 500, 340], 1), row([200, 300, 440, 520, 420, 280], 1), row([160, 240, 340, 400, 330, 220], 1)],
-      churned: [row([120, 220, 380, 460, 340, 180], 1), row([100, 180, 300, 380, 280, 150], 1), row([80, 140, 240, 300, 220, 120], 1)],
-    },
-    weekday: { days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], values: row([2100, 2300, 2500, 2200, 1700, 900, 1400], 1) },
-  };
-}
-
-export const sampleGrowthData: GrowthBoardData = {
-  asOf: "sample",
-  isSample: true,
-  slices: { all: scaled(1), phone: scaled(0.64), desktop: scaled(0.36) },
-  cac: { current: 3.4, target: 4, spend: 5200, signups: 1530 },
-  exams: [
-    { name: "ACS Organic 1", date: "Nov 14", daysAway: 17 },
-    { name: "Orgo 2 finals", date: "Dec 9", daysAway: 42 },
-    { name: "MCAT", date: "Jan 23", daysAway: 87 },
-  ],
-  feedback: [
-    { label: "Wrong answer", open: 14, total: 60 },
-    { label: "Unclear wording", open: 9, total: 41 },
-    { label: "Typo", open: 3, total: 25 },
-  ],
-  flaggedLessons: [
-    { name: "SN2 vs SN1 rates", change: "+12%", daily: [3, 4, 4, 6, 5, 7, 9] },
-    { name: "Grignard quench", change: "-8%", daily: [8, 7, 7, 5, 6, 4, 4] },
-    { name: "Aldol condensation", change: "+3%", daily: [2, 3, 2, 3, 3, 4, 3] },
-  ],
-};
 
 /* ------------------------------------------------------------------ */
 
@@ -131,26 +75,61 @@ export function growthDataReady(d: GrowthBoardData): boolean {
 }
 
 interface GrowthBoardProps {
-  /** Omit to show the labelled sample data. */
+  /** Omit to show the empty state: example graphs, no figures. */
   data?: GrowthBoardData;
   /** Show the "by vasnev.art" badge. Off for our usage. */
   credit?: boolean;
 }
 
+/** What each part will read from once connected. Named, so the empty state says what is missing. */
+const NEEDS: Array<{ title: string; source: string; shape: number[] }> = [
+  { title: "Learners by plan", source: "plan history (entitlements over time)", shape: [2, 3, 3, 5, 6, 8, 9, 12] },
+  { title: "Acquisition cost", source: "logged ad spend", shape: [9, 8, 8, 6, 6, 5, 5, 4] },
+  { title: "Open feedback", source: "the feedback table", shape: [3, 5, 4, 6, 5, 7, 6, 8] },
+];
+
+function ShapeLine({ points, label }: { points: number[]; label: string }) {
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const d = points
+    .map((v, i) => `${i ? "L" : "M"}${(i / (points.length - 1)) * 120} ${30 - ((v - min) / (max - min || 1)) * 26 - 2}`)
+    .join(" ");
+  return (
+    <svg viewBox="0 0 120 32" role="img" aria-label={label} className="h-10 w-full text-muted-foreground opacity-60">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 4" />
+    </svg>
+  );
+}
+
 export default function GrowthBoard({ data, credit = false }: GrowthBoardProps) {
-  const d = data ?? sampleGrowthData;
-  const sample = data === undefined || d.isSample;
+  if (data === undefined || data.isSample) {
+    return (
+      <div className="mx-auto w-full max-w-[1480px] p-3 sm:p-5">
+        <section aria-labelledby="gb-empty" className="rounded-2xl border-2 border-dashed border-border bg-card p-5 text-card-foreground">
+          <h2 id="gb-empty" className="m-0 text-lg font-extrabold">
+            Growth is not measured yet
+          </h2>
+          <p className="mb-4 mt-1 text-sm text-muted-foreground">
+            No data, example. Real sign-ups, retention and devices are on the Learners tab.
+          </p>
+          <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-3">
+            {NEEDS.map((n) => (
+              <li key={n.title} className="rounded-xl border border-dashed border-border p-3">
+                <p className="m-0 text-sm font-bold">{n.title}</p>
+                <p className="m-0 text-2xl font-extrabold text-muted-foreground">No data</p>
+                <ShapeLine points={n.shape} label={`Example graph for ${n.title}`} />
+                <p className="m-0 text-xs text-muted-foreground">Feeds from {n.source} once connected.</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    );
+  }
+  const d = data;
   const ready = growthDataReady(d);
   return (
     <div className="mx-auto w-full max-w-[1480px] p-3 sm:p-5">
-      {sample && (
-        <p
-          role="note"
-          className="mb-3 inline-flex min-h-8 items-center rounded-full bg-amber-300 px-3 text-xs font-bold text-black"
-        >
-          Sample data, not live
-        </p>
-      )}
       {ready ? (
         <FinanceBento data={d} title="Growth" subtitle={d.asOf} credit={credit} />
       ) : (

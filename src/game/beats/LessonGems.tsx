@@ -44,7 +44,7 @@ export default function LessonGems() {
     [snapshot.journal, snapshot.course],
   );
   return (
-    <span className="lesson-currency" aria-label={`${gems} gems`}>
+    <span className="lesson-currency" aria-label={`${gems} coins`}>
       <GemMark />
       {gems}
     </span>

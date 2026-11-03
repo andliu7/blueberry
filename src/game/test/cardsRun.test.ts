@@ -430,13 +430,13 @@ describe("the summary hears the calls", () => {
      the economy (cards_reviewed, DIAMONDS_CARD_RUN). Round 3's pin that the
      summary shows NO diamonds pinned the reverse decision; what holds now is
      that the tile shows what was credited, never a number of its own. */
-  it("shows the diamonds credited, zero when nothing was, and the rule beside a zero", () => {
+  it("shows the coins credited, zero when nothing was, and the rule beside a zero", () => {
     const html = renderToStaticMarkup(
       createElement(Run, { cards: [], source: createLocalDecks({ now: () => NOON }), journal: [], onExit: () => undefined }),
     );
-    expect(html).toContain("Diamonds");
-    expect(html).toMatch(/>0<\/span><span[^>]*>Diamonds/);
-    expect(html).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds`);
+    expect(html).toContain("Coins");
+    expect(html).toMatch(/>0<\/span><span[^>]*>Coins/);
+    expect(html).toContain(`A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} coins`);
   });
 
   it("credits a completed run through the store, and the economy decides the amount", () => {

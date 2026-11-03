@@ -84,8 +84,8 @@ describe("the C1 chest: three taps", () => {
   });
 
   it("says what it paid, and never a payout for a chest already open", () => {
-    expect(paidHeadline({ diamonds: 50, xp: 20 })).toBe("+50 diamonds and +20 XP");
-    expect(paidHeadline({ diamonds: 1, xp: 0 })).toBe("+1 diamond");
+    expect(paidHeadline({ diamonds: 50, xp: 20 })).toBe("+50 coins and +20 XP");
+    expect(paidHeadline({ diamonds: 1, xp: 0 })).toBe("+1 coin");
     expect(paidHeadline({ diamonds: 0, xp: 0 })).toBe("Already opened");
   });
 });

@@ -13,6 +13,94 @@ import type { SectionCardSeed } from "./sectionDecks";
 
 export const SECTION_CARDS: readonly SectionCardSeed[] = [
   {
+    "id": "sec:u2-induction:idea:u2t-ind-meet-bond",
+    "lesson": "u2-induction",
+    "kind": "idea",
+    "front": "Electronegative atoms pull shared electrons toward themselves, and that pull ____. This is induction.",
+    "back": "passes along the sigma bonds",
+    "why": "Induction is that pull passed along a chain of sigma bonds."
+  },
+  {
+    "id": "sec:u2-induction:idea:u2t-ind-distance",
+    "lesson": "u2-induction",
+    "kind": "idea",
+    "front": "Induction fades with each bond it passes through, so ____",
+    "back": "the closer the Cl, the stronger the acid.",
+    "why": "Induction fades with each bond it passes through."
+  },
+  {
+    "id": "sec:u2-induction:idea:u2t-ind-amine",
+    "lesson": "u2-induction",
+    "kind": "idea",
+    "front": "Induction works on bases too: ____",
+    "back": "a withdrawing atom close to N makes the amine a weaker base.",
+    "why": "Induction works on bases too."
+  },
+  {
+    "id": "sec:u2-induction:slip:u2t-ind-distance",
+    "lesson": "u2-induction",
+    "kind": "slip",
+    "front": "Spot the slip: Thinking a far-off Cl helps as much as a near one.",
+    "back": "Count the bonds. The pull fades with each one.",
+    "why": "Induction fades with each bond it passes through."
+  },
+  {
+    "id": "sec:u2-keq-pka:idea:u2t-keq-meet-weaker",
+    "lesson": "u2-keq-pka",
+    "kind": "idea",
+    "front": "____, and the equilibrium rests on the side of the weaker acid.",
+    "back": "A higher pKa means a weaker acid",
+    "why": "A higher pKa means a weaker acid, and a weaker acid holds its proton more tightly"
+  },
+  {
+    "id": "sec:u2-keq-pka:idea:u2t-keq-ethoxide-phenol",
+    "lesson": "u2-keq-pka",
+    "kind": "idea",
+    "front": "Check the acid formed: ____",
+    "back": "if it is the weaker one, the products win.",
+    "why": "The acid formed is the weaker one."
+  },
+  {
+    "id": "sec:u2-keq-pka:slip:u2t-keq-meet-weaker",
+    "lesson": "u2-keq-pka",
+    "kind": "slip",
+    "front": "Spot the slip: Reading the pKa gap the wrong way round.",
+    "back": "A higher pKa is the weaker acid, and the equilibrium rests there.",
+    "why": "A higher pKa means a weaker acid"
+  },
+  {
+    "id": "sec:u2-energy:idea:u2e-meet-window",
+    "lesson": "u2-energy",
+    "kind": "idea",
+    "front": "A step with a Keq inside the window, 10 to the minus 7 up to 10 to the 7, ____, so some product turns back into reactant.",
+    "back": "runs both ways",
+    "why": "so the step runs both ways"
+  },
+  {
+    "id": "sec:u2-resonance:idea:u2t-res-meet-lengths",
+    "lesson": "u2-resonance",
+    "kind": "idea",
+    "front": "Resonance forms differ only in where the pi electrons are drawn. The real molecule is ____, so benzene's six C-C bonds are equal.",
+    "back": "one blend",
+    "why": "Resonance forms differ only in where the pi electrons are drawn."
+  },
+  {
+    "id": "sec:u2-resonance:idea:u2t-res-cp-acid",
+    "lesson": "u2-resonance",
+    "kind": "idea",
+    "front": "Acidity follows the conjugate base: ____",
+    "back": "the more the base spreads its charge, the stronger the acid.",
+    "why": "Acidity follows the conjugate base."
+  },
+  {
+    "id": "sec:u2-resonance:slip:u2t-res-meet-lengths",
+    "lesson": "u2-resonance",
+    "kind": "slip",
+    "front": "Spot the slip: Picturing benzene flipping between two drawings.",
+    "back": "It is one blend, with six equal bonds.",
+    "why": "The real molecule is one blend"
+  },
+  {
     "id": "sec:u2-huckel:idea:u2-huckel-meet-gate",
     "lesson": "u2-huckel",
     "kind": "idea",
@@ -156,6 +244,22 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "why": "In imidazole that is the pyridine-like N."
   },
   {
+    "id": "sec:u2-ewg-edg:idea:u2t-ewg-meet-anisole",
+    "lesson": "u2-ewg-edg",
+    "kind": "idea",
+    "front": "A lone pair next to a ring can ____. That is the pattern of OH, OR and NR2.",
+    "back": "donate into it by resonance",
+    "why": "A lone pair next to a ring can donate into it by resonance."
+  },
+  {
+    "id": "sec:u2-ewg-edg:idea:u2t-ewg-cf3",
+    "lesson": "u2-ewg-edg",
+    "kind": "idea",
+    "front": "A group on an sp3 carbon cannot reach the pi system, so ____",
+    "back": "it works by induction alone.",
+    "why": "A group on an sp3 carbon cannot reach the pi system, so it works by induction alone."
+  },
+  {
     "id": "sec:u2-nmr:idea:u2-nmr-meet-inner",
     "lesson": "u2-nmr",
     "kind": "idea",
@@ -290,5 +394,21 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "front": "Spot the slip: Numbering a chlorophenol from the Cl.",
     "back": "When the parent is phenol, the OH carbon is C1.",
     "why": "When the parent is phenol, the OH carbon is C1"
+  },
+  {
+    "id": "sec:u2-nomen-priority:idea:u2t-np-acid",
+    "lesson": "u2-nomen-priority",
+    "kind": "idea",
+    "front": "Groups are ranked and ____: acid, ester, amide, nitrile, aldehyde, ketone, alcohol, amine.",
+    "back": "the highest takes the suffix",
+    "why": "Groups are ranked, and the highest takes the suffix."
+  },
+  {
+    "id": "sec:u2-nomen-priority:idea:u2t-np-locants",
+    "lesson": "u2-nomen-priority",
+    "kind": "idea",
+    "front": "Go whichever way round the ring gives the lowest set of locants: ____",
+    "back": "2,4 beats 4,6.",
+    "why": "Then go whichever way round gives the lowest set of locants to the rest"
   }
 ];

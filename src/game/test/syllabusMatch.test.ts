@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { SYLLABUS_ALIASES } from "../syllabus/syllabusAliases";
 import { accepted, buildPlan, isFlagged, matchLines, matchTopic, unitOfTarget, wordsOf } from "../syllabus/syllabusMatch";
-import { parseSyllabus } from "../syllabus/syllabusParse";
+import { parseSyllabus, type SyllabusLine } from "../syllabus/syllabusParse";
 
 const fixture = (name: string) => readFileSync(new URL(`./fixtures/syllabus/${name}`, import.meta.url), "utf8");
 const FALL = new Date(2026, 7, 20, 12);
@@ -37,10 +37,28 @@ describe("matchTopic", () => {
     expect(match.bucket).toBe("high");
   });
 
-  it("a bare surname that names two lessons in one unit is medium, and not explicit", () => {
+  // C1 fix round: was "medium" and accepted unflagged, though Hofmann elimination is as likely as the rearrangement.
+  it("a bare surname that names two lessons in one unit is a lookalike: low, flagged, and not explicit", () => {
     const match = matchTopic("Hofmann");
-    expect(match.bucket).toBe("medium");
+    expect(match.bucket).toBe("low");
     expect(match.best).toMatchObject({ unitId: "u10", explicit: false });
+    expect(match.candidates.map((candidate) => candidate.nodeId)).toEqual(expect.arrayContaining(["u10-hofmann-r", "u10-hofmann-e"]));
+    expect(isFlagged({ line: { kind: "topic" } as SyllabusLine, matches: [match] }, match)).toBe(true);
+  });
+
+  it("a bare Claisen names the condensation and the rearrangement, so it is flagged too", () => {
+    const match = matchTopic("Claisen");
+    expect(match.bucket).toBe("low");
+    expect(match.best?.explicit).toBe(false);
+    expect(match.candidates.map((candidate) => candidate.nodeId)).toEqual(expect.arrayContaining(["u9-claisen", "u11-claisen-r"]));
+    // Written out, each is still exact.
+    expect(matchTopic("Claisen condensation").best).toMatchObject({ nodeId: "u9-claisen", confidence: 1 });
+    expect(matchTopic("Claisen rearrangement").best).toMatchObject({ nodeId: "u11-claisen-r", confidence: 1 });
+  });
+
+  it("a lesson and its own whole unit are not lookalikes", () => {
+    expect(matchTopic("benzyne").bucket).toBe("high");
+    expect(matchTopic("Huckel").bucket).toBe("high");
   });
 
   it("flags a lookalike that fits two units equally well as low", () => {
@@ -77,7 +95,8 @@ describe("the alias list", () => {
 describe("matchLines and buildPlan", () => {
   it("builds the PDF table's order, weeks, exams and covered side quests", () => {
     const rows = matchLines(parseSyllabus(fixture("pdf-table.txt"), FALL));
-    expect(rows.flatMap((row) => row.matches.filter((match) => isFlagged(row, match)))).toEqual([]);
+    // Only the bare "Claisen" (condensation or rearrangement?) is flagged; it is beside aldol, so Unit 9 is already in.
+    expect(rows.flatMap((row) => row.matches.filter((match) => isFlagged(row, match)).map((match) => match.topic))).toEqual(["Claisen"]);
     const plan = buildPlan(rows, 0);
     expect(plan.unitOrder).toEqual(["u1", "u2", "u3", "u4", "u5", "u7", "u8", "u9", "u10"]);
     expect(plan.weeks.find((week) => week.week === 3)).toEqual({ week: 3, start: "2026-09-09", unitIds: ["u2"] });

@@ -264,7 +264,7 @@ function MilestoneBand({ model }: { readonly model: StreakScreenModel }) {
          the same number twice on one screen is the hierarchy fault the reward
          moment's round 2 ruling was written about. What this band adds is that
          the day was scarce, and what it paid. */
-      aria-label={`Milestone. ${milestone.line}${milestone.diamonds > 0 ? ` Paid ${milestone.diamonds} diamonds.` : ""}`}
+      aria-label={`Milestone. ${milestone.line}${milestone.diamonds > 0 ? ` Paid ${milestone.diamonds} coins.` : ""}`}
     >
       <span className="streak-milestone-band">Milestone</span>
       <span className="streak-milestone-line">{milestone.line}</span>
@@ -312,8 +312,8 @@ function FreezeRow({ model }: { readonly model: StreakScreenModel }) {
           freezes.full
             ? "Streak freezes full"
             : freezes.affordable
-              ? `Buy a streak freeze for ${freezes.cost} diamonds`
-              : `A streak freeze costs ${freezes.cost} diamonds. Not enough yet.`
+              ? `Buy a streak freeze for ${freezes.cost} coins`
+              : `A streak freeze costs ${freezes.cost} coins. Not enough yet.`
         }
       >
         {freezes.full ? (

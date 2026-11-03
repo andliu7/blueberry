@@ -27,8 +27,8 @@ export interface PlanPrice {
   currency: string;
   /** 'month' or 'year' for a subscription, null for the pass. */
   interval: string | null;
-  /** ISO date the pass runs to, so a card can say what "a semester" means. */
-  endsOn: string | null;
+  /** How long the pass lasts, so a card can say what "a semester" means. */
+  lastsMonths: number | null;
 }
 
 /**
@@ -212,7 +212,7 @@ export async function openBillingPortal(): Promise<CheckoutResult> {
  *
  * `functions.invoke` reports every non-2xx as an `error` whose `message` is a
  * generic "non-2xx status code", and the body is on `error.context`. Without
- * this, "the semester pass is not on sale right now" reaches the user as
+ * this, "Semester pass is not on sale yet" reaches the user as
  * "Edge Function returned a non-2xx status code", which is the same silent
  * failure these functions were written to avoid. Same shape as
  * `askBlueberry`, deliberately.

@@ -57,6 +57,7 @@ export const NODE_STATE: Readonly<Record<string, BerryState>> = Object.freeze({
 
   // Resonance: delocalization is the lesson itself.
   "u1-allylic": "resonance",
+  "u2-resonance": "resonance",
   "u4-meisenheimer": "resonance",
   "u9-enolate-res": "resonance",
 

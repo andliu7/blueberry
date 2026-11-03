@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { SYLLABUS_KEY, coveredSideQuests, createSyllabusStore, syllabusStore, todayIso, type SyllabusPlan } from "../syllabus/syllabusPlan";
-import { sanitisePlan, syllabusTarget, upcomingExam, weekChip, weekOfUnit, weekOnDate } from "../syllabus/syllabusWeeks";
+import { addDays, needsTermStart, sanitisePlan, syllabusTarget, upcomingExam, weekChip, weekOfUnit, weekOnDate, weekStart } from "../syllabus/syllabusWeeks";
 
 function memory() {
   const map = new Map<string, string>();
@@ -166,5 +166,34 @@ describe("weekChip", () => {
   it("marks a unit off the syllabus, still without locking it", () => {
     expect(weekChip(PLAN, "u9", "2026-10-08", false)).toEqual({ text: "Not on your syllabus", tone: "muted" });
     expect(weekChip({ ...PLAN, notCovered: ["u2"] }, "u2", "2026-10-08", false)?.text).toBe("Not on your syllabus");
+  });
+});
+
+describe("a syllabus with week numbers and no dates (C1 fix round)", () => {
+  const undated: SyllabusPlan = { ...PLAN, weeks: PLAN.weeks.map((week) => ({ ...week, start: null })) };
+
+  it("has no current week until the first day of Week 1 is set", () => {
+    expect(weekOnDate(undated, "2026-10-08")).toBeNull();
+    expect(needsTermStart(undated)).toBe(true);
+    expect(needsTermStart(PLAN)).toBe(false);
+  });
+
+  it("counts weeks 7 days apart from it, across a month end", () => {
+    const set = { ...undated, termStart: "2026-08-24" };
+    expect(weekStart(set, set.weeks[1]!)).toBe("2026-09-07");
+    expect(weekOnDate(set, "2026-08-23")).toBeNull();
+    expect(weekOnDate(set, "2026-09-08")).toBe(3);
+    expect(weekOnDate(set, "2026-10-08")).toBe(7);
+    expect(addDays("2026-12-28", 7)).toBe("2027-01-04");
+  });
+
+  it("so Catch up shows on an undated syllabus too", () => {
+    const set = { ...undated, termStart: "2026-08-24" };
+    expect(weekChip(set, "u2", "2026-10-08", false)?.text).toBe("Catch up: Week 3");
+  });
+
+  it("keeps a stored first day through sanitise, and drops a bad one", () => {
+    expect(sanitisePlan({ ...undated, termStart: "2026-08-24" })?.termStart).toBe("2026-08-24");
+    expect(sanitisePlan({ ...undated, termStart: "Aug 24" })).not.toHaveProperty("termStart");
   });
 });

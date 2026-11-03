@@ -186,10 +186,10 @@ export function dueGraded(finished: readonly CardId[], dueAtStart: ReadonlySet<C
 export function rewardLine(dueCount: number, credited: number): string | null {
   if (credited > 0) return null;
   if (dueCount >= CARD_RUN_MIN_GRADED) {
-    return `Today's ${CARD_RUNS_PAID_PER_DAY} paid runs are done. Diamonds again tomorrow.`;
+    return `Today's ${CARD_RUNS_PAID_PER_DAY} paid runs are done. Coins again tomorrow.`;
   }
   return (
-    `A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} diamonds, up to ` +
+    `A run of ${CARD_RUN_MIN_GRADED} or more cards earns ${DIAMONDS_CARD_RUN} coins, up to ` +
     `${CARD_RUNS_PAID_PER_DAY} runs a day. Only cards that were due count, and new cards only from built-in decks.`
   );
 }

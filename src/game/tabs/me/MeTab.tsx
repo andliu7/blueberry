@@ -785,6 +785,7 @@ function SubHeader({ title, backHref, backLabel }: { readonly title: string; rea
 
 function SettingsScreen() {
   const snapshot = useProgress();
+  const { role } = useAuth();
   const economy = snapshot.economy;
   const journal = snapshot.journal;
   const today = localDate(Date.now(), economy.tz);
@@ -864,6 +865,15 @@ function SettingsScreen() {
         <SwitchRow on={hoverPreview} title="Hover reveal" detail="Show the answer on hover" onToggle={toggleHoverPreview} />
         <SwitchRow on={magnifier} title="Magnifier" detail="A lens for small print" onToggle={toggleMagnifier} />
       </section>
+
+      {isStaffRole(role) ? (
+        <section className="me-card me-group" aria-labelledby="me-set-staff">
+          <h2 id="me-set-staff" className="me-group-title">
+            Staff
+          </h2>
+          <AdminRow />
+        </section>
+      ) : null}
 
       <LanguageSheet open={languageOpen} onClose={() => setLanguageOpen(false)} />
     </div>

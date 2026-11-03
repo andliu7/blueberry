@@ -22,7 +22,6 @@
  */
 
 import { plural } from "@/lib/helpers";
-import { coveredSideQuests } from "../syllabus/syllabusPlan";
 
 /** The same vocabulary the pathway derives; see MapNodeState in pathwayState.ts. */
 export type SheetNodeState = "done" | "current" | "open" | "review" | "locked";
@@ -71,6 +70,12 @@ export interface SheetNode {
    * the map's nodes get it.
    */
   readonly noChallenge?: boolean;
+  /**
+   * True on a side quest the student's syllabus covers (STATUS C1), set by
+   * PathwayTab from the plan. Absent everywhere else, and always absent with
+   * no syllabus, so this file never imports the syllabus store.
+   */
+  readonly onSyllabus?: boolean;
   /**
    * Present on a unit CHECKPOINT only: what passing it does, derived by the
    * caller from the map (unitOpenedAfter in tabs/pathway/pathwayState.ts)
@@ -254,12 +259,14 @@ export function nodeSheetModel(node: SheetNode): NodeSheetModel {
     // A side quest says it is optional ON the sheet, not only in its
     // accessible name (g11 critic). "Not on the checkpoint" is checkpointPlan's
     // own rule (beats/template.ts skips branches), so it is a true statement.
-    // A side quest the student's syllabus covers is on it (STATUS C1), and says so.
+    // A side quest the student's syllabus covers is on the checkpoint, its
+    // section test and its unit exam (STATUS C1), and says exactly that: the
+    // stage quizzes and the review concept check are hand-set and do not take it.
     practiceDetail:
       stakes !== null
         ? stakes.detail
         : node.kind === "branch"
-          ? coveredSideQuests().has(node.id)
+          ? node.onSyllabus === true
             ? "On your syllabus, so it counts on the unit checkpoint, its section test and the unit exam."
             : "Optional side quest. It is not on the unit checkpoint."
           : null,

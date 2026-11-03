@@ -134,12 +134,12 @@ export function ReviewRun({ id, onExit, reducedMotion = false }: { readonly id: 
               </p>
               {banked !== null && banked > 0 ? (
                 <p className="lesson-banked">
-                  +{plural(banked, "diamond", "diamonds")}
+                  +{plural(banked, "coin", "coins")}
                 </p>
               ) : null}
-              {/* Where the diamonds came from. A clear can cross a mastery rank, which pays on its own line. */}
+              {/* Where the coins came from. A clear can cross a mastery rank, which pays on its own line. */}
               {paidLines.length > 1 ? (
-                <ul className="review-end__lines" aria-label="Where the diamonds came from">
+                <ul className="review-end__lines" aria-label="Where the coins came from">
                   {paidLines.map((line, i) => (
                     <li key={i}>
                       {line.label} <strong>+{line.amount}</strong>

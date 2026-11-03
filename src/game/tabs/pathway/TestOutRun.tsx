@@ -26,7 +26,8 @@ import { answerProblem, currentProblem, examPassMark, examPassed, examSize, firs
 import { PATHWAY_UNITS, unitNumber } from "../../demo/pathwayMap";
 import { progress } from "../../app/progress";
 import { unitOpenedAfter } from "./pathwayState";
-import { testOutFor, unitSections, type TestOut } from "./testOuts";
+import { unitSections, type TestOut } from "./testOuts";
+import { syllabusTestOutFor } from "../../syllabus/syllabusTests";
 import { testOutPool } from "./testOutPool";
 
 const McqRunner = lazy(() => import("../../beats/mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
@@ -58,7 +59,8 @@ function saidOf(state: PracticeRunState, passed: boolean): string {
 }
 
 export function TestOutRun({ id, onExit, reducedMotion = false }: { readonly id: string; readonly onExit: () => void; readonly reducedMotion?: boolean }) {
-  const test = useMemo(() => testOutFor(id), [id]);
+  // With the side quests the student's syllabus covers (STATUS C1); exactly testOutFor with no syllabus.
+  const test = useMemo(() => syllabusTestOutFor(id), [id]);
   const pool = useMemo(() => (test === null ? [] : testOutPool(test)), [test]);
   const byId = useMemo(() => new Map(pool.map((item) => [item.entry.id, item])), [pool]);
   const [state, setState] = useState<PracticeRunState>(() => startPracticeRun(pool.map((item) => item.entry.id), false, true));

@@ -115,7 +115,8 @@ describe("the row reads in the bar's order", () => {
  * measure what a critic measured from pixels: how much of its box each mark
  * inks, and how dark it reads in grayscale. It knows exactly what the HUD
  * marks use (absolute and relative M L H V C Z paths, circles, one clip rect
- * per mark, fill, stroke, fill-opacity) and throws on anything else, so a mark
+ * per mark, fill, stroke, fill-opacity, and the coin's linear gradients, read
+ * stop by stop at each sample) and throws on anything else, so a mark
  * drawn with a command it cannot read fails loudly instead of measuring zero.
  */
 type Pt = readonly [number, number];
@@ -257,7 +258,38 @@ interface Raster {
 function raster(markup: string, dark: boolean): Raster {
   const colour = palette(dark);
   const ground = rgb(colour("var(--bb-card)"));
-  type Shape = { polys?: Pt[][]; circle?: [number, number, number]; fill: string | null; opacity: number; stroke: string | null; width: number; clipY: number };
+  type Stop = { at: number; rgb: number[]; alpha: number };
+  type Gradient = { x1: number; y1: number; x2: number; y2: number; stops: Stop[] };
+  /** What one fill or stroke lays down at a point, as a colour and an alpha. */
+  type Paint = (x: number, y: number) => [number[], number];
+  type Shape = { polys?: Pt[][]; circle?: [number, number, number]; fill: Paint | null; stroke: Paint | null; width: number; clipY: number };
+  const gradients = new Map<string, Gradient>();
+  let inGradient: Gradient | null = null;
+  // A gradient's own box is its shape's geometry, stroke left out, as in SVG.
+  const paint = (value: string, alpha: number, box: readonly [number, number, number, number]): Paint => {
+    const ref = value.match(/^url\(#([^)]+)\)$/)?.[1];
+    if (ref === undefined) {
+      const flat = rgb(colour(value));
+      return () => [flat, alpha];
+    }
+    const g = gradients.get(ref);
+    if (g === undefined) throw new Error(`the raster cannot read gradient ${value}`);
+    const [left, top, w, h] = box;
+    return (x, y) => {
+      const u = (x - left) / w;
+      const v = (y - top) / h;
+      const [dx, dy] = [g.x2 - g.x1, g.y2 - g.y1];
+      const t = ((u - g.x1) * dx + (v - g.y1) * dy) / (dx * dx + dy * dy);
+      const after = g.stops.findIndex((s) => s.at >= t);
+      if (after === 0 || after === -1) {
+        const end = g.stops[after === 0 ? 0 : g.stops.length - 1] as Stop;
+        return [end.rgb, end.alpha * alpha];
+      }
+      const [a, b] = [g.stops[after - 1] as Stop, g.stops[after] as Stop];
+      const k = b.at === a.at ? 1 : (t - a.at) / (b.at - a.at);
+      return [a.rgb.map((c, i) => c + ((b.rgb[i] ?? 0) - c) * k), (a.alpha + (b.alpha - a.alpha) * k) * alpha];
+    };
+  };
   const shapes: Shape[] = [];
   const clips = new Map<string, number>();
   let inClip: string | null = null;
@@ -266,16 +298,29 @@ function raster(markup: string, dark: boolean): Raster {
     const [, closing, name, attrText] = tag;
     const attr = (key: string) => (attrText ?? "").match(new RegExp(`\\s${key}="([^"]*)"`))?.[1];
     if (name === "clipPath") inClip = closing ? null : (attr("id") ?? null);
-    else if (name === "rect" && !closing && inClip !== null) clips.set(inClip, Number(attr("y")));
+    else if (name === "linearGradient") {
+      if (closing) inGradient = null;
+      else {
+        inGradient = { x1: Number(attr("x1")), y1: Number(attr("y1")), x2: Number(attr("x2")), y2: Number(attr("y2")), stops: [] };
+        gradients.set(attr("id") ?? "", inGradient);
+      }
+    } else if (name === "stop" && !closing && inGradient !== null) {
+      inGradient.stops.push({ at: Number(attr("offset")), rgb: rgb(colour(attr("stop-color") ?? "")), alpha: Number(attr("stop-opacity") ?? 1) });
+    } else if (name === "rect" && !closing && inClip !== null) clips.set(inClip, Number(attr("y")));
     else if (name === "g") activeClip = closing ? 0 : (clips.get(attr("clip-path")?.match(/#([^)]+)/)?.[1] ?? "") ?? 0);
     else if ((name === "path" || name === "circle") && !closing && inClip === null) {
       const fill = attr("fill") ?? "#000000";
+      const stroke = attr("stroke");
+      const polys = name === "path" ? flatten(attr("d") ?? "") : undefined;
+      const circle: [number, number, number] | undefined = name === "circle" ? [Number(attr("cx")), Number(attr("cy")), Number(attr("r"))] : undefined;
+      const xs = polys?.flat().map((p) => p[0]) ?? [(circle?.[0] ?? 0) - (circle?.[2] ?? 0), (circle?.[0] ?? 0) + (circle?.[2] ?? 0)];
+      const ys = polys?.flat().map((p) => p[1]) ?? [(circle?.[1] ?? 0) - (circle?.[2] ?? 0), (circle?.[1] ?? 0) + (circle?.[2] ?? 0)];
+      const box = [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)] as const;
       shapes.push({
-        polys: name === "path" ? flatten(attr("d") ?? "") : undefined,
-        circle: name === "circle" ? [Number(attr("cx")), Number(attr("cy")), Number(attr("r"))] : undefined,
-        fill: fill === "none" ? null : colour(fill),
-        opacity: Number(attr("fill-opacity") ?? 1),
-        stroke: attr("stroke") === undefined ? null : colour(attr("stroke") as string),
+        polys,
+        circle,
+        fill: fill === "none" ? null : paint(fill, Number(attr("fill-opacity") ?? 1), box),
+        stroke: stroke === undefined ? null : paint(stroke, Number(attr("stroke-opacity") ?? 1), box),
         width: Number(attr("stroke-width") ?? 0),
         clipY: activeClip,
       });
@@ -292,10 +337,13 @@ function raster(markup: string, dark: boolean): Raster {
       for (const s of shapes) {
         if (y < s.clipY) continue;
         const inside = s.polys !== undefined ? insideEvenOdd(s.polys, x, y) : Math.hypot(x - (s.circle?.[0] ?? 0), y - (s.circle?.[1] ?? 0)) <= (s.circle?.[2] ?? 0);
-        if (inside && s.fill !== null) px = rgb(s.fill).map((c, k) => c * s.opacity + (px[k] ?? 0) * (1 - s.opacity));
+        const over = ([c, a]: [number[], number]) => {
+          px = c.map((v, k) => v * a + (px[k] ?? 0) * (1 - a));
+        };
+        if (inside && s.fill !== null) over(s.fill(x, y));
         if (s.stroke !== null && s.width > 0) {
           const d = s.polys !== undefined ? distance(s.polys, x, y) : Math.abs(Math.hypot(x - (s.circle?.[0] ?? 0), y - (s.circle?.[1] ?? 0)) - (s.circle?.[2] ?? 0));
-          if (d <= s.width / 2) px = rgb(s.stroke);
+          if (d <= s.width / 2) over(s.stroke(x, y));
         }
       }
       const l = lum(px);
@@ -442,7 +490,7 @@ describe("the header names its marks", () => {
   // Audit 23 Oct, section 5 #10: the three icons had no words on them. Each
   // readout carries its sheet's own word as a hover title.
   it("titles every readout with the word its sheet uses", () => {
-    expect(HUD_TSX).toContain('const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Diamonds", charge: "Charge" };');
+    expect(HUD_TSX).toContain('const HUD_NAME: Readonly<Record<HudButtonId, string>> = { streak: "Streak", diamonds: "Coins", charge: "Charge" };');
     expect(HUD_TSX).toContain("title={HUD_NAME[id]}");
   });
 });

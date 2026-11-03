@@ -53,6 +53,9 @@ export function isFlowRoute(route: string): boolean {
     route === "enter" ||
     // #/phone: the course in a phone frame, a page of its own with no site header or footer.
     route === "phone" ||
+    // #/signoff: the dev-only Unit 1 sign-off page fills the screen like the game does.
+    // Behind DEV like the page (src/App.tsx), so a build's #/signoff 404 keeps the site frame.
+    (import.meta.env.DEV && route === "signoff") ||
     route === "start" ||
     route.startsWith("start/")
   );

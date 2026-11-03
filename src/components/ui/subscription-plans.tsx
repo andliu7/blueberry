@@ -126,7 +126,7 @@ const PLANS: Plan[] = [
     buys: "semester_pass",
     icon: <Ticket />,
     name: "Semester pass",
-    description: "Everything in Pro, paid once, until the semester ends.",
+    description: "Everything in Pro for 6 months, paid once. Your account stays after that.",
     features: ["Everything in Pro"],
     adds: ["One payment, no renewal", "Nothing to remember to cancel"],
   },
@@ -281,11 +281,11 @@ export function SubscriptionPlans({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** "a month", "a year", or when the pass runs to. Nothing when it is free. */
+/** "a month", "a year", or how long the pass lasts. Nothing when it is free. */
 function periodLabel(plan: Plan, price: PlanPrice | undefined): string | undefined {
   if (!price) return plan.fallbackPeriod;
   if (price.interval) return `a ${price.interval}`;
-  return price.endsOn ? `until ${price.endsOn}` : undefined;
+  return price.lastsMonths ? `for ${price.lastsMonths} months` : undefined;
 }
 
 /**

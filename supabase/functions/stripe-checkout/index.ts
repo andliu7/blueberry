@@ -23,7 +23,6 @@ import {
   json,
   planFor,
   priceIdFor,
-  semesterPassEnd,
   serviceClient,
   siteUrl,
   stripe,
@@ -76,14 +75,6 @@ Deno.serve(async (req) => {
   const price = priceIdFor(plan);
   if (!price) return json({ ok: false, error: `${plan.label} is not on sale yet.` }, 503);
 
-  // The pass needs a date to expire on and there is no guessed fallback; see
-  // `semesterPassEnd`. Refusing here means nobody pays for a pass whose end
-  // the site would have had to invent.
-  const passEnd = plan.kind === "pass" ? semesterPassEnd() : null;
-  if (plan.kind === "pass" && !passEnd) {
-    return json({ ok: false, error: "The semester pass is not on sale right now." }, 503);
-  }
-
   // Service role, because `billing_customers` has no insert policy on purpose:
   // the mapping between a user and a Stripe customer is not the browser's to
   // assert. See the migration's header.
@@ -121,14 +112,11 @@ Deno.serve(async (req) => {
     cancel_url: `${site}/#/d/subscriptions?checkout=cancelled`,
     // THE METADATA IS THE WEBHOOK'S ONLY INPUT. It arrives on the event Stripe
     // sends back, which is what lets the webhook write the right row without
-    // trusting anything the browser said at the time. `pass_until` is stamped
-    // here rather than computed on delivery, so a webhook replayed three weeks
-    // later grants the same end date it granted the first time.
+    // trusting anything the browser said at the time.
     metadata: {
       supabase_user_id: user.id,
       plan: plan.key,
       kind: plan.kind,
-      pass_until: passEnd ? passEnd.toISOString() : "",
     },
     // Subscriptions carry their own metadata, separate from the session's:
     // renewal and cancellation events reference the subscription and never see

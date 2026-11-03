@@ -27,6 +27,7 @@
  */
 
 import { CORS, json, serviceClient, stripe } from "../_shared/billing.ts";
+import { passEndsAfter } from "../_shared/passLength.ts";
 import type Stripe from "npm:stripe@22.6.1";
 
 Deno.serve(async (req) => {
@@ -66,11 +67,14 @@ Deno.serve(async (req) => {
 
       const userId = session.metadata?.supabase_user_id;
       const plan = session.metadata?.plan;
-      const until = session.metadata?.pass_until;
-      if (!userId || !plan || !until) {
+      if (!userId || !plan) {
         console.error("pass session missing metadata", session.id);
         break;
       }
+
+      // Six months from when Stripe recorded the purchase. A replayed event
+      // keeps its `created`, so it grants the same end date as the first time.
+      const until = passEndsAfter(new Date(event.created * 1000)).toISOString();
 
       const { error } = await admin.from("entitlements").upsert(
         {

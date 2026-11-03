@@ -87,17 +87,226 @@ export function XpRing({ fraction, met, className = "" }: { readonly fraction: n
 }
 
 /**
- * The diamond. A brilliant cut seen from above: a table facet across the top,
- * the crown falling away to a point. The table is the lighter facet; the right
- * pavilion takes a dark wash so the stone has a lit side and a shaded side.
+ * The coin, the currency's mark everywhere: the same minted disc as CoinShapes in
+ * chest/ChestArt.tsx, cut for 14 to 64px. Lit from the upper left and painted in
+ * continuous gradients, so its light does the work a heavy outline used to: a
+ * milled edge that wraps round into the thickness, a rim rolling from pale gold
+ * into deep amber, a recess whose wall catches light opposite the rim, a struck
+ * star, and one soft diagonal sweep across all of it. The outline is a thin dark
+ * line that only holds the shape on a pale page.
+ *
+ * Smaller than its box on purpose: the live flame has to stay the heaviest mark
+ * in the header (hudAnatomy.test.ts measures ink and grayscale mass in both
+ * themes, and rasterises this drawing, which is why it is circles, cubics and
+ * linear gradients and nothing else).
+ *
+ * The ids come from useId so a copy never paints from another copy that sits in a
+ * hidden subtree. The name stays: it is an identifier, and the data underneath
+ * is `diamonds`.
  */
-export function DiamondMark({ className = "" }: { readonly className?: string }) {
+export const COIN_BODY =
+  "M3.9 10.7C3.9 6.23 7.53 2.6 12 2.6C16.47 2.6 20.1 6.23 20.1 10.7V13.3C20.1 17.77 16.47 21.4 12 21.4C7.53 21.4 3.9 17.77 3.9 13.3Z";
+
+/** The milling on the thick edge: a dark tick, and a lit one just left of it. */
+export const COIN_REEDS =
+  "M19.67 13.01V15.06M19.32 14.08V16.13M18.84 15.10V17.15M18.23 16.04V18.09M17.49 16.88V18.93M16.64 17.60V19.65M15.71 18.20V20.25M14.70 18.66V20.71M13.64 18.97V21.02M12.55 19.13V21.18M11.45 19.13V21.18M10.36 18.97V21.02M9.30 18.66V20.71M8.29 18.20V20.25M7.36 17.60V19.65M6.51 16.88V18.93M5.77 16.04V18.09M5.16 15.10V17.15M4.68 14.08V16.13M4.33 13.01V15.06";
+const COIN_REEDS_LIT =
+  "M19.47 13.01V15.06M19.12 14.08V16.13M18.64 15.10V17.15M18.03 16.04V18.09M17.29 16.88V18.93M16.44 17.60V19.65M15.51 18.20V20.25M14.50 18.66V20.71M13.44 18.97V21.02M12.35 19.13V21.18M11.25 19.13V21.18M10.16 18.97V21.02M9.10 18.66V20.71M8.09 18.20V20.25M7.16 17.60V19.65M6.31 16.88V18.93M5.57 16.04V18.09M4.96 15.10V17.15M4.48 14.08V16.13M4.13 13.01V15.06";
+
+const COIN_STAR = "M12 6.4L13.12 9.15L16.09 9.37L13.82 11.29L14.53 14.18L12 12.61L9.47 14.18L10.18 11.29L7.91 9.37L10.88 9.15Z";
+
+/** The thick edge turning under the light, left to right. The pile and the shelf paint with it too. */
+export function CoinEdgeStops() {
+  return (
+    <>
+      <stop offset="0" stopColor="var(--coin-umber)" />
+      <stop offset="0.13" stopColor="var(--coin-edge)" />
+      <stop offset="0.3" stopColor="var(--coin-edge-lit)" />
+      <stop offset="0.58" stopColor="var(--coin-edge)" />
+      <stop offset="0.84" stopColor="var(--coin-edge-deep)" />
+      <stop offset="1" stopColor="var(--coin-umber)" />
+    </>
+  );
+}
+
+/**
+ * The balance's own coin, for the counter only: the same silhouette as the mark
+ * below with the same blank face the chest's coins wear, and the metal painted to
+ * read as a heavy struck object at 24 to 70px. All of it is lit from above and a
+ * little left, the same light hud.css gives the rail, so coin and bar are one scene:
+ *
+ *  - the thick edge turns under the light, falls into a soft crease below the face,
+ *    picks up warm bounce near its base, and darkens toward the underside;
+ *  - the rim is a raised bevel, bright on its top shoulder and in shadow underneath;
+ *  - the recess wall runs the other way, shaded under the lit rim and lit opposite;
+ *  - the field is one continuous gradient, bright yellow to deep amber;
+ *  - the shine is a soft sweep that follows the curve, plus one specular bloom.
+ *
+ * The sweep is a ring-shaped radial faded out across the coin, so it needs no filter.
+ * The outline is thin at the top and heavier under the coin, not one even weight.
+ */
+function HeavyCoin({ className, id }: { readonly className: string; readonly id: string }) {
+  const paint = (name: string) => `url(#${id}${name})`;
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M6.2 2.5h11.6L23 9.1 12 22 1 9.1z" fill="var(--diamond)" />
-      <path d="M6.2 2.5h11.6L23 9.1H1z" fill="#ffffff" fillOpacity="0.34" />
-      <path d="M12 22 23 9.1h-6.4z" fill="#000000" fillOpacity="0.16" />
-      <path d="M9 4.6h6l1.4 4.5H7.6z" fill="#ffffff" fillOpacity="0.22" />
+      <defs>
+        <clipPath id={`${id}body`}>
+          <path d={COIN_BODY} />
+        </clipPath>
+        <linearGradient id={`${id}line`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--coin-umber)" />
+          <stop offset="0.6" stopColor="var(--coin-line)" />
+        </linearGradient>
+        <linearGradient id={`${id}edge`} x1="0" y1="0" x2="1" y2="0">
+          <CoinEdgeStops />
+        </linearGradient>
+        <linearGradient id={`${id}under`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.82" stopColor="var(--coin-umber)" stopOpacity="0" />
+          <stop offset="1" stopColor="var(--coin-umber)" stopOpacity="0.7" />
+        </linearGradient>
+        <radialGradient id={`${id}bounce`}>
+          <stop offset="0" stopColor="var(--coin-edge-lit)" />
+          <stop offset="1" stopColor="var(--coin-edge)" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${id}crease`}>
+          <stop offset="0.88" stopColor="var(--coin-umber)" stopOpacity="0.8" />
+          <stop offset="1" stopColor="var(--coin-umber)" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${id}rim`} x1="0.32" y1="0" x2="0.68" y2="1">
+          <stop offset="0" stopColor="var(--coin-rim-hi)" />
+          <stop offset="0.3" stopColor="var(--coin-rim)" />
+          <stop offset="0.66" stopColor="var(--coin-rim-lo)" />
+          <stop offset="1" stopColor="var(--coin-amber)" />
+        </linearGradient>
+        <linearGradient id={`${id}roll`} x1="0.32" y1="0" x2="0.68" y2="1">
+          <stop offset="0" stopColor="var(--coin-shine)" />
+          <stop offset="0.36" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.62" stopColor="var(--coin-umber)" stopOpacity="0" />
+          <stop offset="1" stopColor="var(--coin-umber)" stopOpacity="0.62" />
+        </linearGradient>
+        <linearGradient id={`${id}wall`} x1="0.32" y1="0" x2="0.68" y2="1">
+          <stop offset="0" stopColor="var(--coin-ring)" />
+          <stop offset="0.55" stopColor="var(--coin-rim-lo)" />
+          <stop offset="1" stopColor="var(--coin-rim-hi)" />
+        </linearGradient>
+        <radialGradient id={`${id}field`} cx="0.36" cy="0.26" r="0.92">
+          <stop offset="0" stopColor="var(--cc-fill-hi)" />
+          <stop offset="0.42" stopColor="var(--cc-fill)" />
+          <stop offset="0.8" stopColor="var(--cc-fill-lo)" />
+          <stop offset="1" stopColor="var(--coin-amber)" />
+        </radialGradient>
+        <radialGradient id={`${id}sweep`}>
+          <stop offset="0.58" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.84" stopColor="var(--coin-shine)" stopOpacity="0.72" />
+          <stop offset="1" stopColor="var(--coin-shine)" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${id}sweepFade`} x1="0.12" y1="0.06" x2="0.72" y2="0.8">
+          <stop offset="0.12" stopColor="#ffffff" />
+          <stop offset="0.72" stopColor="#000000" />
+        </linearGradient>
+        <mask id={`${id}sweepMask`} maskUnits="userSpaceOnUse" x="6" y="4.8" width="12" height="12">
+          <rect x="6" y="4.8" width="12" height="12" fill={paint("sweepFade")} />
+        </mask>
+        <radialGradient id={`${id}bloom`}>
+          <stop offset="0" stopColor="var(--coin-shine)" stopOpacity="0.95" />
+          <stop offset="1" stopColor="var(--coin-shine)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* The outline: a heavier copy sitting low, then a thin one, so the weight varies. */}
+      <path transform="translate(0 0.2)" d={COIN_BODY} fill="var(--coin-line)" stroke="var(--coin-line)" strokeWidth="0.42" strokeLinejoin="round" />
+      <path d={COIN_BODY} fill={paint("edge")} stroke={paint("line")} strokeWidth="0.36" strokeLinejoin="round" />
+      <g clipPath={`url(#${id}body)`}>
+        <circle cx="12" cy="11.2" r="8.7" fill={paint("crease")} />
+        <ellipse cx="10.6" cy="20.25" rx="6.6" ry="1.05" fill={paint("bounce")} />
+        <path d={COIN_BODY} fill={paint("under")} />
+      </g>
+      <circle cx="12" cy="10.7" r="7.95" fill={paint("rim")} />
+      <circle cx="12" cy="10.7" r="7.56" fill="none" stroke={paint("roll")} strokeWidth="0.78" />
+      <circle cx="12" cy="10.7" r="6.25" fill={paint("wall")} />
+      <circle cx="12" cy="10.7" r="5.72" fill={paint("field")} />
+      <circle cx="12" cy="10.7" r="5.72" fill={paint("sweep")} mask={`url(#${id}sweepMask)`} />
+      <ellipse cx="9.5" cy="7.9" rx="2.7" ry="1.7" transform="rotate(-36 9.5 7.9)" fill={paint("bloom")} />
+    </svg>
+  );
+}
+
+export function DiamondMark({ className = "", heavy = false }: { readonly className?: string; readonly heavy?: boolean }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, "");
+  if (heavy) return <HeavyCoin className={className} id={id} />;
+  const paint = (name: string) => `url(#${id}${name})`;
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <defs>
+        <linearGradient id={`${id}edge`} x1="0" y1="0" x2="1" y2="0">
+          <CoinEdgeStops />
+        </linearGradient>
+        <linearGradient id={`${id}rim`} x1="0.14" y1="0.06" x2="0.86" y2="0.94">
+          <stop offset="0" stopColor="var(--coin-rim-hi)" />
+          <stop offset="0.26" stopColor="var(--coin-rim)" />
+          <stop offset="0.58" stopColor="var(--coin-rim-lo)" />
+          <stop offset="1" stopColor="var(--coin-amber)" />
+        </linearGradient>
+        {/* The rim's round shoulder: pale on the lit side, nothing across the middle, amber on the far side. */}
+        <linearGradient id={`${id}roll`} x1="0.14" y1="0.06" x2="0.86" y2="0.94">
+          <stop offset="0" stopColor="var(--coin-shine)" stopOpacity="0.95" />
+          <stop offset="0.42" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.6" stopColor="var(--coin-umber)" stopOpacity="0" />
+          <stop offset="1" stopColor="var(--coin-umber)" stopOpacity="0.72" />
+        </linearGradient>
+        {/* The recess wall runs the other way: in shadow under the lit rim, lit opposite. */}
+        <linearGradient id={`${id}wall`} x1="0.14" y1="0.06" x2="0.86" y2="0.94">
+          <stop offset="0" stopColor="var(--coin-umber)" />
+          <stop offset="0.45" stopColor="var(--coin-ring)" />
+          <stop offset="0.72" stopColor="var(--coin-rim-lo)" />
+          <stop offset="1" stopColor="var(--coin-shine)" />
+        </linearGradient>
+        <linearGradient id={`${id}field`} x1="0.14" y1="0.06" x2="0.86" y2="0.94">
+          <stop offset="0" stopColor="var(--coin-face-hi)" />
+          <stop offset="0.38" stopColor="var(--coin-face)" />
+          <stop offset="0.72" stopColor="var(--coin-rim-lo)" />
+          <stop offset="1" stopColor="var(--coin-amber)" />
+        </linearGradient>
+        <linearGradient id={`${id}starLit`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="var(--coin-face-lit)" />
+          <stop offset="1" stopColor="var(--coin-star-lit)" />
+        </linearGradient>
+        <linearGradient id={`${id}starDim`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="var(--coin-star-lit)" />
+          <stop offset="1" stopColor="var(--coin-star)" />
+        </linearGradient>
+        {/* One soft band across the whole face, with a faint echo behind it. */}
+        <linearGradient id={`${id}sweep`} x1="0.14" y1="0.06" x2="0.86" y2="0.94">
+          <stop offset="0.17" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.33" stopColor="var(--coin-shine)" stopOpacity="0.55" />
+          <stop offset="0.45" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.5" stopColor="var(--coin-shine)" stopOpacity="0" />
+          <stop offset="0.54" stopColor="var(--coin-shine)" stopOpacity="0.28" />
+          <stop offset="0.58" stopColor="var(--coin-shine)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* The edge: the top and bottom faces joined, so the thin line is one line. */}
+      <path d={COIN_BODY} fill={paint("edge")} stroke="var(--coin-line)" strokeWidth="0.55" strokeLinejoin="round" />
+      <path d={COIN_REEDS} fill="none" stroke="var(--coin-umber)" strokeOpacity="0.6" strokeWidth="0.2" />
+      <path d={COIN_REEDS_LIT} fill="none" stroke="var(--coin-edge-lit)" strokeOpacity="0.55" strokeWidth="0.16" />
+      {/* The crease the face casts on the edge, soft because the rim above it rolls. */}
+      <circle cx="12" cy="11.08" r="7.94" fill="var(--coin-umber)" fillOpacity="0.5" />
+      <circle cx="12" cy="10.7" r="7.94" fill={paint("rim")} />
+      <circle cx="12" cy="10.7" r="7.4" fill="none" stroke={paint("roll")} strokeWidth="1" />
+      {/* The recess, then the field sunk into it. */}
+      <circle cx="12" cy="10.7" r="6.35" fill={paint("wall")} />
+      <circle cx="12" cy="10.7" r="5.75" fill={paint("field")} />
+      {/* The star stands proud: a shadow below right, a catch of light above left, two lit facets. */}
+      <path transform="translate(0.28 0.32)" d={COIN_STAR} fill="var(--coin-umber)" fillOpacity="0.42" />
+      <path transform="translate(-0.2 -0.22)" d={COIN_STAR} fill="var(--coin-shine)" fillOpacity="0.55" />
+      <path
+        d="M12 10.7L12 6.4L13.12 9.15ZM12 10.7L9.47 14.18L10.18 11.29ZM12 10.7L10.18 11.29L7.91 9.37ZM12 10.7L7.91 9.37L10.88 9.15ZM12 10.7L10.88 9.15L12 6.4Z"
+        fill={paint("starLit")}
+      />
+      <path
+        d="M12 10.7L13.12 9.15L16.09 9.37ZM12 10.7L16.09 9.37L13.82 11.29ZM12 10.7L13.82 11.29L14.53 14.18ZM12 10.7L14.53 14.18L12 12.61ZM12 10.7L12 12.61L9.47 14.18Z"
+        fill={paint("starDim")}
+      />
+      <circle cx="12" cy="10.7" r="7.94" fill={paint("sweep")} />
     </svg>
   );
 }
@@ -199,7 +408,7 @@ export function FlameMark({
  * The header's flame: wide enough to carry the row.
  *
  * WHY A SECOND BODY. The narrow body above inks 32 percent of its 24 unit box
- * when solid, against the diamond's 44 and the battery's 45, so at one box
+ * when solid, against the old diamond's 44 and the battery's 45, so at one box
  * size the streak was the lightest mark in the row it exists to lead. This one
  * inks 47 percent (hudAnatomy.test.ts measures it). It is written with cubics
  * only, which is what lets that test rasterise it. The streak screen and the

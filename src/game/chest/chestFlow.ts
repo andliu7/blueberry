@@ -37,9 +37,9 @@ export const CHEST_COPY: Readonly<Record<ChestSource, { readonly title: string; 
   onboarding_gift: { title: "Welcome gift", why: "A chest to start you off." },
 };
 
-/** "1 diamond", "5 diamonds". */
+/** "1 coin", "5 coins". */
 export function diamondsLabel(n: number): string {
-  return plural(n, "diamond", "diamonds");
+  return plural(n, "coin", "coins");
 }
 
 /** The sheet's headline: "You earned a daily gift!", or "You earned 2 chests!" when several landed at once. */
