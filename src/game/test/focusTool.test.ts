@@ -10,6 +10,7 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 import { ALL_TABS, TOOL_TABS, parseHash } from "../app/routes";
 import { FocusProvider, useFocus } from "../tabs/focus/FocusProvider";
+import { resetFocusStoreForTests } from "../../lib/useFocusTimer";
 import FocusTab from "../tabs/focus/FocusTab";
 import { titleForRoute } from "../../lib/useDocumentTitle";
 
@@ -42,37 +43,43 @@ describe("the timer screen", () => {
     return { host, root };
   }
 
-  it("says so, instead of crashing, where there is no provider", () => {
+  // 3 Nov: the clock is one module-level store shared with the site, so the screen works
+  // with or without the provider (it used to say "isn't available" without one).
+  it("works without the provider, reading the shared clock", () => {
+    localStorage.clear();
+    resetFocusStoreForTests();
     const { host, root } = mount(false);
-    expect(host.textContent).toContain("isn't available");
+    expect(host.querySelector("[role=timer]")?.textContent).toBe("25:00");
     act(() => root.unmount());
     host.remove();
   });
 
-  it("starts, shows the eye-rest countdown, pauses and ends", async () => {
+  it("starts, shows the eye-rest countdown, pauses and resets", async () => {
     localStorage.clear();
+    resetFocusStoreForTests();
     const { host, root } = mount(true);
     const press = (label: string) => {
-      const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.trim() === label);
+      const button = [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent?.trim()) === label);
       expect(button, label).toBeDefined();
       act(() => button!.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     };
     expect(host.querySelector("[role=timer]")?.textContent).toBe("25:00");
     press("Start focus");
     expect(host.querySelector("[data-focus-tab]")?.getAttribute("data-phase")).toBe("focus");
-    expect(host.textContent).toContain("Eye rest in");
+    expect(host.textContent).toContain("Next eye rest in");
     // A real pause banks seconds; in the same millisecond it would bank none and read as a fresh start.
     await new Promise((resolve) => setTimeout(resolve, 30));
     press("Pause");
     expect(host.querySelector("[data-focus-tab]")?.getAttribute("data-phase")).toBe("idle");
-    expect(host.textContent).toContain("Resume");
-    press("End");
+    expect(host.textContent).toContain("banked. Start continues it.");
+    press("Reset the timer");
     expect(host.textContent).toContain("Start focus");
+    expect(host.querySelector("[role=timer]")?.textContent).toBe("25:00");
     act(() => root.unmount());
     host.remove();
   });
 
-  it("useFocus is null outside a provider", () => {
+  it("useFocus reads the shared clock outside a provider too", () => {
     let seen: unknown = "unset";
     function Probe() {
       seen = useFocus();
@@ -81,14 +88,14 @@ describe("the timer screen", () => {
     const host = document.createElement("div");
     const root = createRoot(host);
     act(() => root.render(createElement(Probe)));
-    expect(seen).toBeNull();
+    expect((seen as { phase: string }).phase).toBe("idle");
     act(() => root.unmount());
   });
 });
 
 describe("no em dash in the new files", () => {
   it("is clean", () => {
-    for (const file of ["../tabs/focus/FocusProvider.tsx", "../tabs/focus/FocusTab.tsx", "../tabs/focus/focus.css", "../settings/FocusSetting.tsx"]) {
+    for (const file of ["../tabs/focus/FocusProvider.tsx", "../tabs/focus/FocusTab.tsx", "../tabs/focus/focus.css", "../settings/FocusSetting.tsx", "../../components/FocusTimer.tsx", "../../components/focus-timer.css", "../../lib/useFocusTimer.ts", "../../lib/ambience.ts", "../../lib/sounds.ts"]) {
       expect(read(file), file).not.toContain("—");
     }
   });

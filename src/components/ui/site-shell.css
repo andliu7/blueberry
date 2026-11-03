@@ -101,10 +101,11 @@ html:has(.site-header) {
 
 /* ---------- The wordmark on a phone ---------- */
 
-/* Below 768px the top row is the berry, the wordmark, search and the account. A running
-   focus timer adds its pill, and then the row is 50px too wide at 360px. The wordmark
-   gives way while the pill shows: hidden from sight, still read out as the link's name. */
-@media (max-width: 767.98px) {
+/* Below 768px the top row is the berry, the wordmark, the timer button, search and the
+   account. The timer was a 94px pill while running until 3 Nov; it is now a 44px icon
+   button, always there, and the row fits from 375px up. Under that the wordmark gives way:
+   hidden from sight, still read out as the link's name. */
+@media (max-width: 374.98px) {
   .site-header:has(.site-pill > *) .site-wordmark {
     position: absolute;
     width: 1px;

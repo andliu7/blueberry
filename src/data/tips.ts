@@ -79,7 +79,7 @@ export const STUDY_TIPS: readonly TipLine[] = [
  *   guidebook           src/game/pathway-sheet/NodeSheet.tsx (the guidebook button)
  *   study modes         src/game/tabs/cards/DeckSet.tsx (practice never touches the schedule)
  *   import              src/game/tabs/cards/CardsShelf.tsx (CSV, Anki text, Blueberry JSON)
- *   focus timer         src/components/SchedulePage.tsx FocusCard, src/lib/useFocusTimer.ts
+ *   focus timer         src/components/FocusTimer.tsx, src/lib/useFocusTimer.ts
  *   break               src/lib/featureIndex.ts ("Break: Tetris and sound")
  *   arrow style, pKa    src/game/tabs/me/MeTab.tsx (Me, Settings)
  *   quests              src/game/tabs/feed/feedModel.ts (three daily quests)
@@ -94,9 +94,9 @@ export const APP_TIPS: readonly TipLine[] = [
   { id: "a-guidebook", kind: "app", text: "Tap a lesson on the path, then its guidebook button, to read the ideas before you play it." },
   { id: "a-practice-modes", kind: "app", text: "Flashcards, Test, Match and Write in the Cards tab are practice. They never change your review schedule." },
   { id: "a-import", kind: "app", text: "Have Anki cards or a spreadsheet of terms? Import them in the Cards tab as a deck of their own." },
-  { id: "a-focus", kind: "app", text: "Start a 25 minute focus session from Schedule. The timer stays in the header on every page." },
+  { id: "a-focus", kind: "app", text: "Start a 25 minute focus session from the timer button in the header. It keeps counting on every page." },
   { id: "a-eye-rest", kind: "app", text: "The focus timer reminds you to rest your eyes every twenty minutes. Look at something far away." },
-  { id: "a-break", kind: "app", text: "Breaks in the focus timer come with Tetris and rain sounds, if you want them." },
+  { id: "a-break", kind: "app", text: "The focus timer can play rain, fire or brown noise while you work. Press Play on its card." },
   { id: "a-arrow-style", kind: "app", text: "Prefer a different arrow? In Me, then Settings, pick how your drag draws it." },
   { id: "a-pka", kind: "app", text: "Your professor uses different pKa numbers? Set them in Me, then Settings, then pKa values." },
   { id: "a-quests", kind: "app", text: "The Feed tab has three daily quests. They reset every day." },

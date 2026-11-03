@@ -1,0 +1,273 @@
+/*
+ * The focus timer (components/FocusTimer.tsx). An icon button with a minutes badge while a
+ * session runs, and a card that drops down below it. Tokens only, from tokens.css (site) and
+ * game/theme.css (game). No gradient on any surface or button: flat faces over solid lips.
+ * Every movement sits behind a motion check, the OS one and the site's own Reduce motion switch.
+ */
+
+.focus-timer {
+  --ft-ink: var(--foreground);
+  --ft-quiet: var(--muted-foreground);
+  --ft-surface: var(--card);
+  --ft-line: var(--site-border, var(--border));
+  --ft-brand: var(--site-nav-line, #5a3fd8);
+  --ft-face: #5a3fd8;
+  --ft-lip: #3d27a3;
+  --ft-phase: var(--ft-brand);
+  --ft-type: var(--site-display, inherit);
+  position: relative;
+  display: inline-flex;
+  color: var(--ft-ink);
+}
+.dark .focus-timer {
+  --ft-face: #6d5ae0;
+  --ft-lip: #4433b5;
+}
+.focus-timer.ft-look-game {
+  --ft-surface: var(--bb-card, var(--card));
+  --ft-ink: var(--bb-foreground, var(--foreground));
+  --ft-quiet: var(--bb-muted-foreground, var(--muted-foreground));
+  --ft-line: var(--bb-border, var(--border));
+  --ft-type: var(--font-display, inherit);
+}
+.focus-timer.phase-eyeRest { --ft-phase: var(--bb-blue-ink, #3a5fd0); }
+.focus-timer.phase-break { --ft-phase: var(--bb-progress-edge, #3f8c28); }
+
+/* ---------- The button ---------- */
+
+/* On the site it matches the search button beside it: a 44px round target with a wash on hover. */
+.ft-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ft-ink);
+  cursor: pointer;
+  transition: background-color 200ms var(--bb-ease-ui, ease);
+}
+.ft-toggle:hover,
+.focus-timer.is-open .ft-toggle { background: var(--bb-wash); }
+.ft-toggle:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.focus-timer.phase-eyeRest .ft-toggle,
+.focus-timer.phase-focus .ft-toggle { color: var(--ft-phase); }
+
+.ft-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -1px;
+  min-width: 20px;
+  padding: 0 4px;
+  border: 1.5px solid var(--ft-phase);
+  border-radius: 999px;
+  background: var(--ft-surface);
+  color: var(--ft-ink);
+  font: 800 10px/14px var(--ft-type);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* In the game the button is a lipped cut-out in the corner, like the header tools. */
+.focus-timer.ft-at-game {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  z-index: 60;
+}
+@media (min-width: 768px) {
+  .focus-timer.ft-at-game { bottom: 24px; }
+}
+.ft-at-game .ft-toggle {
+  width: 52px;
+  height: 52px;
+  border: 2px solid var(--ft-line);
+  background: var(--ft-surface);
+  box-shadow: 0 4px 0 var(--ft-line);
+}
+.ft-at-game .ft-toggle:active { transform: translateY(4px); box-shadow: none; }
+.ft-at-game .ft-badge { right: -6px; bottom: -6px; }
+
+/* ---------- The card ---------- */
+
+.ft-card {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 45;
+  box-sizing: border-box;
+  width: min(320px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--ft-line);
+  border-radius: 18px;
+  background: var(--ft-surface);
+  color: var(--ft-ink);
+  box-shadow: 0 18px 40px -18px rgb(20 12 60 / 0.35);
+  text-align: left;
+}
+/* Settings open: wider so the fields fit. Anchored by the right edge, so widening grows it
+   leftward; --ft-shift (set from the viewport in the component) pulls the right edge out
+   where there is room, so it grows right too. */
+.ft-card.is-wide { width: min(420px, calc(100vw - 32px)); right: calc(-1 * var(--ft-shift, 0px)); }
+.ft-at-game .ft-card { top: auto; bottom: calc(100% + 12px); max-height: calc(100dvh - 9rem); overflow-y: auto; }
+.ft-at-page { display: block; width: min(32rem, 100%); margin: 0 auto; }
+.ft-card.is-page { position: static; width: 100%; padding: 20px; box-shadow: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduced"]) .ft-card { transition: width 0.22s ease-out, right 0.22s ease-out; }
+  html:not([data-motion="reduced"]) .ft-card:not(.is-page) { animation: ft-drop 0.2s var(--bb-ease-out, ease-out) backwards; }
+  html:not([data-motion="reduced"]) .ft-at-game .ft-card { animation-name: ft-rise; }
+}
+@keyframes ft-drop { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes ft-rise { from { opacity: 0; transform: translateY(6px); } }
+
+.ft-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ft-quiet);
+  cursor: pointer;
+}
+.ft-close:hover { background: var(--bb-wash); color: var(--ft-ink); }
+
+.ft-top { display: flex; align-items: center; gap: 6px; margin: 0 36px 6px 0; }
+.ft-card.is-page .ft-top { margin-right: 0; }
+.ft-phase { margin-right: auto; font: 800 12px/1 var(--ft-type); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ft-quiet); }
+.ft-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1.5px solid var(--ft-line);
+  border-radius: 999px;
+  background: var(--ft-surface);
+  color: var(--ft-ink);
+  font: 700 12px/1 var(--ft-type);
+  cursor: pointer;
+}
+.ft-chip:hover:not(:disabled) { background: var(--bb-wash); }
+.ft-chip:disabled { opacity: 0.5; cursor: default; }
+.ft-chip.is-on { border-color: var(--ft-brand); color: var(--ft-brand); }
+.ft-chip:focus-visible, .ft-close:focus-visible, .ft-icon:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+.ft-clock { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+.ft-clock strong {
+  font: 900 44px/1 var(--ft-type);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--ft-ink);
+}
+.focus-timer.phase-focus .ft-clock strong,
+.focus-timer.phase-eyeRest .ft-clock strong,
+.focus-timer.phase-break .ft-clock strong { color: var(--ft-phase); }
+.ft-card.is-page .ft-clock { align-items: center; text-align: center; }
+.ft-card.is-page .ft-clock strong { font-size: clamp(3.5rem, 18vw, 5.5rem); }
+.ft-clock small { font-size: 13px; line-height: 1.45; color: var(--ft-quiet); }
+
+.ft-bar { height: 8px; margin-bottom: 14px; border-radius: 99px; background: color-mix(in srgb, var(--ft-phase) 16%, transparent); overflow: hidden; }
+.ft-fill { height: 100%; border-radius: 99px; background: var(--ft-phase); transform-origin: left; }
+
+.ft-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ft-card.is-page .ft-actions { justify-content: center; }
+.ft-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ft-quiet);
+  cursor: pointer;
+}
+.ft-icon:hover { background: var(--bb-wash); color: var(--ft-ink); }
+
+/* ---------- The site's key: flat face, solid lip, no gradient ---------- */
+
+.ft-key {
+  --k-face: var(--ft-face);
+  --k-lip: var(--ft-lip);
+  --k-rim: transparent;
+  --k-ink: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  margin-bottom: 3px;
+  border: 1.5px solid var(--k-rim);
+  border-radius: 12px;
+  background: var(--k-face);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 var(--k-lip);
+  font: 800 14px/1 var(--ft-type);
+  cursor: pointer;
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 160ms ease;
+}
+.ft-key:hover { filter: brightness(1.06); }
+.ft-key:active { transform: translateY(3px); box-shadow: 0 0 0 var(--k-lip); }
+.ft-key:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.ft-key--secondary {
+  --k-face: var(--ft-surface);
+  --k-rim: var(--ft-line);
+  --k-lip: var(--ft-line);
+  --k-ink: var(--ft-ink);
+}
+.ft-key--secondary:hover { filter: none; background: var(--bb-wash); }
+@media (prefers-reduced-motion: reduce) { .ft-key { transition: none; } }
+html[data-motion="reduced"] .ft-key { transition: none; }
+
+/* ---------- Settings ---------- */
+
+.ft-settings { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--ft-line); }
+.ft-settings summary { min-height: 32px; display: flex; align-items: center; cursor: pointer; font: 700 13px/1 var(--ft-type); color: var(--ft-quiet); }
+.ft-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-top: 8px; }
+.ft-grid label { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 12px; color: var(--ft-quiet); }
+.ft-grid input:not([type="checkbox"]):not([type="range"]),
+.ft-grid select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 1px solid var(--input, var(--ft-line));
+  border-radius: 10px;
+  background: var(--ft-surface);
+  color: var(--ft-ink);
+  font-size: 14px;
+}
+.ft-grid input:disabled { opacity: 0.5; }
+.ft-grid input[type="range"] { width: 100%; min-width: 0; accent-color: var(--ft-face); min-height: 36px; }
+.ft-grid .ft-check { grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 8px; font-size: 13px; color: var(--ft-ink); }
+.ft-grid .ft-check input { width: 18px; height: 18px; accent-color: var(--ft-face); }
+.ft-grid .ft-note { grid-column: 1 / -1; }
+.ft-note { margin: 4px 0 0; font-size: 12px; color: var(--ft-quiet); }
+.ft-away { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-right: 36px; }
+.ft-card.is-page .ft-away { margin-right: 0; }
+
+/* ---------- The pop-out window: the same face on its own page, filling it ---------- */
+
+.focus-timer.ft-pip { display: block; min-height: 100vh; box-sizing: border-box; padding: 14px 16px; background: var(--ft-surface); }
+.ft-pip .ft-top { margin-right: 0; }
+
+/* A phone: the header button sits left of search and the account, so a card anchored to it
+   would run off the left edge. Below 640px the card spans the screen under the 60px header. */
+@media (max-width: 639.98px) {
+  .ft-at-site .ft-card,
+  .ft-at-site .ft-card.is-wide { position: fixed; top: 68px; left: 16px; right: 16px; width: auto; max-height: calc(100dvh - 160px); overflow-y: auto; }
+}
