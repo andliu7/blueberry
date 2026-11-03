@@ -807,6 +807,16 @@ function SettingsScreen() {
     <div className="me me--narrow">
       <SubHeader title="Settings" backHref={hrefForTab("me")} backLabel="Back to Me" />
 
+      {/* First, not last (owner, 3 Nov: at the foot of the list it read as missing). */}
+      {isStaffRole(role) ? (
+        <section className="me-card me-group" aria-labelledby="me-set-staff">
+          <h2 id="me-set-staff" className="me-group-title">
+            Staff
+          </h2>
+          <AdminRow />
+        </section>
+      ) : null}
+
       <section className="me-card me-group" aria-labelledby="me-set-app">
         <h2 id="me-set-app" className="me-group-title">
           App
@@ -865,15 +875,6 @@ function SettingsScreen() {
         <SwitchRow on={hoverPreview} title="Hover reveal" detail="Show the answer on hover" onToggle={toggleHoverPreview} />
         <SwitchRow on={magnifier} title="Magnifier" detail="A lens for small print" onToggle={toggleMagnifier} />
       </section>
-
-      {isStaffRole(role) ? (
-        <section className="me-card me-group" aria-labelledby="me-set-staff">
-          <h2 id="me-set-staff" className="me-group-title">
-            Staff
-          </h2>
-          <AdminRow />
-        </section>
-      ) : null}
 
       <LanguageSheet open={languageOpen} onClose={() => setLanguageOpen(false)} />
     </div>
