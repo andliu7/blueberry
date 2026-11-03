@@ -1,6 +1,6 @@
 /**
- * Every navigation icon in /app: the five bar tabs and the six off-bar
- * surfaces. Inline SVG rather than an icon package, so the shell's entry chunk
+ * Every navigation icon in /app: the five bar tabs, the off-bar surfaces, and
+ * the two Path sections (Challenges, Shop) that sit under Path on the rail. Inline SVG rather than an icon package, so the shell's entry chunk
  * carries a handful of shapes and not a font.
  *
  * ONE SET, ONE CONSTRUCTION (owner, 2026-10-15: redesign every icon, the old
@@ -33,6 +33,9 @@
 
 import type { ReactElement } from "react";
 import type { TabId } from "../routes";
+
+/** A drawable icon: any tab, plus the two Path sections that are not tabs of their own. */
+export type IconId = TabId | "challenges" | "shop";
 
 /* Palette shorthands, so the drawings below read as colour names. */
 const PURPLE = "var(--ic-purple)";
@@ -99,7 +102,7 @@ function Lens({ cx, cy, r }: { readonly cx: number; readonly cy: number; readonl
  * The drawings, one per tab id. Each returns the inside of a 24 unit box and
  * paints back to front, so a later shape covers an earlier one.
  */
-const DRAWINGS: Record<TabId, () => ReactElement> = {
+const DRAWINGS: Record<IconId, () => ReactElement> = {
   /* PATH: one lesson node from the path itself, a purple disc on its lip with
      a white star. The tab opens a column of exactly these, so the icon is a
      small picture of the screen behind it. */
@@ -249,9 +252,56 @@ const DRAWINGS: Record<TabId, () => ReactElement> = {
       <path d="M4.4 7.6l7.6 5.6 7.6-5.6" stroke={WHITE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </>
   ),
+
+  /* CHALLENGES: the challenge cup, the prize at the end of the challenge road.
+     A yellow cup on its lip with a white star; the handles, stem and foot are
+     the lip colour, which is also what keeps yellow visible on a white rail. */
+  challenges: () => (
+    <>
+      <path d="M5.4 4.8a3.6 3.6 0 1 0 0 7.2a3.6 3.6 0 1 0 0-7.2zm0 1.8a1.8 1.8 0 1 1 0 3.6a1.8 1.8 0 1 1 0-3.6z" fill={YELLOW_LIP} fillRule="evenodd" />
+      <path d="M18.6 4.8a3.6 3.6 0 1 0 0 7.2a3.6 3.6 0 1 0 0-7.2zm0 1.8a1.8 1.8 0 1 1 0 3.6a1.8 1.8 0 1 1 0-3.6z" fill={YELLOW_LIP} fillRule="evenodd" />
+      <rect x="10.4" y="13.6" width="3.2" height="6.4" rx="1" fill={YELLOW_LIP} />
+      <rect x="6.4" y="19.6" width="11.2" height="3" rx="1.4" fill={YELLOW_LIP} />
+      <rect x="6.4" y="18.4" width="11.2" height="3" rx="1.4" fill={YELLOW} />
+      <path d="M5.4 3.4h13.2v5.2a6.6 6.6 0 0 1-13.2 0z" fill={YELLOW_LIP} />
+      <path d="M5.4 2h13.2v5.2a6.6 6.6 0 0 1-13.2 0z" fill={YELLOW} />
+      <path
+        d="M12 5.7L13.29 8.82L16.66 9.09L14.09 11.28L14.88 14.56L12 12.8L9.12 14.56L9.91 11.28L7.34 9.09L10.71 8.82Z"
+        transform="translate(12 7.4) scale(0.66) translate(-12 -10.1)"
+        fill={WHITE}
+        stroke={WHITE}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </>
+  ),
+
+  /* SHOP: a red storefront. A striped awning with a scalloped edge under a
+     roof bar in the lip colour, over a shop front on its lip; the stripes,
+     the door and the two windows are white. */
+  shop: () => (
+    <>
+      <rect x="3.4" y="9.4" width="17.2" height="13.4" rx="2" fill={RED_LIP} />
+      <rect x="3.4" y="8" width="17.2" height="13.4" rx="2" fill={RED} />
+      <rect x="10" y="13.8" width="4" height="7.6" rx="1.2" fill={WHITE} />
+      <rect x="5.6" y="13.8" width="2.8" height="3.2" rx="0.8" fill={WHITE} />
+      <rect x="15.6" y="13.8" width="2.8" height="3.2" rx="0.8" fill={WHITE} />
+      <path
+        d="M1.6 5.4h20.8v4.4a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0z"
+        fill={RED_LIP}
+      />
+      <path
+        d="M1.6 4h20.8v4.4a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0a2.08 2.08 0 0 1-4.16 0z"
+        fill={RED}
+      />
+      <path d="M5.76 4h4.16v4.4a2.08 2.08 0 0 1-4.16 0z" fill={WHITE} />
+      <path d="M14.08 4h4.16v4.4a2.08 2.08 0 0 1-4.16 0z" fill={WHITE} />
+      <rect x="1.2" y="1.6" width="21.6" height="3.4" rx="1.7" fill={RED_LIP} />
+    </>
+  ),
 };
 
-export function TabIcon({ tab, className = "" }: { readonly tab: TabId; readonly className?: string }) {
+export function TabIcon({ tab, className = "" }: { readonly tab: IconId; readonly className?: string }) {
   const Drawing = DRAWINGS[tab];
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">

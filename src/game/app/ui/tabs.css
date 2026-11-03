@@ -205,6 +205,42 @@
 }
 
 /*
+ * PATH'S TWO SECTIONS, Challenges and Shop (owner, 2026-11-03). On the rail
+ * they sit right under Path, indented with a smaller icon so they read as
+ * Path's children. On the phone they are not in the bar at all: the Path
+ * screens carry their own left column (tabs/pathway/pathSideTabs.css).
+ *
+ * While one of them is open, Path carries aria-current="true" (its parent).
+ * The phone bar lights it like the selected tab, since Path is still where
+ * the student is; the rail only inks its label, so one tile is lit there.
+ */
+.tabbar-sub {
+  display: none;
+}
+.tabbar-item[aria-current="true"] {
+  border-color: var(--tab-active-line);
+  background: var(--tab-active);
+  color: var(--bb-primary-ink);
+}
+@media (min-width: 48rem) {
+  .tabbar-sub {
+    display: flex;
+    margin-inline-start: 1.75rem;
+    gap: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    font-size: var(--text-scale-xs);
+  }
+  .tabbar-sub .tabbar-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+  .tabbar-item[aria-current="true"] {
+    border-color: transparent;
+    background: transparent;
+  }
+}
+
+/*
  * THE BAR GETS OUT OF THE WAY. mobile-ui: "The bar is contextual: entering an
  * editor may replace or hide it entirely." A running review session is an
  * editor by that definition, a full screen task with one job and its own way

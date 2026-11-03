@@ -65,7 +65,7 @@
  * rectangle.
  */
 
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useVisibleTools } from "./ui/toolAccess";
 import { NAV_TABS, hrefForTab, tabDefinition, type Route, type TabId, type ToolId } from "./routes";
 import { isFlagOn } from "./flags";
@@ -85,7 +85,7 @@ import "./ui/tabs.css";
 import "../settings/groundTheme";
 
 const TrainerTab = lazy(() => import("../tabs/trainer/TrainerTab").then((m) => ({ default: m.TrainerTab })));
-import { ChallengesPath, PathSideTabs } from "../tabs/pathway/PathwaySideTabs";
+import { ChallengesPath, PATH_SECTIONS, PathSections, pathSideOf, type PathSection } from "../tabs/pathway/PathwaySideTabs";
 const PathwayTab = lazy(() => import("../tabs/pathway/PathwayTab"));
 const ShopPage = lazy(() => import("../shop/ShopPage"));
 const CardsTab = lazy(() => import("../tabs/cards/CardsTab"));
@@ -108,13 +108,29 @@ const MessagesTab = lazy(() => import("../tabs/messages/MessagesTab"));
  * accessible state and the CSS hook the active chip hangs off, which means the
  * two can never disagree: there is no second boolean to keep in sync.
  */
-function TabLink({ tab, active }: { readonly tab: TabId; readonly active: boolean }) {
+function TabLink({ tab, current }: { readonly tab: TabId; readonly current: "page" | "true" | undefined }) {
   const definition = tabDefinition(tab);
   return (
-    <a href={hrefForTab(tab)} aria-current={active ? "page" : undefined} className="press tabbar-item">
+    <a href={hrefForTab(tab)} aria-current={current} className="press tabbar-item">
       <TabIcon tab={tab} className="tabbar-icon" />
       <span className="md:hidden">{definition.short}</span>
       <span className="hidden md:inline">{definition.label}</span>
+    </a>
+  );
+}
+
+/**
+ * Challenges or Shop on the desktop rail, grouped under Path (owner,
+ * 2026-11-03). Hidden below md in tabs.css: on a phone the bar is a bottom bar
+ * and these two must not join it; the Path screens draw their own left column
+ * there (PathwaySideTabs.tsx). While one of them is open, Path is marked
+ * aria-current="true", its parent, so the phone bar still lights Path.
+ */
+function PathSectionLink({ id, label, href, active }: { readonly id: PathSection; readonly label: string; readonly href: string; readonly active: boolean }) {
+  return (
+    <a href={href} aria-current={active ? "page" : undefined} className="press tabbar-item tabbar-sub" data-path-section={id}>
+      <TabIcon tab={id} className="tabbar-icon" />
+      <span>{label}</span>
     </a>
   );
 }
@@ -147,25 +163,22 @@ function Outlet({
   switch (route.tab) {
     case "trainer":
       return <TrainerTab reducedMotion={reducedMotion} />;
-    case "pathway":
-      return rest[0] === "challenges" ? (
-        <>
-          <PathSideTabs active="challenges" />
-          <ChallengesPath />
-        </>
-      ) : rest[0] === "shop" ? (
-        <>
-          <PathSideTabs active="shop" />
-          <Suspense fallback={<TabSkeleton label="the shop" />}>
-            <ShopPage reducedMotion={reducedMotion} embedded />
-          </Suspense>
-        </>
-      ) : (
-        <>
-          <PathSideTabs active="path" />
-          <PathwayTab reducedMotion={reducedMotion} />
-        </>
+    case "pathway": {
+      const side = pathSideOf(rest);
+      return (
+        <PathSections active={side}>
+          {side === "challenges" ? (
+            <ChallengesPath />
+          ) : side === "shop" ? (
+            <Suspense fallback={<TabSkeleton label="the shop" />}>
+              <ShopPage reducedMotion={reducedMotion} embedded />
+            </Suspense>
+          ) : (
+            <PathwayTab reducedMotion={reducedMotion} />
+          )}
+        </PathSections>
       );
+    }
     case "cards":
       return <CardsTab onImmersiveChange={onImmersiveChange} />;
     case "feed":
@@ -351,6 +364,8 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
   // Path and #/chat lights Me. A bar with nothing lit reads as broken, and six
   // of the ten routes are off-bar now. See TabDefinition.parent.
   const litTab = activeTab === null ? null : tabDefinition(activeTab).parent;
+  // Challenges and Shop are sections of Path with their own rail entries.
+  const pathSide = route.kind === "tab" && route.tab === "pathway" ? pathSideOf(route.rest) : null;
 
   return (
     <div className="bb-ground flex min-h-dvh flex-col md:flex-row">
@@ -394,7 +409,15 @@ export function Shell({ route, children }: { readonly route: Route; readonly chi
           <BrandMark />
         </a>
         {NAV_TABS.map((tab) => (
-          <TabLink key={tab.id} tab={tab.id} active={tab.id === litTab} />
+          <Fragment key={tab.id}>
+            <TabLink
+              tab={tab.id}
+              current={tab.id !== litTab ? undefined : pathSide === "challenges" || pathSide === "shop" ? "true" : "page"}
+            />
+            {tab.id === "pathway"
+              ? PATH_SECTIONS.map((section) => <PathSectionLink key={section.id} {...section} active={section.id === pathSide} />)
+              : null}
+          </Fragment>
         ))}
       </nav>
 

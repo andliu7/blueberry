@@ -1,74 +1,77 @@
 /**
- * The side tabs on the Path screen: Path, Challenges, Shop. Same shape as
- * Duolingo's Quests and Shop tabs: one strip, three equal tabs with an icon
- * each, the open one underlined and tinted. All three live inside the Path
- * screen, so Shop reads as a sibling and keeps the strip. Train stays in the
- * bar until the owner swaps it for Shop.
+ * The Path screen's two sections, Challenges and Shop (owner, 2026-10-29 and
+ * again 2026-11-03: they are tabs down the LEFT edge, each with an icon, never
+ * a strip across the middle of the page and never in the bottom bar).
+ *
+ * Desktop: they are entries on the app's own left rail, right under Path
+ * (Shell.tsx draws them). Phone: the rail is a bottom bar there and they must
+ * not join it, so the Path screens carry a slim column of icon tabs on their
+ * left edge instead, drawn here. Both read the same list, so the routes and
+ * the labels cannot drift apart.
  */
 import { useEffect, useRef, type ReactNode } from "react";
 import type { EconomyEvent } from "@blueberry/economy";
 import { useProgress } from "../../app/hooks";
+import { hrefForTab } from "../../app/routes";
 import { DiamondMark } from "../../app/ui/HudIcons";
+import { TabIcon } from "../../app/ui/TabIcon";
 import { dailyQuestRows } from "../feed/feedModel";
 import { CHALLENGE_SPECS, deriveChallenges } from "./challengesModel";
 import "./pathSideTabs.css";
 
 export type PathSide = "path" | "challenges" | "shop";
+export type PathSection = Exclude<PathSide, "path">;
 
-const svg = (children: ReactNode) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden focusable="false" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-    {children}
-  </svg>
-);
-const ICONS: Record<PathSide, ReactNode> = {
-  path: svg(<path d="M6 20c0-6 12-4 12-10a4 4 0 0 0-8 0M6 20h.01M18 6h.01" />),
-  challenges: svg(<path d="M5 21V4m0 0h12l-2.5 4L17 12H5" />),
-  shop: svg(<path d="M5 8h14l-1 12H6L5 8Zm4 0V7a3 3 0 0 1 6 0v1" />),
-};
-const TABS: readonly { id: PathSide; label: string; href: string }[] = [
-  { id: "path", label: "Path", href: "#/app/pathway" },
-  { id: "challenges", label: "Challenges", href: "#/app/pathway/challenges" },
-  { id: "shop", label: "Shop", href: "#/app/pathway/shop" },
+export const PATH_SECTIONS: readonly { readonly id: PathSection; readonly label: string; readonly href: string }[] = [
+  { id: "challenges", label: "Challenges", href: hrefForTab("pathway", "challenges") },
+  { id: "shop", label: "Shop", href: hrefForTab("pathway", "shop") },
 ];
 
-export function PathSideTabs({ active }: { readonly active: PathSide }) {
+/** Which Path section a #/app/pathway route is showing, from its rest segments. */
+export function pathSideOf(rest: readonly string[]): PathSide {
+  return rest[0] === "challenges" ? "challenges" : rest[0] === "shop" ? "shop" : "path";
+}
+
+/**
+ * A Path screen with its section column. The column only shows below md (the
+ * rail carries the sections above it); it is a grid column of its own, so it
+ * sits beside the page and never over it.
+ */
+export function PathSections({ active, children }: { readonly active: PathSide; readonly children: ReactNode }) {
   const ref = useRef<HTMLElement>(null);
-  /* The strip sticks UNDER the shell header (z-10), not behind it. The header's
-     height moves with the safe area and the HUD, so it is measured. The strip's
-     own height is published as --pside-h so the Path unit rail can sit below it. */
+  /* The column sticks UNDER the shell header (z-10), not behind it. The
+     header's height moves with the safe area and the HUD, so it is measured. */
   useEffect(() => {
     const header = document.querySelector("[data-app-header]");
     const nav = ref.current;
-    if (nav === null || typeof ResizeObserver === "undefined") return;
-    const root = document.documentElement;
+    if (nav === null || header === null || typeof ResizeObserver === "undefined") return;
     const read = () => {
-      nav.style.top = `${Math.round(header?.getBoundingClientRect().height ?? 0)}px`;
-      root.style.setProperty("--pside-h", `${Math.round(nav.getBoundingClientRect().height)}px`);
+      nav.style.top = `${Math.round(header.getBoundingClientRect().height) + 12}px`;
     };
     read();
     const observer = new ResizeObserver(read);
-    observer.observe(nav);
-    if (header !== null) observer.observe(header);
-    return () => {
-      observer.disconnect();
-      root.style.removeProperty("--pside-h");
-    };
+    observer.observe(header);
+    return () => observer.disconnect();
   }, []);
   return (
-    <nav ref={ref} className="pside" aria-label="Path sections">
-      {TABS.map((tab) => (
-        <a
-          key={tab.id}
-          href={tab.href}
-          className={`pside__tab press${tab.id === active ? " pside__tab--on" : ""}`}
-          aria-current={tab.id === active ? "page" : undefined}
-          data-pside={tab.id}
-        >
-          {ICONS[tab.id]}
-          <span>{tab.label}</span>
-        </a>
-      ))}
-    </nav>
+    <div className="psec">
+      <nav ref={ref} className="psec__rail" aria-label="Path sections">
+        {PATH_SECTIONS.map((section) => (
+          <a
+            key={section.id}
+            href={section.href}
+            className="psec__tab press"
+            aria-label={section.label}
+            title={section.label}
+            aria-current={section.id === active ? "page" : undefined}
+            data-path-section={section.id}
+          >
+            <TabIcon tab={section.id} className="psec__icon" />
+          </a>
+        ))}
+      </nav>
+      <div className="psec__page">{children}</div>
+    </div>
   );
 }
 

@@ -1,32 +1,53 @@
-.pside {
-  position: sticky;
-  top: 0;
-  z-index: 4;
+/* The Path sections column, phones only: a slim stack of icon tabs down the
+   left edge, flat like the bar's own items, in a grid column of its own so it never covers the page. Above
+   48rem the app rail carries the sections and the column goes. */
+.psec {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  background: var(--bb-card);
-  border-bottom: 2px solid var(--bb-border);
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  align-items: start;
 }
-.pside__tab {
+.psec__rail {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 6;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.125rem;
-  padding: 0.5rem 0.25rem 0.4rem;
-  border-bottom: 4px solid transparent;
-  margin-bottom: -2px;
-  color: var(--bb-foreground);
-  opacity: 0.7;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.8125rem;
-  text-decoration: none;
+  gap: 0.5rem;
+  padding: 0.75rem 0 0 0.375rem;
 }
-.pside__tab--on {
-  opacity: 1;
-  color: #6d4fd6;
-  border-bottom-color: #8b6df2;
-  background: color-mix(in srgb, #8b6df2 10%, transparent);
+.psec__page {
+  min-width: 0;
+}
+/* The embedded shop paints its own tinted ground, which stopped at the
+   column's edge and left a two-tone seam down the left. Inside a Path screen
+   it sits on the page ground, like the path and the challenges. */
+.psec__page > .shop-page[data-embedded="true"] {
+  background: transparent;
+}
+.psec__tab {
+  display: grid;
+  place-items: center;
+  width: 2.875rem;
+  height: 2.875rem;
+  border: 2px solid var(--bb-border);
+  border-radius: 0.875rem;
+  background: var(--bb-card);
+}
+.psec__tab[aria-current="page"] {
+  border-color: var(--tab-active-line);
+  background: var(--tab-active);
+}
+.psec__icon {
+  width: 1.875rem;
+  height: 1.875rem;
+}
+@media (min-width: 48rem) {
+  .psec {
+    display: block;
+  }
+  .psec__rail {
+    display: none;
+  }
 }
 .pchal {
   margin: 0 auto;
