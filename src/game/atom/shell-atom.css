@@ -1,0 +1,242 @@
+/* ShellAtom. Flat fills on Blueberry tokens, so .dark flips it with the rest
+   of the game. Radii are percents of a square stage, so it scales to any width. */
+
+.shell-atom {
+  --sa-core: var(--bb-muted-foreground);
+  --sa-valence: var(--bb-primary);
+  --sa-ring: color-mix(in srgb, var(--bb-border) 55%, transparent);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  color: var(--bb-foreground);
+}
+
+.shell-atom__stage {
+  position: relative;
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+}
+
+.shell-atom__shell {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: shell-atom-grow 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--delay);
+}
+
+.shell-atom__ring {
+  position: absolute;
+  left: calc(50% - var(--r));
+  top: calc(50% - var(--r));
+  width: calc(2 * var(--r));
+  height: calc(2 * var(--r));
+  border-radius: 50%;
+  border: 1.5px dashed var(--sa-ring);
+}
+
+.shell-atom__shell--valence .shell-atom__ring {
+  border: 2.5px solid var(--sa-valence);
+  background: color-mix(in srgb, var(--bb-primary) 6%, transparent);
+}
+
+.shell-atom__spin {
+  position: absolute;
+  inset: 0;
+  animation: shell-atom-turn var(--turn) linear infinite;
+}
+
+.shell-atom__arm {
+  position: absolute;
+  inset: 0;
+}
+
+.shell-atom__e {
+  position: absolute;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shell-atom__dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--sa-core);
+  border: 2px solid var(--bb-card);
+  transition: transform 160ms ease;
+}
+
+.shell-atom__e--valence .shell-atom__dot,
+.shell-atom__e--bond .shell-atom__dot,
+.shell-atom__e--lone .shell-atom__dot {
+  width: 16px;
+  height: 16px;
+  background: var(--sa-valence);
+}
+
+.shell-atom__e:hover .shell-atom__dot { transform: scale(1.2); }
+
+.shell-atom__e:focus-visible { outline: 3px solid var(--bb-ring); outline-offset: -6px; }
+
+.shell-atom__e.is-open .shell-atom__dot {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 3px var(--bb-card), 0 0 0 5px var(--bb-ring);
+}
+
+.shell-atom__stub {
+  position: absolute;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--bb-foreground);
+}
+/* A double or triple bond draws as two or three lines. */
+.shell-atom__stub--2 { width: 8px; margin-left: -4px; background: none; border-inline: 2px solid var(--bb-foreground); }
+.shell-atom__stub--3 { width: 10px; margin-left: -5px; background: linear-gradient(var(--bb-foreground), var(--bb-foreground)) center / 2px 100% no-repeat; border-inline: 2px solid var(--bb-foreground); }
+
+.shell-atom__partner {
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.shell-atom__partner > span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+}
+.shell-atom__upright {
+  position: absolute;
+  left: -0.5em;
+  top: -0.6em;
+  width: 1em;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.2;
+  animation: shell-atom-turn var(--turn) linear infinite reverse;
+}
+
+.shell-atom__nucleus {
+  position: absolute;
+  left: 39%;
+  top: 39%;
+  width: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: var(--bb-secondary);
+  border: 2px solid var(--bb-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.shell-atom__symbol {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: var(--bb-primary-ink);
+}
+.shell-atom__z {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--bb-muted-foreground);
+}
+
+.shell-atom__legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem 1rem;
+  font-size: 0.875rem;
+  color: var(--bb-muted-foreground);
+}
+.shell-atom__legend > span { display: inline-flex; align-items: center; gap: 0.375rem; }
+.shell-atom__key { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.shell-atom__key--core { background: var(--sa-core); }
+.shell-atom__key--valence { background: var(--sa-valence); }
+
+.shell-atom__fc {
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.shell-atom__nowrap { white-space: nowrap; }
+
+.shell-atom__hint {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--bb-muted-foreground);
+}
+
+.shell-atom__card {
+  width: 100%;
+  max-width: 22rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  border: 2px solid var(--bb-border);
+  background: var(--bb-card);
+  color: var(--bb-card-foreground);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.shell-atom__card[hidden] { display: none; }
+.shell-atom__card p { margin: 0; }
+.shell-atom__card p + p { margin-top: 0.375rem; }
+.shell-atom__card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.shell-atom__card-title { font-family: var(--font-display); font-weight: 800; color: var(--bb-primary-ink); }
+.shell-atom__close {
+  min-width: 44px;
+  min-height: 44px;
+  margin: -0.5rem -0.75rem -0.5rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font-size: 1.5rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+.shell-atom__close:focus-visible { outline: 3px solid var(--bb-ring); }
+.shell-atom__honest { font-size: 0.8125rem; color: var(--bb-muted-foreground); }
+
+/* An open card holds every shell still, so the electron it describes stays put. */
+.shell-atom--paused .shell-atom__spin,
+.shell-atom--paused .shell-atom__upright { animation-play-state: paused; }
+
+.shell-atom--still .shell-atom__shell,
+.shell-atom--still .shell-atom__spin,
+.shell-atom--still .shell-atom__upright { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-atom__shell,
+  .shell-atom__spin,
+  .shell-atom__upright { animation: none; }
+}
+
+@keyframes shell-atom-turn {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shell-atom-grow {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}

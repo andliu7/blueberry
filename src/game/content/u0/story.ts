@@ -70,6 +70,12 @@ export interface StoryStep {
   readonly tryIt?: TryIt;
   /** A chart drawn in place of a molecule: "sn" is U0_SN_CHART (pools.ts), chapter 7's decision table. */
   readonly chart?: "sn";
+  /**
+   * An interactive figure drawn in place of a molecule: "shellAtom" is the
+   * shell-model atom explorer (atom/ShellAtomExplorer.tsx), whose atoms and
+   * bonding come from RDKit through scripts/gen_shell_atom.py.
+   */
+  readonly explore?: "shellAtom";
 }
 
 export interface StoryScene {
@@ -155,6 +161,7 @@ export const STORY_CHAPTERS: readonly StoryChapter[] = [
         { narration: "Formal charge: the electrons an atom brought, minus the ones it owns.", mood: "thinking" },
         { narration: "In ammonium, N has four bonds and no lone pair. It owns 4 of its 5, so it is +1.", mood: "focused", figure: "ammonium", highlights: [F.ammonium.atoms.n] },
         { narration: "Hydroxide's O owns 7 against the 6 it brought. That is minus 1.", mood: "happy", figure: "hydroxide", highlights: [F.hydroxide.atoms.o] },
+        { narration: "Your turn. Pick an atom, then tap its electrons to see who owns each one.", mood: "curious", explore: "shellAtom" },
       ],
     },
   },

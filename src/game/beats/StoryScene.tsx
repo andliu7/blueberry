@@ -12,7 +12,7 @@
  * four; an arrow hint shows its arrows drawn and says so, since no Unit 0
  * lesson plays an arrow card yet (content audit 23 Oct, section 6).
  */
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 
 import { Berry } from "../mascot/Berry";
 import { Press } from "../app/ui/Press";
@@ -22,6 +22,9 @@ import { U0_STORY_FIGURES, type StoryFigure } from "../content/u0/figures";
 // The chart lives in the generated pools.ts, which this lazy card loads anyway, so it stays out of first open.
 import { U0_SN_CHART } from "../content/u0/pools";
 import type { StoryArrow, StoryChapter, StoryStep } from "../content/u0/story";
+
+// The shell-model atom (chapter 2's explore step). Lazy so its code and CSS load only on that step.
+const ShellAtomExplorer = lazy(() => import("../atom/ShellAtomExplorer"));
 
 type Point = readonly [number, number];
 
@@ -146,7 +149,15 @@ export function StoryScene({
         {chapter.page} · {at + 1} of {steps.length}
       </p>
       <div className="flex flex-col items-center gap-4 rounded-2xl border-2 border-bb-border bg-bb-card p-4">
-        {step.chart === "sn" ? <SnChart /> : <SceneFigure step={step} />}
+        {step.chart === "sn" ? (
+          <SnChart />
+        ) : step.explore === "shellAtom" ? (
+          <Suspense fallback={<p role="status" className="text-scale-sm text-bb-muted-foreground">Loading the atom.</p>}>
+            <ShellAtomExplorer reducedMotion={reducedMotion} />
+          </Suspense>
+        ) : (
+          <SceneFigure step={step} />
+        )}
         <div className="flex w-full items-start gap-3">
           <Berry mood={step.mood} sizePx={56} reducedMotion={reducedMotion} />
           {/* aria-live so a screen reader hears each new line as the step changes. */}
