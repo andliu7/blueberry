@@ -158,3 +158,118 @@ Constants live next to the code: `WEAK_PREREQ_BELOW` 0.75, `STUCK_BELOW` 0.5, `S
 8. Name the exam sources, split by lesson so the run interleaves topics in teaching order.
 9. Run only the tests touched plus neighbours; confirm the first lesson of each section opens, the quiz appears at the end of each stage, and the pathway branch density holds.
 10. Open questions to the owner before building: video plan for the hook slot, algorithms content type, and whether Unit 2's first lesson (u2 Huckel) opens as the first in its section (STATUS lists it as shown locked).
+
+## 8. Template for Units 2-10 (3 Nov)
+
+Unit 1 as revised by `UNIT1-REVIEW.md` (all twelve suggestions applied, 3 and 4 Nov) is the model. Units 2 to 10 copy its shape, below, and each starts as a plan file (8h) that the owner reads before any pool is generated. Topics and order come from `COURSE-OUTLINE-ORGO2.md` sections 1 and 3, prerequisite edges from its section 4, callbacks and spacing from its section 5. Where this section and sections 1 to 7 differ, this section wins.
+
+### 8a. Stages and sections
+- Three to five stages per unit, in dependency order. A stage is one section: lessons, then the stage quiz (checkpoint), then the section chest (test-out).
+- A stage holds three to seven spine lessons and at most two side quests (`branch`). A spine lesson never assumes something only a side quest teaches.
+- The stage opens on a `video` (explainer) lesson; the rest are `practice`; the last node is the `quiz`. Mechanism and theory prerequisites sit above the lesson that uses them.
+- Every lesson lists `teaches` and `assumes` in `content/uN/lessonLinks.ts`; `test/uNLessonPath.test.ts` holds the four rules of 3a.
+
+### 8b. Lesson kinds, in this order
+1. **Primer.** The priming preview (big question, one pretest guess, three to five ideas as a map) and the L0 `meet` questions. Every `u0:` or earlier-unit assumption has a primer on the help path.
+2. **Worked example, then fade.** Every practice lesson opens on one fully worked problem on its preview, each step narrating the decision ("protonate C1 because..."). It solves a different problem of the same kind, on a species no question in the lesson draws, with its own figure. Fade: the first question carries the example's first step (`content/uN/workedFade.ts`, worded to hold for whichever question comes first); the questions after it carry nothing.
+3. **Practice.** Recognise (MCQ), then connect (match) or order (sort), then produce (draw or synthesis, opening on the starting material) or the trainer. Drawings play last.
+4. **Reason ("why") items.** At least one per lesson, paired with a product question where one exists ("which carbon" before "draw the product"). A replayed miss (recycle, or a retry in a run) first asks its reason at L0 (`beats/sayWhy.ts`); the wrong reasons are same-lesson mix-ups in `content/uN/sayWhyMixups.ts`, never template text.
+5. **Challenge.** The same node with the safety net off (section 6). Nothing to author; a lesson with a trainer step has none.
+6. **Checkpoint.** The stage quiz: every item L2 or L3, no hint, one or two items spaced from earlier stages (8f).
+7. **Test-out.** The section chest (10 to 15 items, stepping up through the unit) and the 20-item unit exam, drawn from every stage, side quests included through named exam ids (as `U1_EXAM_C_IDS`).
+
+### 8c. Orgo I callbacks
+- At least one per stage: a "You already know this" card on the stage's first lesson, naming the Orgo I idea and one sentence that carries it over (Unit 1: hyperconjugation for A, ΔG/Ea/Hammond for B, the radical chain for C, OCH3 donating by resonance for D).
+- The idea is assumed as `u0:<idea>` with a primer in `primers.ts`, so a student who lacks it gets the refresher.
+- At least one question per stage asks the callback as a why ("the same reason 3° beats 1° in SN1"), never as recall of a definition.
+- Pick from the owner's list (charge, resonance, induction, orbitals, equilibrium, kinetic vs thermodynamic, Keq vs pKa, functional groups, EWG vs EDG, substitution vs elimination) and from the outline's cross-cutting concepts this unit reuses.
+- Where Orgo II tells a story differently from Orgo I (bromonium vs open allylic cation), the card says so in one line.
+
+### 8d. Misconceptions, named and confronted
+- Every wrong option carries a named cause from `packages/chem-core/src/causes.ts`; add a cause rather than borrow the nearest wrong one (review L1).
+- The plan names two to four misconceptions per stage: the wrong idea in a student's words, why it tempts, the item that makes it fail, the correction.
+- Each gets at least one confronting item, where the tempting rule gives the wrong answer ("Do not assume 1,4 always wins", "shape before donors"); its feedback opens "A common mix-up".
+- No absolute the unit later breaks ("always a cyclohexene", review M3). Grep the explainers, walk-throughs, guide and deck for the claim before shipping.
+- No give-aways: a prompt word only the right option repeats fails (review M1); tiles read A, B, C until Check.
+
+### 8e. Where pictures beat text
+| Idea | Picture | Never |
+|---|---|---|
+| Any molecule | Skeletal structure from RDKit | A formula, or a name alone |
+| Resonance | Both contributors with curved arrows from RDKit bond orders (half-headed for radicals) | Two contributors and no arrow |
+| Rate vs stability | One energy diagram of the real reaction, reused across the stage | Generic A/B diagrams beside the real reaction |
+| Spatial (endo/exo, chairs, faces, anti opening) | A turnable 3-D model (RDKit ETKDG + MMFF, plain SVG) | Words like "toward the C=C" |
+| Rankings | A sort ladder | A list in the prompt |
+| Mechanism | The trainer | A described arrow |
+| Definitions, rules, the reason | Text, one to three sentences | A picture with no sentence |
+
+A read-along card shows at most two structures, by pointer, never typed.
+
+### 8f. Spacing earlier material into later quizzes
+- Every stage quiz after the first carries one or two items from earlier stages of the unit, in a new setting (as `u1-qb-space-cations`).
+- The unit exam draws from every stage and from side quests through named ids.
+- Each unit's first stage quiz and its exam carry at least one item on a cross-cutting concept from an earlier unit (outline section 5, where this unit is in `reusedIn`), for example kinetic vs thermodynamic on enolates, pKa and Keq on carbonyl addition.
+- A spaced item is a new item, never a copy; its id names where it plays (`uN-qb-space-...`).
+
+### 8g. Difficulty tags
+- One honest level per item, never 0/1/2 at once (review suggestion 12). L0 meet (cannot fail); L1 applies one taught rule; L2 combines rules, works backwards or turns on a subtle point; L3 produces (draw, typed synthesis). An MCQ is never L3; a drawing is at least L2.
+- Quiz and exam items are L2 or L3. Every lesson holds at least two levels; pools play easiest first.
+- The L2 and L3 items in quizzes and Challenge are the hard ones: failing one sends the learner back one question. Mark them in the plan.
+- Harder means more steps or less scaffolding on the same ideas, never more obscure. No timer, no arithmetic, no nomenclature beyond what pays off on a test.
+
+### 8h. The plan file each unit must use
+One file per unit, `documentation/UNIT{N}-PLAN.md`, written before any generator is touched. Every field is filled, or marked `ASK` (owner question) or `n/a`. Chemistry in a plan is a claim to derive, not a fact: the RDKit table names the script that will check it.
+
+```
+# Unit N plan: <title> (<date>)
+
+## Header
+- Unit id: uN
+- Title:
+- Outline topics: <COURSE-OUTLINE-ORGO2 section 3 topic ids>
+- Exam slots fed: <pKa | conceptual | mechanism | synthesis | prediction | spectroscopy>
+- Assumes from earlier units: <uM:concept, u0:concept, ...>
+- Cross-cutting concepts: introduced <ids>; reused <ids>
+- Sources checked: <OpenStax / LibreTexts pages, exam record>
+- Status: draft | owner-read | approved
+
+## Stages
+| Stage | Topic | Main line (lesson ids in order) | Side quests | Ends on |
+
+## Lessons (one block per lesson)
+### uN-<id>: <title>
+- Stage / kind / role: <A> / spine|branch / video|practice|quiz
+- Teaches: uN:<concept>, ...
+- Assumes: uN:|uM:|u0:<concept>, ...
+- Primer: big question; pretest item id; three to five ideas
+- Worked example: problem (species not in the pool); steps; figure
+- First step (fade line):
+- Practice: item ids with kind and level, in play order (drawings last)
+- Why items: ids, and the product item each pairs with
+- Say-why mix-ups: two, each false as a rule, with its correction
+- Picture: the 8e row, and what it shows
+- Video slot: minutes; three "shows" lines | n/a
+
+## Orgo I callbacks
+| Stage | Lesson | Orgo I idea | Carry-over sentence | Primer id | Why item id |
+
+## Misconceptions
+| Cause id | Wrong idea (student's words) | Why it tempts | Confronting item | Correction |
+
+## Spacing
+| Item id | Tests (stage or earlier unit, concept) | Plays in (quiz / exam) |
+
+## Difficulty
+| Lesson | L0 | L1 | L2 | L3 | Fail-back items |
+
+## Checkpoints and test-outs
+- Stage quizzes: id, item count, spaced items
+- Section chests: sizes (10 to 15, stepping up)
+- Unit exam sources: ids by stage, side-quest ids
+
+## RDKit derivations
+| Script | Derives | Stops the generator when |
+
+## Open questions for the owner
+- ASK: ...
+```
