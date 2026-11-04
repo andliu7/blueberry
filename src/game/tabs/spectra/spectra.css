@@ -102,3 +102,4 @@
 .sp-inset strong { color: var(--bb-primary); }
 .sp-inset[aria-pressed="true"] { border-color: var(--bb-primary); }
 .sp-inset:focus-visible { outline: 3px solid var(--bb-ring); outline-offset: 2px; }
+.sp-back { padding: 1rem 1rem 0; }

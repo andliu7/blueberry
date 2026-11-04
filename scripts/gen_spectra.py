@@ -8,7 +8,11 @@ The shift predictor is an additive-increment estimate (Shoolery / Pretsch / Gran
 style substituent tables, coded below), not nmrdb's HOSE-code database lookup. Typical
 error is +-0.3 ppm for 1H and +-5 ppm for 13C. The app labels it as a prediction.
 
-Run:  python scripts/gen_spectra.py
+It also writes src/game/tabs/spectra/rangeChart.generated.ts, the range chart (IR, 1H and
+13C boxes with a drawn example molecule each). See RANGE TABLE below for its sources.
+
+Run:  python scripts/gen_spectra.py            (everything)
+      python scripts/gen_spectra.py --ranges   (the range chart only)
 """
 import json
 import re
@@ -657,5 +661,279 @@ def main():
         print(q["id"], q["start"]["smiles"], "->", [o["smiles"] for o in q["options"]], "ans", q["answer"])
 
 
+# --------------------------------------------------------------------------- RANGE TABLE
+#
+# The range chart the Spectra tab opens on. The NUMBERS are a standard textbook range table,
+# not a prediction:
+#   Pavia, Lampman, Kriz and Vyvyan, "Introduction to Spectroscopy", 5th ed. (Cengage, 2015):
+#     IR, chapter 2 and its Appendix 2 correlation chart; 1H, chapter 3 and Appendix 3;
+#     13C, chapter 4 (Figure 4.2 correlation chart) and Appendix 7.
+#   Cross-checked against Klein, "Organic Chemistry", 4th ed. (Wiley), Tables 14.2, 15.1 and 15.4.
+# Owner-approved IR numbers (24 Oct 2026): C=O about 1690-1720 with conjugation, ring and ester
+# shifts; sp2 C-H just above 3000 and sp3 just below; broad O-H and N-H.
+#
+# Everything ELSE about a box is derived here with RDKit: every example molecule is parsed from
+# SMILES, the feature it stands for is located with a SMARTS match (the script stops if a
+# molecule does not contain it), the drawing highlights exactly the matched atoms, and the
+# "estimate for this example" is this file's own additive predictor (predict above), shown only
+# when it lands inside the box it illustrates.
+#
+# Fields: (id, family, card label, title, represents, hi, lo, shape, strength, why,
+#          example, [shifts])
+#   example = (smiles, name, smarts, highlight indices into the match or None for all,
+#              index into the match whose H is the subject or None)
+#   shift   = (kind, label, hi, lo, why, example or None)
+
+HL = "#FF00FF"  # sentinel highlight colour, swapped for a CSS variable after drawing
+
+IR_TABLE = [
+    ("ir-oh", "O", "O–H", "O–H, alcohol", "An H on an O (alcohol or phenol)", 3550, 3200, "broad", "strong",
+     "O–H is a stiff bond to a very light atom, so it absorbs high. Hydrogen bonding between molecules gives every O–H a slightly different strength, so the peak smears into a wide, rounded band.",
+     ("CCO", "ethanol", "[CX4][OX2H1]", [1], 1),
+     [("hbond", "No hydrogen bonding", 3650, 3580, "Dilute, or in the gas phase, each O–H is free: one bond strength, so a sharp peak a little higher.", None)]),
+    ("ir-acid-oh", "O", "COO–H", "O–H, carboxylic acid", "The H on the O of a COOH", 3300, 2500, "broad", "strong",
+     "Acids pair up into dimers held by two strong hydrogen bonds. That weakens and spreads the O–H stretch so far that it runs under the C–H peaks near 3000.",
+     ("CC(=O)O", "acetic acid", "[CX3](=O)[OX2H1]", [2], 2), []),
+    ("ir-nh", "N", "N–H", "N–H, amine or amide", "An H on an N", 3500, 3300, "broad", "medium",
+     "N–H is a little weaker and less polar than O–H, so the band is smaller and narrower than an alcohol's. NH2 shows two points (two stretches), NH shows one.",
+     ("CCCN", "propylamine", "[CX4][NX3H2]", [1], 1), []),
+    ("ir-sp-ch", "C", "≡C–H", "C–H on a triple bond", "An H on an sp carbon (terminal alkyne)", 3330, 3260, "sharp", "strong",
+     "An sp carbon holds its electrons close (50% s character), so this C–H is the shortest and stiffest C–H. Sharp, because nothing hydrogen-bonds to it.",
+     ("C#CCC", "1-butyne", "[CX2H1]#[CX2]", [0], 0), []),
+    ("ir-sp2-ch", "C", "=C–H", "C–H on a C=C or ring", "An H on an sp2 carbon", 3100, 3000, "sharp", "medium",
+     "More s character than sp3, so a slightly stiffer C–H. Anything just above 3000 means a C=C or an aromatic ring is present.",
+     ("C1=CCCCC1", "cyclohexene", "[CX3H1]=[CX3]", [0], 0), []),
+    ("ir-sp3-ch", "C", "C–H", "C–H, alkane", "An H on an sp3 carbon", 3000, 2850, "sharp", "strong",
+     "Nearly every organic molecule has these, just below 3000. They tell you little; the question is whether anything shows above 3000.",
+     ("CCCC", "butane", "[CX4H2]", [0], 0), []),
+    ("ir-ald-ch", "C", "O=C–H", "C–H, aldehyde", "The H on an aldehyde's C=O carbon", 2850, 2700, "sharp", "weak",
+     "Shows as two small peaks, near 2820 and 2720 (the stretch mixes with a bending overtone). The one near 2720 stands clear of the alkane C–H and gives the aldehyde away.",
+     ("CCC=O", "propanal", "[CX3H1]=O", [0], 0), []),
+    ("ir-cn", "N", "C≡N", "C≡N, nitrile", "A carbon triple-bonded to N", 2260, 2210, "sharp", "medium",
+     "Triple bonds are the stiffest, so they land in an otherwise empty region. The polar C≡N gives a clear, sharp peak.",
+     ("CCC#N", "propanenitrile", "[CX2]#[NX1]", None, None), []),
+    ("ir-cc3", "C", "C≡C", "C≡C, alkyne", "A carbon-carbon triple bond", 2260, 2100, "sharp", "weak",
+     "Weak, because stretching a fairly symmetric C≡C barely changes the dipole. In a symmetric internal alkyne it can vanish.",
+     ("CCCC#C", "1-pentyne", "[CX2]#[CX2]", None, None), []),
+    ("ir-co", "O", "C=O", "C=O, ketone or aldehyde", "A carbon double-bonded to O", 1720, 1690, "sharp", "strong",
+     "Very polar, so stretching it changes the dipole a lot: usually the strongest peak in the spectrum. A plain ketone sits near 1715; what is attached to the carbonyl carbon moves it.",
+     ("CCC(C)=O", "butanone", "[#6][CX3](=O)[#6]", [1, 2], None),
+     [("conj", "Conjugated with C=C or a ring", 1690, 1665, "The pi system shares electrons with the C=O and gives it some single-bond character. Weaker bond, lower wavenumber.",
+       ("CC(=O)c1ccccc1", "acetophenone", "[CX3](=O)c", [0, 1, 2], None)),
+      ("ewg", "Ester: O on the carbonyl C", 1750, 1735, "The extra O pulls electron density through the sigma bond, shortening the C=O. Stiffer bond, higher wavenumber.",
+       ("CCOC(C)=O", "ethyl acetate", "[#6][CX3](=O)[OX2][#6]", [1, 2, 3], None)),
+      ("edg", "Amide: N on the carbonyl C", 1690, 1630, "Nitrogen donates its lone pair into the C=O by resonance, so the C=O is closer to a single bond. Amides sit lowest.",
+       ("CC(N)=O", "acetamide", "[CX3](=O)[NX3]", [0, 1, 2], None)),
+      ("strain", "In a five-membered ring", 1750, 1740, "Squeezing the ring angle puts more s character into the C=O bond and stiffens it.",
+       ("O=C1CCCC1", "cyclopentanone", "O=[CX3;R]", [0, 1], None))]),
+    ("ir-cc2", "C", "C=C", "C=C, alkene", "A carbon-carbon double bond", 1680, 1620, "sharp", "medium",
+     "Weaker and far less polar than C=O, so a smaller peak. A symmetric alkene may barely show.",
+     ("C1=CCCCC1", "cyclohexene", "[CX3]=[CX3]", None, None), []),
+    ("ir-ar", "C", "Ring C=C", "C=C, aromatic ring", "The ring bonds of a benzene", 1600, 1450, "sharp", "medium",
+     "Ring bonds sit between single and double, so they absorb below an alkene's C=C. Look for a pair of peaks near 1600 and 1500, with C–H just above 3000.",
+     ("Cc1ccccc1", "toluene", "c1ccccc1", None, None), []),
+    ("ir-c-o", "O", "C–O", "C–O, alcohol, ether, ester", "A carbon single-bonded to O", 1300, 1000, "sharp", "strong",
+     "Strong, but buried among many other peaks below 1500. Use it only to back up an O–H or C=O you already found.",
+     ("CCOCC", "diethyl ether", "[CX4][OX2][CX4]", [0, 1], None), []),
+    ("ir-c-x", "X", "C–Cl", "C–Cl, alkyl chloride", "A carbon bonded to chlorine", 850, 550, "sharp", "medium",
+     "A heavy atom on a weaker bond absorbs low, deep in the fingerprint region. Too crowded to read on its own.",
+     ("CCCCCl", "1-chlorobutane", "[CX4][Cl]", None, None), []),
+]
+
+H1_TABLE = [
+    ("h-acid", "O", "COO–H", "Carboxylic acid O–H", "The H on the O of a COOH", 13.0, 10.0, "broad", None,
+     "The O sits next to a C=O that pulls density away, and dimer hydrogen bonding deshields it further. A broad singlet far to the left that disappears with D2O.",
+     ("CC(=O)O", "acetic acid", "[CX3](=O)[OX2H1]", [2], 2), []),
+    ("h-ald", "CO", "O=C–H", "Aldehyde H", "The H on an aldehyde's C=O carbon", 10.0, 9.0, "sharp", None,
+     "The electronegative O pulls density away, and the C=O pi electrons circulate to deshield this H further. Few other signals land here.",
+     ("CCC=O", "propanal", "[CX3H1]=O", [0], 0), []),
+    ("h-ar", "C", "Ar–H", "Aromatic H", "An H on a benzene ring", 8.0, 6.5, "sharp", None,
+     "The ring's pi electrons circulate in the magnet's field (ring current) and add to the field where the ring H sit. That deshields them strongly.",
+     ("Cc1ccccc1", "toluene", "[cH1]", [0], 0),
+     [("ewg", "Withdrawing group on the ring", 8.5, 7.5, "A nitro or C=O pulls density out of the ring, mostly from ortho and para, so those H move downfield.",
+       ("O=[N+]([O-])c1ccccc1", "nitrobenzene", "[cH1]c[N+](=O)[O-]", [0], 0)),
+      ("edg", "Donating group on the ring", 7.0, 6.5, "An O or N lone pair feeds density into the ring at ortho and para, shielding those H.",
+       ("COc1ccccc1", "anisole", "[cH1]cO[CH3]", [0], 0))]),
+    ("h-vinyl", "C", "=C–H", "Alkene H", "An H on a C=C carbon", 6.5, 4.5, "sharp", None,
+     "Circulating pi electrons of the C=C deshield H on its carbons, less than a benzene ring does.",
+     ("C1=CCCCC1", "cyclohexene", "[CX3H1]=[CX3]", [0], 0),
+     [("ewg", "C=C next to a C=O", 7.0, 5.8, "The C=O pulls density through the pi system, leaving the far alkene H deshielded.",
+       ("C=CC(C)=O", "3-buten-2-one", "[CX3H2]=[CX3][CX3]=O", [0], 0)),
+      ("edg", "O on the C=C", 4.5, 3.8, "The O lone pair donates into the C=C and piles density on the far carbon, shielding its H.",
+       ("C=COCC", "ethyl vinyl ether", "[CX3H2]=[CX3][OX2]", [0], 0))]),
+    ("h-c-x", "O", "H–C–X", "H on a C bonded to O, N or halogen", "An H on a carbon that carries an electronegative atom", 4.0, 2.2, "sharp", None,
+     "The O, N or halogen pulls density from the C–H, so the H is less shielded. The harder the pull, the further left: O and Cl near 3.5, N near 2.5.",
+     ("CCO", "ethanol", "[CX4H2][OX2H1]", [0], 0),
+     [("ewg", "The O is an ester O", 4.3, 3.7, "The C=O pulls on the O, which pulls harder on the CH next to it.",
+       ("CCOC(C)=O", "ethyl acetate", "[CX4H2][OX2][CX3]=O", [0], 0)),
+      ("ewg", "Two halogens on one C", 5.5, 5.0, "Each extra electronegative neighbour adds its own pull, so the shifts add up.",
+       ("ClCCl", "dichloromethane", "[CX4H2](Cl)Cl", [0], 0))]),
+    ("h-alpha", "CO", "H–C–C=O", "H next to C=O or a ring", "An H on a carbon beside a C=O, C=C or benzene", 2.7, 2.0, "sharp", None,
+     "The neighbouring pi system pulls a little density and its circulating electrons deshield nearby H a little: weaker than a heteroatom on the same carbon.",
+     ("CC(C)=O", "acetone", "[CX4H3][CX3]=O", [0], 0), []),
+    ("h-alkyne", "C", "≡C–H", "Alkyne H", "An H on a triple-bonded carbon", 3.1, 1.7, "sharp", None,
+     "The sp carbon pulls density away, but the H sits on the triple bond's axis, where circulating pi electrons shield it. The two effects meet near 2 to 3.",
+     ("C#CCC", "1-butyne", "[CX2H1]#[CX2]", [0], 0), []),
+    ("h-alkane", "C", "C–H", "Alkane H", "An H on an sp3 carbon with only C and H around it", 1.8, 0.9, "sharp", None,
+     "No electronegative neighbour and no pi system, so the H keeps its density and stays shielded, upfield. CH3 near 0.9, CH2 near 1.3, CH near 1.5.",
+     ("CCCC", "butane", "[CX4H3]", [0], 0), []),
+    ("h-oh", "O", "O–H, N–H", "Alcohol O–H or amine N–H", "An H on the O of an alcohol or the N of an amine", 5.0, 0.5, "broad", None,
+     "Where it lands depends on concentration, solvent and temperature, because hydrogen bonding changes its density. Usually a broad singlet that does not split its neighbours, and it disappears with D2O.",
+     ("CCO", "ethanol", "[CX4][OX2H1]", [1], 1), []),
+]
+
+C13_TABLE = [
+    ("c-ketone", "CO", "C=O", "C=O, ketone or aldehyde", "The carbonyl carbon of a ketone or aldehyde", 220, 190, "sharp", None,
+     "The O pulls density away and the C=O pi electrons deshield it: the furthest-left carbons in the spectrum.",
+     ("CCC(C)=O", "butanone", "[#6][CX3](=O)[#6]", [1], None),
+     [("edg", "O or N on the carbonyl C", 185, 160, "In acids, esters and amides the O or N lone pair donates into the C=O and shields that carbon.",
+       ("CCOC(C)=O", "ethyl acetate", "[CX3](=O)[OX2]", [0], None))]),
+    ("c-ar", "C", "Ar C", "Aromatic C", "A carbon in a benzene ring", 160, 110, "sharp", None,
+     "sp2 carbons in a ring current. Substituents spread the ring carbons across this box.",
+     ("Cc1ccccc1", "toluene", "c1ccccc1", [3], None), []),
+    ("c-alkene", "C", "C=C", "Alkene C", "A carbon in a C=C", 150, 100, "sharp", None,
+     "sp2 carbons hold less density round the nucleus than sp3, so they are deshielded.",
+     ("C1=CCCCC1", "cyclohexene", "[CX3]=[CX3]", [0], None), []),
+    ("c-cn", "N", "C≡N", "Nitrile C", "The carbon of a C≡N", 125, 110, "sharp", None,
+     "The electronegative N pulls density from the sp carbon, so it sits well left of an alkyne carbon.",
+     ("CCC#N", "propanenitrile", "[CX2]#[NX1]", [0], None), []),
+    ("c-alkyne", "C", "C≡C", "Alkyne C", "A carbon in a C≡C", 90, 65, "sharp", None,
+     "Shielded by the triple bond's circulating pi electrons, so it sits upfield of alkene carbons.",
+     ("C#CCC", "1-butyne", "[CX2]#[CX2]", [1], None), []),
+    ("c-o", "O", "C–O", "C bonded to O", "An sp3 carbon carrying an O", 90, 50, "sharp", None,
+     "Oxygen pulls density from the carbon it is bonded to, moving it well downfield of a plain alkane carbon.",
+     ("CCO", "ethanol", "[CX4][OX2H1]", [0], None), []),
+    ("c-n", "N", "C–N", "C bonded to N", "An sp3 carbon carrying an N", 65, 30, "sharp", None,
+     "N is less electronegative than O, so the shift is smaller.",
+     ("CCCN", "propylamine", "[CX4][NX3]", [0], None), []),
+    ("c-alkane", "C", "C–C", "Alkane C", "An sp3 carbon with only C and H around it", 50, 0, "sharp", None,
+     "No electronegative neighbour, so these carbons keep their density and sit upfield.",
+     ("CCCC", "butane", "[CX4H2]", [0], None), []),
+]
+
+
+def range_pic(spec, mode):
+    """Draw an example molecule (viewBox cropped to it) with the matched feature highlighted; the subject H drawn explicitly."""
+    smiles, name, smarts, pick, h_on = spec
+    mol = Chem.MolFromSmiles(smiles)
+    assert mol is not None, smiles
+    patt = Chem.MolFromSmarts(smarts)
+    match = mol.GetSubstructMatch(patt)
+    assert match, f"{name} ({smiles}) does not contain {smarts}"
+    atoms = [match[i] for i in (pick if pick is not None else range(len(match)))]
+    est = None
+    h1, c13 = predict(mol)
+    if mode == "h1" and h_on is not None:
+        hit = [p for p in h1 if match[h_on] in p["atoms"]]
+        est = hit[0]["shift"] if hit else None
+    if mode == "c13":
+        hit = [p for p in c13 if atoms[0] in p["atoms"]]
+        est = hit[0]["shift"] if hit else None
+    draw = Chem.Mol(mol)
+    if h_on is not None:
+        n0 = draw.GetNumAtoms()
+        draw = Chem.AddHs(draw, onlyOnAtoms=(match[h_on],))
+        assert draw.GetNumAtoms() > n0, f"{name}: no H on atom {match[h_on]}"
+        atoms = atoms + [n0]
+    bonds = []
+    for b in draw.GetBonds():
+        if b.GetBeginAtomIdx() in atoms and b.GetEndAtomIdx() in atoms:
+            bonds.append(b.GetIdx())
+    Chem.rdDepictor.Compute2DCoords(draw)
+    d = rdMolDraw2D.MolDraw2DSVG(240, 150)
+    o = d.drawOptions()
+    o.clearBackground = False
+    o.bondLineWidth = 2
+    o.fixedBondLength = 30
+    o.baseFontSize = 0.85
+    o.padding = 0.12
+    o.useBWAtomPalette()
+    o.setHighlightColour((1.0, 0.0, 1.0))
+    o.highlightBondWidthMultiplier = 10
+    o.fillHighlights = True
+    o.highlightRadius = 0.45
+    d.DrawMolecule(draw, highlightAtoms=atoms, highlightBonds=bonds,
+                   highlightAtomColors={i: (1.0, 0.0, 1.0) for i in atoms},
+                   highlightBondColors={i: (1.0, 0.0, 1.0) for i in bonds})
+    d.FinishDrawing()
+    # Crop to the molecule, so every example draws at the same bond length whatever its size.
+    pts = [d.GetDrawCoords(i) for i in range(draw.GetNumAtoms())]
+    # Atom labels (OH, NH2, Cl) reach past the atom's centre, so leave more room sideways.
+    px, py = 24, 16
+    x0 = max(min(pt.x for pt in pts) - px, 0)
+    y0 = max(min(pt.y for pt in pts) - py, 0)
+    x1 = min(max(pt.x for pt in pts) + px, 240)
+    y1 = min(max(pt.y for pt in pts) + py, 150)
+    vb = f"{x0:.0f} {y0:.0f} {x1 - x0:.0f} {y1 - y0:.0f}"
+    s = d.GetDrawingText()
+    s = re.sub(r"<\?xml[^>]*\?>\s*", "", s)
+    s = re.sub(r"<rect[^>]*style='opacity:1\.0;fill:#FFFFFF[^>]*/>", "", s)
+    s = s.replace("#000000", "currentColor").replace(HL, "var(--sp-hl)")
+    s = re.sub(r"<svg[^>]*>", f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" aria-hidden="true">', s, count=1)
+    s = re.sub(r"<!--.*?-->", "", s)
+    s = re.sub(r"(\d+\.\d)\d+", r"\1", s)
+    # Drop SVG defaults and class names so the file stays small.
+    for junk in ("fill-rule:evenodd;", "fill-opacity:1;", "stroke-linecap:butt;", "stroke-linejoin:miter;", "stroke-miterlimit:10;", "stroke-opacity:1;", "stroke-opacity:1"):
+        s = s.replace(junk, "")
+    s = re.sub(r" class='[^']*'", "", s)
+    out = {"smiles": Chem.MolToSmiles(mol), "name": name, "svg": re.sub(r"\s+", " ", s).strip()}
+    if est is not None:
+        out["estimate"] = round(est, 1)
+    return out
+
+
+def build_ranges():
+    out = []
+    for mode, table in (("ir", IR_TABLE), ("h1", H1_TABLE), ("c13", C13_TABLE)):
+        for (bid, fam, label, title, rep, hi, lo, shape, strength, why, ex, shifts) in table:
+            assert hi > lo, bid
+            pic = range_pic(ex, mode)
+            # An estimate is shown only when the predictor agrees with the box it illustrates.
+            if "estimate" in pic and not (lo - 0.05 * (hi - lo) <= pic["estimate"] <= hi + 0.05 * (hi - lo)):
+                print("  dropped estimate", bid, pic["estimate"], "outside", lo, hi)
+                del pic["estimate"]
+            if mode == "ir":
+                pic.pop("estimate", None)
+            box = {"id": bid, "mode": mode, "family": fam, "label": label, "title": title, "represents": rep,
+                   "hi": hi, "lo": lo, "shape": shape, "why": why, "example": pic, "shifts": []}
+            if strength:
+                box["strength"] = strength
+            for (kind, slabel, shi, slo, swhy, sex) in shifts:
+                assert shi > slo, (bid, slabel)
+                sh = {"kind": kind, "label": slabel, "hi": shi, "lo": slo, "why": swhy}
+                if sex is not None:
+                    sp = range_pic(sex, mode)
+                    if "estimate" in sp and (mode == "ir" or not (slo - 0.05 * (shi - slo) <= sp["estimate"] <= shi + 0.05 * (shi - slo))):
+                        if mode != "ir":
+                            print("  dropped shift estimate", bid, slabel, sp["estimate"], "outside", slo, shi)
+                        del sp["estimate"]
+                    sh["example"] = sp
+                box["shifts"].append(sh)
+            out.append(box)
+    return out
+
+
+def main_ranges():
+    boxes = build_ranges()
+    path = OUT.with_name("rangeChart.generated.ts")
+    body = (
+        "// GENERATED by scripts/gen_spectra.py --ranges (RDKit). Do not edit by hand.\n"
+        "// Ranges: Pavia et al., Introduction to Spectroscopy, 5th ed. (see RANGE TABLE in the script).\n"
+        "// Example molecules, highlights and estimates are derived with RDKit.\n"
+        "import type { RangeBox } from \"./rangeTypes\";\n\n"
+        f"export const RANGE_BOXES: readonly RangeBox[] = {json.dumps(boxes, separators=(',', ':'), ensure_ascii=False)};\n"
+    )
+    path.write_text(body, encoding="utf-8")
+    print("wrote", path, len(body) // 1024, "KB;", len(boxes), "boxes")
+    for b in boxes:
+        print(" ", b["id"], b["hi"], b["lo"], b["example"]["name"], b["example"].get("estimate"), [(s["label"], s.get("example", {}).get("estimate")) for s in b["shifts"]])
+
+
 if __name__ == "__main__":
-    main()
+    import sys
+
+    if "--ranges" in sys.argv:
+        main_ranges()
+    else:
+        main()
+        main_ranges()
