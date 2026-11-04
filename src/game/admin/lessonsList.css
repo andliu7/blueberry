@@ -1,0 +1,1364 @@
+/*
+ * Lessons, as a list and a detail page (3 Nov, "lessons needs to be fixed").
+ * Reference: Stripe's Transactions list (status cards with counts, filter chips,
+ * a plain table, "N results") and its detail page (breadcrumb, title with the
+ * primary action on the right, the facts on one line under it). Light ground only: the admin
+ * shell (.ah) pins the tokens, and nothing here adds a gradient.
+ */
+
+.av-page .al-icon {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+/* ------------------------------------------------------------------ list head */
+.av-page .al-head {
+  margin-bottom: 0.75rem;
+}
+.av-page .al-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(100%, 20rem);
+  min-height: 36px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--btn-line);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+}
+.av-page .al-search:focus-within {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--bb-primary) 18%, transparent);
+}
+.av-page .al-search input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+}
+
+/* ------------------------------------------------------------------ status cards */
+.av-page .al-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin: 0 0 0.875rem;
+}
+.av-page .al-tab {
+  display: grid;
+  gap: 0.125rem;
+  justify-items: start;
+  min-height: 64px;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--btn-line);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+  text-align: left;
+  cursor: pointer;
+}
+.av-page .al-tab:hover {
+  border-color: var(--bb-border);
+}
+.av-page .al-tab[aria-pressed="true"] {
+  border-color: var(--bb-primary);
+  box-shadow: inset 0 0 0 1px var(--bb-primary);
+  color: var(--bb-primary);
+}
+.av-page .al-tab:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+.av-page .al-tab__label {
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+}
+.av-page .al-tab__count {
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.av-page .al-tab[aria-pressed="true"] .al-tab__count {
+  color: var(--bb-primary);
+}
+
+/* ------------------------------------------------------------------ filter chips */
+.av-page .al-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 0.75rem;
+}
+.av-page .al-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 30px;
+  padding: 0 0.25rem 0 0.625rem;
+  border: 1px dashed var(--bb-border);
+  border-radius: 999px;
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .al-chip.is-set {
+  border-style: solid;
+  border-color: var(--bb-primary);
+  color: var(--bb-primary);
+}
+.av-page .al-chip:focus-within {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+.av-page .al-chip__key {
+  color: inherit;
+}
+.av-page .al-chip select {
+  max-width: 16rem;
+  min-height: 28px;
+  padding: 0 0.5rem 0 0.25rem;
+  border: 0;
+  border-left: 1px solid var(--btn-line);
+  outline: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.av-page .al-clear {
+  min-height: 30px;
+  padding: 0 0.5rem;
+  border: 0;
+  background: none;
+  color: var(--bb-primary-ink, #472ab4);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ table */
+.av-page .al-table-wrap {
+  border: 1px solid var(--btn-line);
+  border-radius: 12px;
+  background: var(--bb-card);
+  overflow: hidden;
+}
+.av-page .al-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-scale-sm);
+}
+.av-page .al-table th {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--btn-line);
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.av-page .al-table td {
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--btn-line) 60%, var(--bb-card));
+  color: var(--bb-foreground);
+  vertical-align: middle;
+}
+.av-page .al-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.av-page .al-table tbody tr {
+  height: 44px;
+  cursor: pointer;
+}
+.av-page .al-table tbody tr:hover td {
+  background: color-mix(in oklab, var(--bb-primary) 4%, var(--bb-card));
+}
+.av-page .al-table tbody tr.al-none {
+  cursor: default;
+}
+.av-page .al-table tbody tr.al-none td {
+  padding: 2rem 0.875rem;
+  background: none;
+  color: var(--bb-muted-foreground);
+  text-align: center;
+}
+.av-page .al-table .al-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .al-col-title a {
+  color: var(--bb-foreground);
+  font-weight: 600;
+  text-decoration: none;
+}
+.av-page .al-col-title a:hover {
+  color: var(--bb-primary);
+}
+.av-page .al-col-title a:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.av-page .al-sub {
+  display: none;
+}
+.av-page .al-col-unit {
+  color: var(--bb-muted-foreground);
+  white-space: nowrap;
+}
+.av-page .al-col-id {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.av-page .al-dash {
+  color: var(--bb-muted-foreground);
+}
+.av-page .al-count {
+  margin: 0.75rem 0 2rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+
+/* ------------------------------------------------------------------ pills */
+.av-page .al-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 0.4375rem;
+  border-radius: 5px;
+  background: #ebeef1;
+  color: #414552;
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.av-page .al-pill--free {
+  background: #d7f7c2;
+  color: #05690d;
+}
+.av-page .al-pill--pro {
+  background: #ebe7fb;
+  color: #472ab4;
+}
+.av-page .al-pill--warn {
+  background: #fcedb9;
+  color: #8a3800;
+}
+
+/* ------------------------------------------------------------------ detail */
+.av-page .al-crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin: 0.25rem 0 0.5rem;
+  font-size: var(--text-scale-sm);
+}
+.av-page .al-crumbs__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 32px;
+  color: var(--bb-primary-ink, #472ab4);
+  font-weight: 600;
+  text-decoration: none;
+}
+.av-page .al-crumbs__back:hover {
+  text-decoration: underline;
+}
+.av-page .al-crumbs__sep,
+.av-page .al-crumbs__unit {
+  color: var(--bb-muted-foreground);
+}
+.av-page .al-crumbs__unit {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.av-page .al-crumbs__steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+.av-page .al-crumbs__pos {
+  min-width: 5.5rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.av-page .al-step {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--btn-line);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.av-page .al-step:hover {
+  border-color: var(--bb-border);
+}
+.av-page .al-step.is-off {
+  opacity: 0.4;
+}
+
+.av-page .al-dhead {
+  margin-bottom: 0.75rem;
+}
+.av-page .al-dhead__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  min-width: 0;
+}
+.av-page .al-dhead__title {
+  margin: 0;
+}
+.av-page .al-dhead__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.av-page .al-btn,
+.av-page .al-play {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 0.875rem;
+  border-radius: 8px;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.av-page .al-btn {
+  border: 1px solid var(--btn-line);
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+}
+.av-page .al-btn:hover {
+  border-color: var(--bb-border);
+}
+.av-page .al-btn:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+/* ------------------------------------------------------------------ phone */
+@media (max-width: 760px) {
+  .av-page .al-col-unit,
+  .av-page .al-col-type,
+  .av-page .al-col-q,
+  .av-page .al-col-d,
+  .av-page .al-col-id {
+    display: none;
+  }
+  .av-page .al-sub {
+    display: block;
+    margin-top: 0.125rem;
+    color: var(--bb-muted-foreground);
+    font-size: var(--text-scale-xs);
+  }
+  .av-page .al-table td {
+    padding: 0.625rem 0.75rem;
+  }
+  .av-page .al-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .av-page .al-tab {
+    min-height: 56px;
+    padding: 0.5rem 0.625rem;
+  }
+  .av-page .al-tab__label {
+    font-size: var(--text-scale-xs);
+  }
+  .av-page .al-tab__count {
+    font-size: var(--text-scale-base);
+  }
+  .av-page .al-search {
+    width: 100%;
+  }
+  .av-page .al-crumbs__unit {
+    display: none;
+  }
+  .av-page .al-crumbs__sep {
+    display: none;
+  }
+  .av-page .al-dhead__acts {
+    width: 100%;
+  }
+  .av-page .al-dhead__acts > * {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+/* ================================================================== round 2, 4 Nov
+   List: a primary action and search on the title row, Export and Edit columns at
+   the end of the filter row, rows grouped under one unit header each.
+   Detail: one header (title, Preview as, Play), one facts line, one tab row, then the
+   slide card with Prev / count / Next / Present docked to its bottom edge. */
+.av-page .al-head__acts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.av-page .al-head .al-play,
+.av-page .al-dhead .al-play {
+  gap: 0.375rem;
+}
+.av-page .al-filters__acts {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+.av-page .al-btn--sm {
+  gap: 0.375rem;
+  min-height: 30px;
+  padding: 0 0.625rem;
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.av-page .al-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.av-page .al-cols {
+  position: relative;
+}
+.av-page .al-cols > summary {
+  list-style: none;
+}
+.av-page .al-cols > summary::-webkit-details-marker {
+  display: none;
+}
+.av-page .al-cols > summary:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+.av-page .al-cols[open] > summary {
+  border-color: var(--bb-primary);
+  color: var(--bb-primary);
+}
+.av-page .al-cols__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  display: grid;
+  gap: 0.125rem;
+  width: 13rem;
+  padding: 0.625rem 0.75rem 0.75rem;
+  border: 1px solid var(--btn-line);
+  border-radius: 10px;
+  background: var(--bb-card);
+  box-shadow: 0 8px 24px rgb(26 31 54 / 0.12);
+}
+.av-page .al-cols__head {
+  margin: 0.375rem 0 0.125rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+}
+.av-page .al-cols__head:first-child {
+  margin-top: 0;
+}
+.av-page .al-cols__fixed {
+  margin: 0 0 0.25rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--btn-line);
+  font-size: var(--text-scale-sm);
+}
+.av-page .al-cols__opt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 30px;
+  font-size: var(--text-scale-sm);
+  cursor: pointer;
+}
+.av-page .al-cols__opt input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--bb-primary);
+}
+
+/* Unit group rows: the unit named once, above its lessons. */
+.av-page .al-table tbody tr.al-group {
+  cursor: default;
+}
+.av-page .al-table tbody tr.al-group th {
+  padding: 0.5rem 0.875rem;
+  border-bottom: 1px solid var(--btn-line);
+  background: var(--bb-muted, #f4f5f8);
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.av-page .al-table tbody tr.al-group:hover th {
+  background: var(--bb-muted, #f4f5f8);
+}
+.av-page .al-group__n {
+  margin-left: 0.5rem;
+  color: var(--bb-muted-foreground);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------ detail head */
+.av-page .al-dhead {
+  align-items: flex-start;
+  row-gap: 0.25rem;
+  margin-bottom: 0.875rem;
+}
+.av-page .al-dhead__text {
+  flex: 1 1 auto;
+}
+.av-page .al-dhead__acts {
+  align-items: center;
+}
+.av-page .al-dmeta {
+  display: flex;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  gap: 0.125rem 0;
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+.av-page .al-dmeta > span + span::before {
+  content: "\00b7";
+  margin: 0 0.5rem;
+  color: var(--bb-border);
+}
+.av-page .al-dmeta__id {
+  align-self: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: var(--text-scale-xs);
+}
+.av-page .al-narrow {
+  display: none;
+}
+.av-page .al-preview {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 0.25rem 0 0.75rem;
+  border: 1px solid var(--btn-line);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  white-space: nowrap;
+  cursor: help;
+}
+.av-page .al-preview:focus-within {
+  border-color: var(--bb-primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--bb-primary) 18%, transparent);
+}
+.av-page .al-preview select {
+  min-height: 32px;
+  max-width: 11rem;
+  margin-left: 0.375rem;
+  padding: 0 0.25rem;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------------ deck in the page */
+.av-page .pd:not(.pd--present) {
+  max-width: none;
+}
+.av-page .pd:not(.pd--present) .pd-top {
+  margin-bottom: 0.75rem;
+}
+/* One row that scrolls sideways, never wraps; no scrollbar drawn. */
+.av-page .pd:not(.pd--present) .pd-rail {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 0.25rem;
+  scrollbar-width: none;
+}
+.av-page .pd:not(.pd--present) .pd-rail::-webkit-scrollbar {
+  display: none;
+}
+/* The tabs: the underline is the progress. A track sits under the current tab and
+   fills as its slides go by; sections already passed keep a quiet full line. */
+.av-page .pd .pd-rail .pd-rail__btn {
+  position: relative;
+  padding: 0 0.5rem;
+  border-bottom-color: transparent;
+}
+.av-page .pd .pd-rail .pd-rail__btn[aria-current="step"] {
+  border-bottom-color: color-mix(in oklab, var(--bb-primary) 22%, transparent);
+}
+.av-page .pd .pd-rail__fill {
+  position: absolute;
+  right: 0;
+  bottom: -2px;
+  left: 0;
+  height: 2px;
+  background: var(--bb-primary);
+  transform-origin: left center;
+  transition: transform 0.2s ease;
+  opacity: 0;
+}
+.av-page .pd .pd-rail .pd-rail__btn[aria-current="step"] .pd-rail__fill {
+  opacity: 1;
+}
+.av-page .pd .pd-rail .pd-rail__btn.is-done .pd-rail__fill {
+  opacity: 0.3;
+}
+/* An inset ring, so a scrolling row can never clip it (present mode included). */
+.av-page .pd .pd-rail .pd-rail__btn:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+/* The slide card: stage on top, the steps docked to its bottom edge. It reaches the
+   bottom of the window, so a short slide sits in a full stage, not over empty page. */
+.av-page .pd:not(.pd--present) .pd-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 24rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 12px;
+  background: var(--bb-card);
+}
+.av-page .pd:not(.pd--present) .pd-stage {
+  display: grid;
+  flex: 1 1 auto;
+  align-content: start;
+  min-height: 0;
+  padding: clamp(1rem, 2.5vw, 2rem) clamp(1rem, 3vw, 2.5rem);
+}
+.av-page .pd:not(.pd--present) .pd-move {
+  width: 100%;
+  max-width: 56rem;
+  margin-inline: auto;
+}
+.av-page .pd:not(.pd--present) .pd-card .pd-slide,
+.av-page .pd:not(.pd--present) .pd-card .av-slide {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.av-page .pd:not(.pd--present) .pd-foot {
+  position: sticky;
+  bottom: 0;
+  padding: 0.625rem 0.75rem;
+  border-top: 1px solid var(--bb-border);
+  border-radius: 0 0 12px 12px;
+  background: var(--bb-card);
+}
+.av-page .pd .pd-facts__sub {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+  font-variant-numeric: normal;
+}
+.pd--present .pd-card {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (max-width: 760px) {
+  .av-page .al-filters__acts {
+    margin-left: 0;
+  }
+  .av-page .al-head__acts {
+    width: 100%;
+  }
+  .av-page .al-head__acts .al-search {
+    flex: 1 1 auto;
+    width: auto;
+  }
+  .av-page .al-wide {
+    display: none;
+  }
+  .av-page .al-narrow {
+    display: inline;
+  }
+  .av-page .al-dhead__acts {
+    order: 3;
+    flex-wrap: nowrap;
+  }
+  .av-page .al-dhead__acts > .al-preview {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+  .av-page .al-dhead__acts > .al-btn,
+  .av-page .al-dhead__acts > .al-play {
+    flex: 0 0 auto;
+  }
+  .av-page .al-preview__key {
+    display: none;
+  }
+  .av-page .al-preview {
+    padding-left: 0.25rem;
+  }
+  .av-page .al-preview select {
+    width: 100%;
+    max-width: none;
+    margin-left: 0;
+  }
+  .av-page .pd:not(.pd--present) .pd-card {
+    min-height: 20rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-page .pd .pd-rail__fill {
+    transition: none;
+  }
+}
+
+/* ================================================================== round 2b, 4 Nov
+   A slide reads top down like a document: the card is as tall as its slide, with
+   the steps docked under it, so a short Overview leaves no dead stage. */
+.av-page .al-table tbody tr.al-group th {
+  white-space: normal;
+}
+.av-page .pd .pd-foot .pd-present {
+  white-space: nowrap;
+}
+.av-page .pd .av-steps__count {
+  white-space: nowrap;
+}
+/* Overview facts sit three across wherever there is room, phone included. */
+.av-page .pd:not(.pd--present) .pd-facts {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+@media (max-width: 760px) {
+  /* Status cards: one row that scrolls sideways instead of two rows of tiles. */
+  .av-page .al-tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -1rem;
+    padding: 2px 1rem;
+    scroll-padding-inline: 1rem;
+  }
+  .av-page .al-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .av-page .al-tab {
+    flex: 0 0 auto;
+    min-width: 6.5rem;
+    min-height: 52px;
+  }
+  /* Unit chip, Export and Edit columns on one row. */
+  .av-page .al-filters {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+  .av-page .al-chip {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .av-page .al-chip select {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+  }
+  .av-page .al-filters .al-btn {
+    padding: 0 0.625rem;
+  }
+  .av-page .pd-key {
+    display: none;
+  }
+  .av-page .pd:not(.pd--present) .pd-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+  .av-page .pd:not(.pd--present) .pd-facts > div {
+    padding: 0.625rem;
+  }
+}
+/* The admin shell stops 56px short of the window (room for the app bar it sits under
+   elsewhere), and a short lesson page let the white page show through below it.
+   Paint the same grey ground behind the lessons pages. */
+.av-page:has(.al, .al-detail) {
+  background: #f5f5f7;
+}
+
+/* ================================================================== round 3, 4 Nov
+   List: search and the primary action on the title row, never stacked.
+   Detail: the card reaches the bottom of the window with the pager pinned there; the
+   slide sits flush with the card padding (no centred column), and the Overview tab
+   is a full-width summary page instead of a slide that repeats the title. */
+.av-page .al-head__acts {
+  flex-wrap: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.av-page .al-head__acts .al-search {
+  flex: 0 1 20rem;
+  width: auto;
+  min-width: 10rem;
+}
+
+.av-page .pd:not(.pd--present) .pd-card {
+  min-height: calc(100dvh - 13rem);
+}
+.av-page .pd:not(.pd--present) .pd-stage {
+  padding: 1.5rem;
+}
+.av-page .pd:not(.pd--present) .pd-move {
+  max-width: none;
+  margin-inline: 0;
+}
+.av-page .pd:not(.pd--present) .pd-card .pd-slide,
+.av-page .pd:not(.pd--present) .pd-card .av-slide-wrap {
+  max-width: 60rem;
+}
+
+/* The pager: count on the left, Prev, Next and Present as one family on the right. */
+.av-page .pd:not(.pd--present) .pd-foot {
+  margin-top: auto;
+  padding: 0.625rem 1.5rem;
+}
+.av-page .pd-pager {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.av-page .pd-pager__count {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.av-page .pd-pager__sec {
+  overflow: hidden;
+  color: var(--bb-foreground);
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.av-page .pd-pager__btns {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.av-page .pd:not(.pd--present) .pd-pager .pd-pg {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--btn-line);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.av-page .pd:not(.pd--present) .pd-pager .pd-pg:hover:not(:disabled) {
+  border-color: var(--bb-border);
+  background: color-mix(in oklab, var(--bb-foreground) 4%, var(--bb-card));
+}
+.av-page .pd:not(.pd--present) .pd-pager .pd-pg:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+}
+/* Cannot be pressed: flat, no rim, quiet ink. */
+.av-page .pd:not(.pd--present) .pd-pager .pd-pg:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: color-mix(in oklab, var(--bb-muted-foreground) 70%, transparent);
+  cursor: default;
+}
+.av-page .pd:not(.pd--present) .pd-pager .pd-present {
+  gap: 0.25rem;
+  margin-left: 0.25rem;
+}
+.av-page .pd-pager__sec::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 0.5rem 0.2em 0;
+  border-radius: 50%;
+  background: var(--bb-muted-foreground);
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------------ overview page */
+.av-page .pd-ov {
+  display: grid;
+  gap: 2rem;
+}
+.av-page .pd-ov__sec {
+  display: grid;
+  gap: 0.625rem;
+  min-width: 0;
+}
+.av-page .pd-ov__h {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-base);
+  font-weight: 600;
+}
+.av-page .pd-ov__count {
+  padding: 0 0.375rem;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--bb-foreground) 7%, transparent);
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .pd-ov__lead {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-lg);
+  line-height: 1.45;
+}
+.av-page .pd-ov__note,
+.av-page .pd-ov__empty {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+.av-page .pd-ov__facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0.5rem 0 0;
+  border-top: 1px solid var(--bb-border);
+  border-bottom: 1px solid var(--bb-border);
+}
+.av-page .pd-ov__facts > div {
+  padding: 0.75rem 1rem 0.75rem 0;
+}
+.av-page .pd-ov__facts > div + div {
+  padding-left: 1rem;
+  border-left: 1px solid var(--bb-border);
+}
+.av-page .pd-ov__facts dt {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .pd-ov__facts dd {
+  margin: 0.125rem 0 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .pd-ov__facts dd.is-empty {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 400;
+  line-height: 1.9;
+}
+.av-page .pd-ov__sub {
+  display: block;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .pd-ov__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-scale-sm);
+}
+.av-page .pd-ov__table th {
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--bb-border);
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+  text-align: left;
+}
+.av-page .pd-ov__table td {
+  padding: 0.625rem 0.75rem 0.625rem 0;
+  border-bottom: 1px solid var(--bb-border);
+  color: var(--bb-foreground);
+  vertical-align: top;
+}
+.av-page .pd-ov__n {
+  width: 2rem;
+  color: var(--bb-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.av-page .pd-ov__slot {
+  width: 8rem;
+  font-weight: 600;
+}
+.av-page .pd-ov__table .pd-ov__num {
+  width: 6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .pd-ov__table .pd-ov__act {
+  width: 4.5rem;
+  padding-right: 0;
+  text-align: right;
+}
+.av-page .pd-ov__dash {
+  color: var(--bb-muted-foreground);
+}
+.av-page .pd-ov__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bb-primary);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.av-page .pd-ov__link:hover {
+  text-decoration: underline;
+}
+.av-page .pd-ov__link:focus-visible {
+  outline: 2px solid var(--bb-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.av-page .pd-ov__drafts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--bb-border);
+}
+.av-page .pd-ov__drafts li {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--bb-border);
+  font-size: var(--text-scale-sm);
+}
+.av-page .pd-ov__kind {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .pd-ov__prompt {
+  overflow: hidden;
+  color: var(--bb-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .av-page .al-head__acts {
+    flex: 1 1 100%;
+  }
+  .av-page .al-head__acts .al-search {
+    flex: 1 1 auto;
+  }
+  .av-page .pd:not(.pd--present) .pd-card {
+    min-height: calc(100dvh - 17rem);
+  }
+  .av-page .pd:not(.pd--present) .pd-stage {
+    padding: 1rem;
+  }
+  .av-page .pd:not(.pd--present) .pd-foot {
+    padding: 0.5rem 0.75rem;
+  }
+  .av-page .pd-pager__sec {
+    display: none;
+  }
+  .av-page .pd-ov {
+    gap: 1.5rem;
+  }
+  .av-page .pd-ov__lead {
+    font-size: var(--text-scale-base);
+  }
+  .av-page .pd-ov__facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .av-page .pd-ov__facts > div:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .av-page .pd-ov__facts > div:nth-child(n + 3) {
+    border-top: 1px solid var(--bb-border);
+  }
+  .av-page .pd-ov__slot,
+  .av-page .pd-ov__table .pd-ov__num,
+  .av-page .pd-ov__table .pd-ov__act {
+    width: auto;
+  }
+  .av-page .pd-ov__n {
+    display: none;
+  }
+  .av-page .pd-ov__drafts li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .av-page .pd-ov__kind {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ================================================================== round 4, 4 Nov
+   Detail: the tabs are the only navigation in the page. Six tabs and a More menu on
+   one underlined row; a tab shows its whole section top to bottom; Present sits in
+   the header beside Play. Option cards share one shape whichever is correct. */
+.av-page .pd:not(.pd--present) .pd-tabs {
+  display: flex;
+  flex: 1 1 100%;
+  align-items: flex-end;
+  gap: 1.25rem;
+  min-width: 0;
+  border-bottom: 1px solid var(--bb-border);
+}
+.av-page .pd:not(.pd--present) .pd-tabs .pd-rail {
+  flex: 0 1 auto;
+  border-bottom: 0;
+}
+.pd--present .pd-tabs {
+  display: contents;
+}
+.av-page .pd-more {
+  position: relative;
+  flex: none;
+}
+.av-page .pd .pd-more__btn {
+  gap: 0.25rem;
+}
+.av-page .pd .pd-more__btn svg {
+  opacity: 0.7;
+}
+.av-page .pd-more__menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 12rem;
+  padding: 0.25rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  background: var(--bb-card);
+  box-shadow: 0 8px 24px color-mix(in oklab, var(--bb-foreground) 12%, transparent);
+}
+.av-page .pd-more__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 36px;
+  padding: 0 0.625rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.av-page .pd-more__item:hover,
+.av-page .pd-more__item:focus-visible {
+  background: color-mix(in oklab, var(--bb-foreground) 5%, var(--bb-card));
+  outline: none;
+}
+.av-page .pd-more__item[aria-current="true"] {
+  color: var(--bb-primary);
+  font-weight: 600;
+}
+.av-page .pd-more__item .pd-rail__n {
+  color: var(--bb-muted-foreground);
+}
+
+/* A section reads as one document: its slides stacked, a hairline between them. */
+.av-page .pd:not(.pd--present) .pd-card {
+  min-height: 0;
+}
+.av-page .pd-list {
+  display: grid;
+}
+.av-page .pd-item {
+  min-width: 0;
+  scroll-margin-top: 1rem;
+}
+.av-page .pd-item + .pd-item {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--bb-border);
+}
+.av-page .al-secact {
+  margin: 0 0 1.25rem;
+}
+.av-page .al-dhead .al-present {
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+}
+
+/* The question fills the card's width; the choices use every column the card has. */
+.av-page .pd:not(.pd--present) .pd-card .av-slide-wrap {
+  max-width: none;
+}
+.av-page .pd:not(.pd--present) .av-slide__brief,
+.av-page .pd:not(.pd--present) .av-meta {
+  max-width: 60rem;
+}
+
+/* Option cards: one shape. Figure box, label, then the reason, on the same rows in
+   every card, so labels and structures line up; the correct card differs only by its
+   green rim, wash and Correct mark. */
+.pd .av-choices--fig > .av-choice {
+  grid-template-rows: auto auto 1fr;
+  align-content: start;
+}
+.pd .av-choice__fig {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 6rem;
+  margin-bottom: 0.25rem;
+}
+.pd .av-choice__fig .av-choice__figure {
+  max-width: 100%;
+  max-height: 100%;
+}
+.pd .av-choice__fig svg {
+  max-height: 6rem;
+  width: auto;
+}
+.pd .av-choice {
+  color: var(--bb-foreground);
+  font-weight: 400;
+}
+.pd .av-choice--correct {
+  color: var(--bb-foreground);
+}
+.pd .av-choice__text {
+  font-weight: 600;
+}
+.pd .av-choice .av-choice__why,
+.pd .av-choice--correct .av-choice__why {
+  color: var(--bb-muted-foreground);
+  font-weight: 400;
+}
+.pd .av-choice--correct .av-mark {
+  color: var(--tray-good-ink);
+}
+@media (max-width: 760px) {
+  .av-page .pd:not(.pd--present) .pd-tabs {
+    gap: 1rem;
+  }
+  .av-page .pd:not(.pd--present) .pd-tabs .pd-rail {
+    flex: 1 1 auto;
+  }
+  .av-page .pd .pd-rail__n {
+    display: none;
+  }
+}
+.av-page .pd:not(.pd--present) .av-meta {
+  max-width: none;
+}
+.av-page .pd-pick {
+  display: none;
+}
+@media (max-width: 760px) {
+  /* Phone: the section picker replaces the tab row, so no tab is ever cut at an edge. */
+  .av-page .pd:not(.pd--present) .pd-tabs {
+    display: none;
+  }
+  .av-page .pd-pick {
+    position: relative;
+    display: flex;
+    flex: 1 1 100%;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 40px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--btn-line);
+    border-radius: 8px;
+    background: var(--bb-card);
+  }
+  .av-page .pd-pick__key {
+    color: var(--bb-muted-foreground);
+    font-size: var(--text-scale-sm);
+  }
+  .av-page .pd-pick select {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 38px;
+    border: 0;
+    background: transparent;
+    color: var(--bb-foreground);
+    font: inherit;
+    font-size: var(--text-scale-sm);
+    font-weight: 600;
+  }
+  .av-page .pd-pick select:focus-visible {
+    outline: none;
+  }
+  .av-page .pd-pick:focus-within {
+    outline: 2px solid var(--bb-primary);
+    outline-offset: 2px;
+  }
+  /* The five counts as a 3 + 2 grid: every label whole, no sideways scroll. */
+  .av-page .al-tabs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    overflow: visible;
+    margin-inline: 0;
+    padding: 0;
+  }
+  .av-page .al-tabs > .al-tab {
+    grid-column: span 2;
+    min-width: 0;
+  }
+  .av-page .al-tabs > .al-tab:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+}
