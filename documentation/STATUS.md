@@ -1,5 +1,22 @@
 # Status
 
+## Unit plans, 3 Nov
+
+Lesson plans for Units 2-10 written on the Unit 1 template, committed in
+documentation/unit-plans/. Every unit won its review; no remaining gap.
+
+| Unit | Result | Plan | Gap |
+|---|---|---|---|
+| 2 | won | documentation/unit-plans/UNIT-2-PLAN.md | none |
+| 3 | won | documentation/unit-plans/UNIT-3-PLAN.md | none |
+| 4 | won | documentation/unit-plans/UNIT-4-PLAN.md | none |
+| 5 | won | documentation/unit-plans/UNIT-5-PLAN.md | none |
+| 6 | won | documentation/unit-plans/UNIT-6-PLAN.md | none |
+| 7 | won | documentation/unit-plans/UNIT-7-PLAN.md | none |
+| 8 | won | documentation/unit-plans/UNIT-8-PLAN.md | none |
+| 9 | won | documentation/unit-plans/UNIT-9-PLAN.md | none |
+| 10 | won | documentation/unit-plans/UNIT-10-PLAN.md | none |
+
 Updated 2026-10-17. This file is a thin live index: current state and pointers,
 no detail that has a better home. Keep it thin and keep it current.
 
