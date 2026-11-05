@@ -1,5 +1,22 @@
 # Status
 
+## Gauntlet run, 3 Nov
+
+Six pieces, four rounds each. One won. Work is committed locally, not pushed.
+Final check: tsc clean. In the full suite, sound, u9Pools and syllabusBaseline
+failed, then passed when run alone, so they are load timeouts. pressOnRelease
+also fails when run alone, because of the untracked `beats/Model3DView.tsx`
+(a pointer-down action). That file is outside this run and was left alone.
+
+| Piece | Result | Rounds | Remaining gap |
+|---|---|---|---|
+| type-nav | not won | 4 | With no session, Home and Learners show em-dash KPIs, a flat chart, a dashed funnel and Purchases skeletons that never load. Collapse these into one empty-state card with a filled "Open your account" button, demote "New task" to secondary, and show "Not connected yet" in place of the skeletons. The 390px tab bar cuts "Lessons" to "L" with no scroll cue. |
+| learners | not won | 4 | The page never lists a learner. Add date range and Export to the title row, a filterable learner table (unit, plan, joined, last active, row menu) with the KPI cards as filter tabs, and one "Sample data" banner in place of the 8-10 pills. Charts have no y-axis values. |
+| lessons | won | 4 | none |
+| home | not won | 4 | No figures. Three "data missing" blocks sit in the right rail and the bottom 40% of the desktop is empty. Make them one slim notice, put a full-width Today strip under the greeting (sign-ups, active, paying, lessons finished, "--" when empty), and put Tasks beside activity or the funnel. On mobile the tiles go above Tasks. |
+| reward | not won | 4 | No build-up: a closed chest cuts straight to a fixed "+50", stated three times. Add an escalation beat (stars, then a tier upgrade), then a reveal card with a label or item and rarity, with the NEXT UNLOCK bar under it. Show the number in the headline and the count tick-up only. |
+| hex | not won | 4 | The lip is too shallow (3-4px at 64px, none at 88px). Make it 12-15% of height at every size and have the press drop by the full lip. The face is crowded: use thicker bonds clear of the ring and a glyph at about 30%. Loading needs its own look. Mobile path header: trophy and shop squeeze the unit banner to about 240px. Run the banner full width at about 90px, with a lavender track and brand fill. The desktop lesson column is narrow, with a dead band and a progress bar left empty at step 2. |
+
 ## Unit plans, 3 Nov
 
 Lesson plans for Units 2-10 written on the Unit 1 template, committed in
