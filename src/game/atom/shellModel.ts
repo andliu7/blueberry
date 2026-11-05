@@ -189,3 +189,22 @@ export function formalChargeLine(z: number, bonding: AtomBonding): string {
   const { lead, sum } = formalChargeParts(z, bonding);
   return `${lead} ${sum}`;
 }
+
+/**
+ * The legend under the drawing. Free atom: its shell counts, which is what is
+ * drawn. In a molecule the valence ring shows the electrons the atom owns, not
+ * the free atom's, so the legend gives both: the free counts (what it brought)
+ * and the counts drawn here (core shells, then owned). `drawn` is per ring,
+ * innermost first, and always equals the dots placeElectrons puts on each ring.
+ */
+export function shellLegend(z: number, bonding?: AtomBonding): { free: readonly number[]; drawn: readonly number[]; text: string } {
+  const free = shellCounts(z);
+  if (bonding === undefined) return { free, drawn: free, text: `Shells: ${free.join(", ")}` };
+  const symbol = SHELL_SYMBOLS[z] ?? "";
+  const owned = ownedElectrons(bonding);
+  const drawn = [...free.slice(0, -1), owned];
+  const inBonds = 2 * bonding.bonds.reduce((sum, bond) => sum + bond.order, 0);
+  const lone = 2 * bonding.lonePairs;
+  const parts = [inBonds > 0 ? `${inBonds} in bonds, counted half each` : "", lone > 0 ? `${lone} in lone pairs` : ""].filter(Boolean).join(", plus ");
+  return { free, drawn, text: `Free ${symbol}: ${free.join(", ")} · here ${symbol} owns ${owned} (${parts})` };
+}

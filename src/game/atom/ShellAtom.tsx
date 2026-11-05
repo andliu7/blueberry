@@ -16,7 +16,7 @@
  */
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
-import { describeElectron, formalChargeParts, placeElectrons, shellCounts, SHELL_SYMBOLS, type AtomBonding } from "./shellModel";
+import { describeElectron, formalChargeParts, placeElectrons, shellCounts, shellLegend, SHELL_SYMBOLS, type AtomBonding } from "./shellModel";
 import "./shell-atom.css";
 
 /** Ring radius as a percent of the stage, innermost to outermost. */
@@ -52,6 +52,7 @@ export function ShellAtom({ z, bonding, reducedMotion = false, label }: ShellAto
   const card = picked === null ? null : describeElectron(symbol, picked);
   const valence = shells.length;
   const fc = bonding === undefined ? null : formalChargeParts(z, bonding);
+  const legend = useMemo(() => shellLegend(z, bonding), [z, bonding]);
 
   useEffect(() => {
     if (open === null) return;
@@ -123,7 +124,7 @@ export function ShellAtom({ z, bonding, reducedMotion = false, label }: ShellAto
         <span>
           <span className="shell-atom__key shell-atom__key--valence" aria-hidden /> valence
         </span>
-        <span className="shell-atom__counts">Shells: {shells.join(", ")}</span>
+        <span className="shell-atom__counts">{legend.text}</span>
       </figcaption>
 
       {fc !== null ? (

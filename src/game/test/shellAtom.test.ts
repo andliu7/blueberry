@@ -14,7 +14,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { formalCharge, formalChargeLine, ownedElectrons, placeElectrons, shellCounts, SHELL_SYMBOLS, SUPPORTED_Z, valenceElectrons } from "../atom/shellModel";
+import { formalCharge, formalChargeLine, ownedElectrons, placeElectrons, shellCounts, shellLegend, SHELL_SYMBOLS, SUPPORTED_Z, valenceElectrons } from "../atom/shellModel";
 import { ATOM_PRESETS, FORMAL_CASES, RDKIT_OUTER_ELECTRONS } from "../atom/shellModel.generated";
 import { STORY_CHAPTERS } from "../content/u0";
 
@@ -86,6 +86,41 @@ describe("the drawing", () => {
       expect(outer.filter((e) => e.role === "lone").length).toBe(2 * p.lonePairs);
       expect(bonds.length).toBe(p.bonds.length);
     }
+  });
+});
+
+describe("the legend", () => {
+  const perRing = (z: number, bonding?: Parameters<typeof placeElectrons>[1]) => {
+    const { electrons } = placeElectrons(z, bonding);
+    return shellCounts(z).map((_, i) => electrons.filter((e) => e.shell === i + 1).length);
+  };
+
+  it("gives the dots drawn on each ring, for every free atom", () => {
+    for (const z of SUPPORTED_Z) {
+      const legend = shellLegend(z);
+      expect(legend.drawn, String(z)).toEqual(perRing(z));
+      expect(legend.text).toBe(`Shells: ${perRing(z).join(", ")}`);
+    }
+  });
+
+  it("gives the dots drawn on each ring for every preset, and the free atom beside them", () => {
+    for (const p of [...ATOM_PRESETS, ...FORMAL_CASES]) {
+      const legend = shellLegend(p.z, p);
+      const drawn = perRing(p.z, p);
+      expect(legend.drawn, p.symbol).toEqual(drawn);
+      expect(legend.free).toEqual(shellCounts(p.z));
+      expect(legend.text).toContain(`Free ${p.symbol}: ${shellCounts(p.z).join(", ")}`);
+      expect(legend.text).toContain(`owns ${drawn[drawn.length - 1]}`);
+      // Formal charge = free valence minus owned, both read off the legend.
+      expect(legend.free[legend.free.length - 1]! - legend.drawn[legend.drawn.length - 1]!, p.symbol).toBe(p.formalCharge);
+    }
+  });
+
+  it("says plainly what N in ammonium and O in hydroxide own", () => {
+    const n = ATOM_PRESETS.find((p) => p.id === "n-ammonium")!;
+    const o = ATOM_PRESETS.find((p) => p.id === "o-hydroxide")!;
+    expect(shellLegend(n.z, n).text).toBe("Free N: 2, 5 · here N owns 4 (8 in bonds, counted half each)");
+    expect(shellLegend(o.z, o).text).toBe("Free O: 2, 6 · here O owns 7 (2 in bonds, counted half each, plus 6 in lone pairs)");
   });
 });
 
