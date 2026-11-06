@@ -343,10 +343,10 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         quote: "the product whose C=C carries more carbons",
       },
       {
-        label: "A tie cannot be called",
+        label: "Equal alkenes, no edge for 1,4",
         via: ", but",
         source: "u1-hx-too-close",
-        quote: "When the counts tie, the rule cannot call it",
+        quote: "Do not assume 1,4 always wins",
       },
     ],
     bridge: {
@@ -508,7 +508,7 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         label: "A cyclohexene",
         via: "and",
         source: "u1-cd-da-ring",
-        quote: "diene plus dienophile give a cyclohexene",
+        quote: "an alkene dienophile give a cyclohexene",
       },
     ],
     bridge: {
@@ -594,10 +594,10 @@ export const U1_PRIMING: Readonly<Record<string, LessonPriming>> = {
         quote: "new C=C at C2-C3",
       },
       {
-        label: "Ortho or para",
+        label: "1,2 or 1,4 on the ring",
         via: "; substituents end up",
         source: "u1-cd-pred-ortho-acrolein",
-        quote: "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product",
+        quote: "1-Substituted dienes give the 1,2 product on the ring; 2-substituted dienes give the 1,4 product",
       },
     ],
     bridge: {

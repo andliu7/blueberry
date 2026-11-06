@@ -106,7 +106,7 @@ export const U1_WALKTHROUGHS: Readonly<Record<string, readonly WalkStep[]>> = {
     { title: "Read the next one up", text: "The lowest empty MO is the LUMO, one step above the HOMO.", source: "u1-cd-mo-bd-lumo", quote: "LUMO is the lowest empty MO." },
   ],
   "u1-da": [
-    { title: "Pair diene and dienophile", text: "The diene and the dienophile join in one step to make a cyclohexene.", source: "u1-cd-da-ring", quote: "Diels-Alder: diene plus dienophile give a cyclohexene in one step." },
+    { title: "Pair diene and dienophile", text: "The diene and an alkene dienophile join in one step to make a cyclohexene. An alkyne keeps one extra C=C.", source: "u1-cd-da-ring", quote: "Diels-Alder: diene plus an alkene dienophile give a cyclohexene in one step." },
     { title: "Find the new bonds", text: "Two new sigma bonds form, and one C=C remains, between the diene's old C2 and C3.", source: "u1-cd-da-ring", quote: "Two new sigma bonds form, and one C=C remains, between the diene's old C2 and C3." },
     { title: "Check the orbitals match", text: "The diene's HOMO meets the dienophile's LUMO, end lobes in phase.", source: "u1-cd-da-orbitals", quote: "the diene's HOMO and the dienophile's LUMO" },
   ],

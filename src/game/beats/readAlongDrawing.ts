@@ -2,14 +2,21 @@
  * Resolves a read-along card's drawing pointers (content/u1/lessonExplainers.ts)
  * to the McqVisual the existing card renders. Nothing is drawn here: a pointer
  * either reuses the drawing a pool question already carries, or an entry of
- * CD_FIGURES, which scripts/u1_pools_cd.py wrote from RDKit coordinates.
+ * CD_FIGURES, which scripts/u1_pools_cd.py wrote from RDKit coordinates, or
+ * (ADDED 3 Nov) an entry of STAGE_AB_WORKED_FIGURES, the drawings
+ * scripts/u1_pools_ab.py writes for the stage A and B worked examples.
  * Returns null when a pointer does not resolve, so a test can hold every one.
  */
 import { CD_FIGURES } from "../content/u1/stage-cd.figures";
+import { STAGE_AB_WORKED_FIGURES } from "../content/u1/stage-ab";
 import type { ExplainerDrawing } from "../content/u1/lessonExplainers";
 import { mcqVisualFor, type McqVisual, type NamedFigure } from "./mcq/mcqFigures";
 
 function namedFigures(ref: ExplainerDrawing): readonly NamedFigure[] | null {
+  if ("worked" in ref) {
+    const named = STAGE_AB_WORKED_FIGURES[ref.worked];
+    return named === undefined ? null : [named];
+  }
   if ("figure" in ref) {
     const figure = CD_FIGURES[ref.figure];
     return figure === undefined ? null : [{ figure, name: ref.name }];

@@ -46,6 +46,7 @@ const GAME = join(dirname(fileURLToPath(import.meta.url)), "..");
  */
 const ALLOWED: Readonly<Record<string, number>> = {
   "beats/sort/SortBeatView.tsx": 1, // drag to reorder
+  "beats/Model3DView.tsx": 1, // drag to turn the 3-D model
   "beats/trace/FreehandCanvas.tsx": 1, // drawing
   "beats/trace/GuidedCanvas.tsx": 1, // drawing
   "beats/trace/ScratchpadCanvas.tsx": 1, // drawing

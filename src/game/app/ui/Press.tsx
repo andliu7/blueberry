@@ -26,6 +26,8 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import "./press.css";
+import "./hex.css";
+import { HexFrame } from "./HexFrame";
 
 export type PressVariant = "primary" | "secondary" | "danger" | "ghost" | "success";
 export type PressSize = "sm" | "md" | "lg";
@@ -50,7 +52,27 @@ export function pressClassName({ variant = "primary", size = "md", block = false
 export interface PressProps extends ButtonHTMLAttributes<HTMLButtonElement>, PressStyle {
   /** The action is running. The button stays pressed-looking and says so. */
   readonly busy?: boolean;
+  /**
+   * The hexagon ring (hex.css), for an ICON key only: a regular hexagon at
+   * least 64px across. Text keys never wear it (round 3, 3 Nov judges: a
+   * hexagon stretched to a label's width read as a price tag, not a ring).
+   */
+  readonly hex?: boolean;
+  /** Gallery only: hold the key in its pressed frame. */
+  readonly pressed?: boolean;
   readonly children: ReactNode;
+}
+
+const LIP_PX: Record<PressSize, number> = { sm: 3, md: 4, lg: 4 };
+
+/** What goes inside a hexagon key: the drawing, then the glyph in its own span. */
+export function HexInside({ size = "md", children }: { readonly size?: PressSize; readonly children: ReactNode }) {
+  return (
+    <>
+      <HexFrame lip={LIP_PX[size]} />
+      <span className="hx-label inline-flex items-center justify-center gap-2">{children}</span>
+    </>
+  );
 }
 
 export function Press({
@@ -61,18 +83,26 @@ export function Press({
   className = "",
   children,
   disabled,
+  hex = false,
+  pressed = false,
   ...rest
 }: PressProps) {
+  const ring = hex && variant !== "ghost";
+  const inner = (
+    <>
+      {busy ? <span className="busy-dot" aria-hidden /> : null}
+      {children}
+    </>
+  );
   return (
     <button
       type="button"
       {...rest}
       disabled={disabled || busy}
       aria-busy={busy || undefined}
-      className={`${pressClassName({ variant, size, block })} ${busy ? "is-busy" : ""} ${className}`}
+      className={`${pressClassName({ variant, size, block })} ${ring ? "hx hx--round" : ""} ${busy ? "is-busy" : ""} ${pressed ? "is-pressed" : ""} ${className}`}
     >
-      {busy ? <span className="busy-dot" aria-hidden /> : null}
-      {children}
+      {ring ? <HexInside size={size}>{inner}</HexInside> : inner}
     </button>
   );
 }

@@ -155,10 +155,28 @@ export interface FigureRing {
   readonly r: number;
 }
 
+/**
+ * A curved electron-pushing arrow (ADDED 3 Nov, Unit 1 review suggestion 9):
+ * a quadratic curve from (x1, y1), the electrons' start, bowed through the
+ * control point (cx, cy), with its head at (x2, y2), where they go. Only the
+ * generators write one, from the bond orders RDKit gives the two contributors.
+ */
+export interface FigureCurve {
+  readonly x1: number;
+  readonly y1: number;
+  readonly cx: number;
+  readonly cy: number;
+  readonly x2: number;
+  readonly y2: number;
+  /** A half-headed (fishhook) arrow: ONE electron moves, as in a radical. */
+  readonly half?: true;
+}
+
 export interface Figure {
   readonly bonds?: readonly FigureBond[];
   readonly labels?: readonly FigureLabel[];
   readonly rings?: readonly FigureRing[];
+  readonly curves?: readonly FigureCurve[];
 }
 
 /** Half the width of a wedge's wide end, and where a hash bond's rungs sit along it. */
@@ -367,6 +385,12 @@ export function fitBox(figure: Figure): FigureBox {
     take(Math.min(bond.x1, bond.x2), Math.min(bond.y1, bond.y2), Math.max(bond.x1, bond.x2), Math.max(bond.y1, bond.y2));
   }
   for (const ring of figure.rings ?? []) take(ring.x - ring.r, ring.y - ring.r, ring.x + ring.r, ring.y + ring.r);
+  // A curve never reaches its control point; its midpoint is the furthest it bows.
+  for (const c of figure.curves ?? []) {
+    const mx = 0.25 * c.x1 + 0.5 * c.cx + 0.25 * c.x2;
+    const my = 0.25 * c.y1 + 0.5 * c.cy + 0.25 * c.y2;
+    take(Math.min(c.x1, c.x2, mx), Math.min(c.y1, c.y2, my), Math.max(c.x1, c.x2, mx), Math.max(c.y1, c.y2, my));
+  }
   for (const label of figure.labels ?? []) {
     const size = label.size ?? 15;
     const width = formulaRuns(label.t).reduce((sum, run) => sum + run.text.length * 0.6 * size * (run.level === 0 ? 1 : 0.68), 0);

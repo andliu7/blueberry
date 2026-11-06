@@ -22,6 +22,7 @@ export const CONCEPT_LABELS: Readonly<Record<string, string>> = {
   "u0:hx-addition": "HX adding across a C=C",
   "u0:orbitals": "Orbitals and the pi bond",
   "u0:radical": "Radicals and the chain idea",
+  "u0:equilibrium": "Keq, ΔG and reaction rate",
   "u1:allylic": "What allylic means",
   "u1:cation-ranking": "Ranking carbocations",
   "u1:anion-ranking": "Ranking carbanions",
@@ -32,6 +33,7 @@ export const CONCEPT_LABELS: Readonly<Record<string, string>> = {
   "u1:temperature-picks": "Temperature picks the product",
   "u1:x2-addition": "X2 adding to a diene",
   "u1:allylic-halogenation": "NBS and allylic halogenation",
+  "u1:nbs-products": "Every NBS product, both ends",
   "u1:pi-mo": "Pi MOs, HOMO and LUMO",
   "u1:diels-alder": "The Diels-Alder reaction",
   "u1:diene-shape": "The diene must reach s-cis",
@@ -42,17 +44,19 @@ export const CONCEPT_LABELS: Readonly<Record<string, string>> = {
 };
 
 export const U1_LINKS: Readonly<Record<string, LessonLink>> = {
-  "u1-allylic": { teaches: ["u1:allylic"], assumes: ["u0:resonance", "u0:carbocation"] },
+  "u1-allylic": { teaches: ["u1:allylic"], assumes: ["u0:resonance", "u0:carbocation", "u0:hx-addition"] },
   "u1-rank-cation": { teaches: ["u1:cation-ranking"], assumes: ["u1:allylic"] },
   "u1-rank-anion": { teaches: ["u1:anion-ranking"], assumes: ["u1:allylic", "u1:cation-ranking"] },
   "u1-rank-radical": { teaches: ["u1:radical-ranking"], assumes: ["u1:allylic", "u1:cation-ranking", "u0:radical"] },
   "u1-12v14": { teaches: ["u1:diene-addition"], assumes: ["u1:allylic", "u1:cation-ranking", "u0:hx-addition"] },
-  "u1-kvt": { teaches: ["u1:kinetic-thermo"], assumes: ["u1:diene-addition"] },
+  "u1-kvt": { teaches: ["u1:kinetic-thermo"], assumes: ["u1:diene-addition", "u0:equilibrium"] },
   "u1-energy-diagram": { teaches: ["u1:energy-diagram"], assumes: ["u1:kinetic-thermo"] },
   "u1-hx-dienes": { teaches: ["u1:temperature-picks"], assumes: ["u1:diene-addition", "u1:kinetic-thermo", "u1:energy-diagram"] },
   "u1-x2": { teaches: ["u1:x2-addition"], assumes: ["u1:temperature-picks"] },
   "u1-nbs": { teaches: ["u1:allylic-halogenation"], assumes: ["u1:allylic", "u0:radical"] },
-  "u1-mo": { teaches: ["u1:pi-mo"], assumes: ["u0:orbitals"] },
+  // ADDED 3 Nov (Unit 1 review suggestion 1): a link so its worked example shows on the preview.
+  "u1-nbs-practice": { teaches: ["u1:nbs-products"], assumes: ["u1:allylic-halogenation"] },
+  "u1-mo": { teaches: ["u1:pi-mo"], assumes: ["u0:orbitals", "u0:resonance"] },
   "u1-da": { teaches: ["u1:diels-alder"], assumes: ["u1:pi-mo"] },
   "u1-dienes": { teaches: ["u1:diene-shape"], assumes: ["u1:diels-alder"] },
   "u1-dienophiles": { teaches: ["u1:dienophile"], assumes: ["u1:diels-alder", "u1:pi-mo"] },

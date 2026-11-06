@@ -1,0 +1,817 @@
+/*
+ * The admin's one type system (owner, 3 Nov: "the fonts feel poorly chosen and
+ * inconsistent"). Reference: Stripe's dashboard, one sans, a short scale, and
+ * tabular numerals wherever a figure is read.
+ *
+ * ONE FAMILY. Inter, which index.css already loads through fontsource for the
+ * site, so no new dependency and no new request. The admin used to draw in
+ * three faces at once: the game's rounded display face for chrome, the system
+ * stack for some content and a monospace for chart figures.
+ *
+ * HOW. Every admin page renders inside `.av-page` (AdminViewer.tsx), so the
+ * game's own type tokens are re-pointed here and every rule that already reads
+ * them follows: var(--font-display), var(--font-sans), var(--font-ui) and the
+ * --text-scale-* and --h-* steps. Nothing outside the admin is touched,
+ * because custom properties set here only inherit downwards.
+ *
+ * THE SCALE, six steps:
+ *   12  xs    labels, chips, captions, table heads
+ *   14  sm    body, rows, nav, buttons (the dashboard's default)
+ *   16  base  card titles, emphasised rows
+ *   20  xl    section titles, small figures
+ *   24  2xl   headline figures
+ *   28  display  the page title
+ * Weights: 400 body, 500 nav and controls, 600 titles and figures, 700 only
+ * for the page title.
+ */
+
+.av-page {
+  --admin-font: "Inter Variable", Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--admin-font);
+  --font-sans: var(--admin-font);
+  --font-ui: var(--admin-font);
+
+  --text-scale-xs: 0.75rem;
+  --text-scale-sm: 0.875rem;
+  --text-scale-base: 1rem;
+  --text-scale-md: 1rem;
+  --text-scale-lg: 1rem;
+  --text-scale-xl: 1.25rem;
+  --text-scale-2xl: 1.5rem;
+  --text-scale-display: 1.75rem;
+
+  --h-display: 1.75rem;
+  --h-1: 1.75rem;
+  --h-2: 1.25rem;
+  --h-3: 1rem;
+  --h-eyebrow: 0.75rem;
+
+  font-family: var(--admin-font);
+  font-size: var(--text-scale-sm);
+  font-feature-settings: "cv11", "ss01";
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Buttons and fields do not inherit the family on their own. */
+.av-page :is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+/* Headings: one weight per level, quieter than the game's 800 and 900. The
+   doubled class outranks `.bb-game :is(h1, h2, h3)` and the bb-h* helpers
+   without needing !important, and a page's own class can still set a size. */
+.av-page.av-page :is(h1, .bb-h1, .bb-h-display) {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.av-page.av-page :is(h2, h3, .bb-h2, .bb-h3) {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.av-page.av-page .bb-eyebrow {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Figures line up in columns: Stripe's tabular numerals. */
+.av-page :is(.ah-stat__value, .ah-big, .ah-hero__value, .ah-fn__count, .tabular-nums, td, .tb-count) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tailwind boards (Learners, Growth) carry their own weight utilities. */
+.av-page :is(.font-extrabold, .font-black) {
+  font-weight: 600;
+}
+
+/* Weight, measured on the rendered pages: most text had come out at 600 because
+   the old 800 and 900 rules were everywhere. Stripe reads at 400 for prose and
+   500 for anything you press or scan as a label; 600 is kept for titles and
+   figures only. */
+.av-page :is(button, a, label, kbd, summary) {
+  font-weight: 500;
+}
+.av-page :is(
+    .ah-muted, .ah-source, .ah-stat__hint, .ah-legend, .ah-empty, .ah-note,
+    .tb-id, .tb-sr, .aa-sub, .av-banner, .av-empty
+  ) {
+  font-weight: 400;
+}
+.av-page :is(
+    .ah-nav__text, .ah-nav__label, .ah-stat__label, .ah-fn__label, .ah-chip,
+    .tb-card__title, .tb-meta, .tb-mini, .tb-chip, .tb-count, .tb-you, .tb-next,
+    .av-picker__lesson, .av-picker__unit-title, .av-seg__label
+  ) {
+  font-weight: 500;
+}
+/* The current page in the menu, and the brand, read one step heavier. */
+.av-page :is(.ah-nav__link[aria-current="page"] .ah-nav__text, .ah-nav__name, .ah-nav__mark) {
+  font-weight: 600;
+}
+
+/* The Learners board (components/ui/analytics-bento.tsx) sizes its type in pixels
+   between the steps. Inside the admin those land on the scale instead: captions
+   and chart ticks to 12, labels to 14, card titles to 16, figures to 24 and the
+   two headline figures to 28. Its shared source stays as it is. */
+.av-page :is(.text-\[10px\], .text-\[10\.5px\], .text-\[11px\]),
+.av-page svg text {
+  font-size: var(--text-scale-xs);
+}
+.av-page .text-\[13px\] {
+  font-size: var(--text-scale-sm);
+}
+.av-page .text-\[17px\] {
+  font-size: var(--text-scale-base);
+}
+.av-page :is(.text-\[26px\], .sm\:text-\[28px\], .sm\:text-\[30px\]) {
+  font-size: var(--text-scale-2xl);
+}
+.av-page :is(.text-\[38px\], .sm\:text-\[44px\]) {
+  font-size: var(--text-scale-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.av-page .font-bold:not(h1) {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ page title and tabs (3 Nov, round 2)
+   Every admin page opens the same way: one title at the display step, then, where a
+   page has views, a row of underline tabs (Stripe's Transactions and Customers). */
+.av-page .ah-page-title {
+  margin: 0.25rem 0 0.75rem;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.av-page .ah-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin: 0 0 1.25rem;
+  border-bottom: 1px solid var(--bb-border);
+}
+.av-page .ah-tabs__tab {
+  min-height: 44px;
+  margin-bottom: -1px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.av-page .ah-tabs__tab:hover {
+  color: var(--bb-foreground);
+}
+.av-page .ah-tabs__tab[aria-selected="true"] {
+  border-bottom-color: var(--bb-primary, #5a3fd8);
+  color: var(--bb-primary, #5a3fd8);
+  font-weight: 600;
+}
+.av-page .ah-tabs__tab:focus-visible {
+  outline: 2px solid var(--bb-primary, #5a3fd8);
+  outline-offset: 2px;
+}
+
+/* A chart card alone on its row takes the whole row; it used to leave a third empty. */
+.av-page .ah-cols.ah-cols--solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The Learners cards share the home cards' corner, not the bento's own larger one. */
+.av-page .ab-root .rounded-\[28px\] {
+  border-radius: 1rem;
+}
+
+/* Empty charts on Home: one flat line at zero in the real chart frame. */
+.av-page .ah-chart__zero {
+  stroke: color-mix(in oklab, var(--bb-muted-foreground) 35%, transparent);
+  stroke-width: 2;
+}
+.av-page .ah-funnel.is-empty .ah-fn__label {
+  color: var(--bb-muted-foreground);
+}
+
+/* ------------------------------------------------------------------ the empty layout (3 Nov, round 4)
+   A page with nothing read: one thin notice line, then the real layout with a dash
+   for every figure. Stripe's empty dashboard: real labels, a flat chart, zeros. */
+.av-page .ah-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0 0 1.25rem;
+  padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+  border: 1px solid color-mix(in oklab, #5a3fd8 20%, var(--bb-border));
+  border-radius: 10px;
+  background: color-mix(in oklab, #5a3fd8 5%, var(--bb-card));
+  color: var(--bb-foreground);
+}
+.av-page .ah-notice__icon {
+  flex: none;
+  color: #5a3fd8;
+}
+.av-page .ah-notice__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-scale-sm);
+  line-height: 1.4;
+}
+.av-page .ah-notice__act {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: #5a3fd8;
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.av-page .ah-notice__act:hover {
+  border-color: color-mix(in oklab, #5a3fd8 40%, var(--bb-border));
+}
+.av-page .ah-notice.is-checking .ah-notice__act {
+  display: none;
+}
+@media (max-width: 560px) {
+  .av-page .ah-notice {
+    flex-wrap: wrap;
+  }
+  .av-page .ah-notice__text {
+    flex-basis: calc(100% - 2rem);
+  }
+  .av-page .ah-notice__act {
+    margin-left: 1.625rem;
+  }
+}
+
+.av-page .ah-sk {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.av-page .ah-sk-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--bb-border);
+  border-radius: 12px;
+  background: var(--bb-card);
+}
+.av-page .ah-sk-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 1rem 1.25rem;
+}
+.av-page .ah-sk-stat + .ah-sk-stat {
+  border-left: 1px solid var(--bb-border);
+}
+.av-page .ah-sk-stat__label,
+.av-page .ah-sk-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  line-height: 1.4;
+}
+.av-page .ah-sk-card__title {
+  font-size: var(--text-scale-base);
+  font-weight: 600;
+}
+.av-page .ah-sk-stat__value,
+.av-page .ah-sk-chart__value {
+  font-size: var(--text-scale-2xl);
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-sk-card__caption,
+.av-page .ah-sk-card__foot {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 400;
+}
+.av-page .ah-sk-card {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 12px;
+  background: var(--bb-card);
+}
+.av-page .ah-sk-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+.av-page .ah-sk-card__foot {
+  margin: 0.625rem 0 0;
+}
+.av-page .ah-sk-card.is-off .ah-sk-card__title {
+  color: var(--bb-muted-foreground);
+}
+.av-page .ah-sk-chart__figure {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+}
+.av-page .ah-sk-chart__plot {
+  display: block;
+  width: 100%;
+  height: 140px;
+  margin-top: 0.75rem;
+}
+.av-page .ah-sk-chart__grid {
+  stroke: var(--bb-border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.av-page .ah-sk-chart__zero {
+  stroke: color-mix(in oklab, #5a3fd8 45%, transparent);
+  stroke-width: 2;
+}
+.av-page .ah-sk-chart__axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.375rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-sk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.av-page .ah-sk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-scale-sm);
+}
+.av-page .ah-sk-table :is(th, td) {
+  height: 36px;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid var(--bb-border);
+  text-align: right;
+  font-weight: 400;
+}
+.av-page .ah-sk-table :is(th, td):first-child {
+  padding-left: 0;
+  text-align: left;
+}
+.av-page .ah-sk-table thead th {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .ah-sk-table tbody th {
+  color: var(--bb-foreground);
+}
+.av-page .ah-sk-table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.av-page .ah-sk-bar {
+  display: inline-block;
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--bb-muted-foreground) 16%, transparent);
+  vertical-align: middle;
+}
+@media (max-width: 720px) {
+  .av-page .ah-sk-stats {
+    grid-template-columns: 1fr;
+  }
+  .av-page .ah-sk-stat + .ah-sk-stat {
+    border-left: 0;
+    border-top: 1px solid var(--bb-border);
+  }
+  .av-page .ah-sk-stat {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+  .av-page .ah-sk-stat__label {
+    flex: 1 0 100%;
+  }
+  .av-page .ah-sk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ------------------------------------------------------------------ the page's primary action, beside the title */
+.av-page .ah-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.av-page .ah-page-head .ah-page-title {
+  margin-bottom: 0.25rem;
+}
+.av-page .ah-hello {
+  align-items: center;
+}
+.av-page .ah-hello__acts {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.av-page .ah-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 34px;
+  padding: 0 0.875rem;
+  border: 0;
+  border-radius: 8px;
+  background: #5a3fd8;
+  color: #fff;
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.av-page .ah-primary:hover {
+  background: #4a31c4;
+}
+.av-page .ah-primary:focus-visible {
+  outline: 3px solid #5a3fd8;
+  outline-offset: 2px;
+}
+.av-page .ah-primary:disabled {
+  border: 1px solid var(--bb-border);
+  background: var(--bb-card);
+  color: var(--bb-muted-foreground);
+  cursor: not-allowed;
+}
+
+/* Tile labels: 14px, one line, the info mark inline beside the words (round 3: the
+   mark had wrapped onto its own line under long labels). */
+.av-page .ah-stat__label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--text-scale-sm);
+}
+.av-page .ah-stat__label .ah-info,
+.av-page .ah-tile-label .ah-info {
+  flex: none;
+  margin-left: 0;
+}
+.av-page .ah-tile-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  line-height: 1.35;
+}
+.av-page .ah-tile-label__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ Lessons (round 3)
+   Title and one toolbar row (view, plan, a one-line note), then the list beside the
+   open lesson. The page sits on the shell's gutter like every other admin page. */
+.av-page .av-head {
+  padding: 0;
+}
+.av-page .av-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--bb-border);
+}
+.av-page .av-toolbar__note {
+  flex: 1 1 18rem;
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  line-height: 1.45;
+}
+.av-page .av-seg {
+  gap: 0.125rem;
+  padding: 3px;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--bb-foreground) 6%, transparent);
+}
+.av-page .av-seg__label {
+  margin: 0 0.375rem 0 0.5rem;
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .av-seg__btn {
+  min-height: 34px;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+}
+.av-page .av-seg__btn[aria-pressed="true"] {
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.04);
+}
+.av-page .av-body {
+  padding: 0 0 2rem;
+}
+.av-page .av-picker {
+  border-width: 1px;
+}
+@media (min-width: 900px) {
+  /* On a wide screen the list always stays beside the lesson. */
+  .av-page .av-body {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .av-page .av-picker {
+    display: block;
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100dvh - 2rem);
+  }
+}
+.av-page .av-show__title {
+  font-size: var(--text-scale-xl);
+  font-weight: 600;
+}
+
+/* The game's pressable keys, inside the admin, read as dashboard buttons: the
+   admin's sans at 14, sentence case, a flat face with a 1px rim and no lip. */
+.av-page .btn3d {
+  --b3-lip-size: 0px;
+  min-height: 36px;
+  margin-bottom: 0;
+  padding: 0 0.875rem;
+  border-width: 1px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-family: var(--admin-font);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.av-page .btn3d--secondary {
+  --b3-rim: var(--bb-border);
+  --b3-ink: var(--bb-foreground);
+}
+
+/* The lesson deck, in the page (not presenting): the admin scale, Stripe's
+   underline tabs for its sections. Present mode keeps its stage sizes. */
+.av-page .pd:not(.pd--present) {
+  max-width: 56rem;
+  margin-inline: 0;
+}
+.av-page .pd:not(.pd--present) .pd-rail {
+  gap: 1.25rem;
+  border-bottom: 1px solid var(--bb-border);
+}
+.av-page .pd:not(.pd--present) .pd-rail__btn {
+  min-height: 40px;
+  margin-bottom: -1px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+}
+.av-page .pd:not(.pd--present) .pd-rail__btn[aria-current="step"] {
+  border-bottom-color: var(--bb-primary, #5a3fd8);
+  background: none;
+  color: var(--bb-primary, #5a3fd8);
+  font-weight: 600;
+}
+.av-page .pd:not(.pd--present) .pd-present {
+  min-height: 34px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 8px;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+}
+.av-page .pd:not(.pd--present) .pd-slide {
+  padding: 1.5rem;
+  border-width: 1px;
+  border-color: var(--bb-border);
+  border-radius: 12px;
+}
+.av-page .pd:not(.pd--present) .pd-slide__title {
+  font-size: var(--text-scale-2xl);
+  font-weight: 600;
+}
+.av-page .pd:not(.pd--present) .pd-slide__lead,
+.av-page .pd:not(.pd--present) .pd-points {
+  font-size: var(--text-scale-base);
+  font-weight: 400;
+}
+.av-page .pd:not(.pd--present) .pd-facts > div {
+  border-radius: 10px;
+}
+.av-page .pd:not(.pd--present) .pd-facts dt {
+  font-size: var(--text-scale-xs);
+  font-weight: 500;
+}
+.av-page .pd:not(.pd--present) .pd-facts dd {
+  font-size: var(--text-scale-xl);
+  font-variant-numeric: tabular-nums;
+}
+/* A fact with nothing behind it reads quiet: body weight, muted, never the figure's type. */
+.av-page .pd .pd-facts dd.is-empty {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 400;
+}
+.av-page .pd:not(.pd--present) .pd-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.av-page .pd:not(.pd--present) .pd-foot {
+  padding-top: 1rem;
+}
+.av-page .pd:not(.pd--present) .pd-foot .pd-steps {
+  flex: 1 1 auto;
+  margin-top: 0;
+}
+.av-page .av-steps__count {
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .av-slide {
+  border-width: 1px;
+  border-color: var(--bb-border);
+  border-radius: 12px;
+}
+.av-page .av-show__head .bb-eyebrow,
+.av-page .pd-slide__section {
+  font-size: var(--text-scale-xs);
+}
+
+/* The open lesson in the list: a quiet tint, like the sidebar's current page, not a solid slab. */
+.av-page .av-picker__lesson[aria-current="page"] {
+  background: color-mix(in oklab, var(--bb-primary, #5a3fd8) 10%, var(--bb-card));
+  color: var(--bb-primary, #5a3fd8);
+  border-radius: 8px;
+}
+.av-page .av-picker__lesson {
+  min-height: 40px;
+  font-size: var(--text-scale-sm);
+}
+
+/* ------------------------------------------------------------------ the centred sign-in state (3 Nov, Learners round 2)
+   A page with nothing read draws no grid at all: one block, centred in the content
+   column, like Stripe's empty lists. Icon, title, one sentence, one filled action,
+   then a quiet list of what the page shows once it can read. */
+.av-page .ah-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 30rem;
+  margin: 3.5rem auto 2rem;
+  padding: 0 0.25rem;
+  text-align: center;
+}
+.av-page .ah-signin__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: color-mix(in oklab, #5a3fd8 9%, var(--bb-card));
+  color: #5a3fd8;
+}
+.av-page .ah-signin__title {
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.av-page .ah-signin__body {
+  margin: 0.5rem 0 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  line-height: 1.5;
+}
+.av-page .ah-signin__act {
+  justify-content: center;
+  min-height: 40px;
+  margin-top: 1.25rem;
+  padding: 0 1.125rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.av-page .ah-signin.is-checking .ah-signin__icon {
+  animation: ah-signin-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ah-signin-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+.av-page .ah-signin__preview {
+  align-self: stretch;
+  margin-top: 2.25rem;
+  text-align: left;
+}
+.av-page .ah-signin__lead {
+  margin: 0 0 0.5rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs, 0.75rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.av-page .ah-signin__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--bb-border);
+  border-radius: 12px;
+  background: var(--bb-card);
+}
+.av-page .ah-signin__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  font-size: var(--text-scale-sm);
+  line-height: 1.35;
+}
+.av-page .ah-signin__item + .ah-signin__item {
+  border-top: 1px solid var(--bb-border);
+}
+.av-page .ah-signin__label {
+  color: var(--bb-foreground);
+  font-weight: 500;
+}
+.av-page .ah-signin__detail {
+  color: var(--bb-muted-foreground);
+  text-align: right;
+}
+@media (max-width: 560px) {
+  .av-page .ah-signin {
+    margin-top: 2rem;
+  }
+  .av-page .ah-signin__act {
+    align-self: stretch;
+    min-height: 44px;
+  }
+  .av-page .ah-signin__item {
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+  .av-page .ah-signin__detail {
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-page .ah-signin.is-checking .ah-signin__icon {
+    animation: none;
+  }
+}

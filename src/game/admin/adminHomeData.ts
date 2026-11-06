@@ -1,14 +1,11 @@
 /**
- * The admin home page's sample data (#/app/admin/home) and the small pure helpers it uses.
+ * The admin home page's data contract (#/app/admin/home) and the small pure helpers it uses.
  *
- * EVERY NUMBER HERE IS MADE UP. The page shows none of them as a figure: a part with no
- * live source is a tile marked "No data, example" whose graph shows shape only. The real
- * source is a staff-only server function that does not exist yet (the analytics_* views
- * are revoked from the API roles on purpose); it must return one `AdminHomeData` with
- * source "live". Nothing in this file may ever be shown as real.
- *
- * The series are generated from a seeded wave, not Math.random, so a reload and a test
- * both see the same page.
+ * NO FIGURE LIVES HERE. `emptyAdminHome` is the page before anything is read: every
+ * count is zero, every series is flat and every list is empty, so there is no made-up
+ * number in the bundle to leak onto the page by mistake. adminHomeLive.ts lays the real
+ * figures over it part by part and lists which parts are real in `liveParts`; the page
+ * shows a figure only for a part on that list.
  */
 
 export interface StatCell {
@@ -81,16 +78,6 @@ export interface Purchase {
   at: string;
 }
 
-/** One row of the entitlements table. Stripe holds the amounts; the app stores none. */
-export interface Purchase {
-  id: string;
-  plan: string;
-  kind: "subscription" | "pass";
-  status: string;
-  /** ISO date of purchase. */
-  at: string;
-}
-
 export interface Payout {
   id: string;
   label: string;
@@ -110,9 +97,9 @@ export interface TodayBlock {
 }
 
 export interface AdminHomeData {
-  /** "sample" when nothing is real, "mixed" when only some parts are, "live" when every part is. */
+  /** "sample" when nothing is read yet, "mixed" when only some parts are, "live" when every part is. */
   source: "sample" | "mixed" | "live";
-  /** Ids of the parts that are real: "today", "growth", "funnel", "feed", "stat:active", "stat:signups", "stat:paying". Everything else is sample. */
+  /** Ids of the parts that are real: "today", "growth", "funnel", "feed", "billing", "stat:active", "stat:signups", "stat:paying". Everything else is not read. */
   liveParts: string[];
   today: TodayBlock;
   asOf: string;
@@ -131,76 +118,31 @@ export interface AdminHomeData {
   purchases: Purchase[];
 }
 
-function wave(n: number, base: number, amp: number, seed: number, trend = 0): number[] {
-  const out: number[] = [];
-  for (let i = 0; i < n; i += 1) {
-    const w = Math.sin((i + seed) * 0.55) * 0.5 + Math.sin((i + seed * 3) * 1.37) * 0.5;
-    out.push(Math.max(0, Math.round(base + trend * i + w * amp)));
-  }
-  return out;
-}
+const flat = (n: number): number[] => new Array<number>(n).fill(0);
 
-export const sampleAdminHome: AdminHomeData = {
+/** The page before anything is read. Zeros and empty lists only; see the note at the top. */
+export const emptyAdminHome: AdminHomeData = {
   source: "sample",
   liveParts: [],
-  today: { learningNow: 7, signupsToday: 12, lessonsFinishedToday: 96, activeToday: 214 },
-  asOf: "Sample, as of this build",
-  signups: wave(90, 14, 6, 2, 0.12),
-  signupsBefore: wave(90, 11, 5, 7, 0.08),
+  today: { learningNow: 0, signupsToday: 0, lessonsFinishedToday: 0, activeToday: 0 },
+  asOf: "Not read yet",
+  signups: flat(90),
+  signupsBefore: flat(90),
   stats: [
-    {
-      id: "active",
-      label: "Active learners",
-      hint: "Did a lesson in the last 7 days",
-      value: 1284,
-      kind: "count",
-      delta: 0.084,
-      spark: wave(14, 900, 120, 1, 28),
-    },
-    {
-      id: "signups",
-      label: "New sign-ups",
-      hint: "Last 30 days",
-      value: 436,
-      kind: "count",
-      delta: 0.187,
-      spark: wave(14, 12, 5, 4, 0.7),
-    },
-    {
-      id: "paying",
-      label: "Paying learners",
-      hint: "On Pro right now",
-      value: 118,
-      kind: "count",
-      delta: 0.052,
-      spark: wave(14, 100, 5, 5, 1.2),
-    },
-    {
-      id: "revenue",
-      label: "Monthly revenue",
-      hint: "Pro payments, after refunds",
-      value: 1534,
-      kind: "money",
-      delta: -0.021,
-      spark: wave(14, 1500, 90, 9, 3),
-    },
+    { id: "active", label: "Active learners", hint: "Did a lesson in the last 7 days", value: 0, kind: "count", delta: null, spark: [] },
+    { id: "signups", label: "New sign-ups", hint: "Last 30 days", value: 0, kind: "count", delta: null, spark: [] },
+    { id: "paying", label: "Paying learners", hint: "On Pro right now", value: 0, kind: "count", delta: null, spark: [] },
+    { id: "revenue", label: "Monthly revenue", hint: "Pro payments, after refunds", value: 0, kind: "money", delta: null, spark: [] },
   ],
   funnel: [
-    { id: "visited", label: "Visited the site", count: 9200, delta: 0.04 },
-    { id: "signed", label: "Signed up", count: 1480, delta: 0.012 },
-    { id: "l1start", label: "Started lesson 1", count: 1120, delta: 0.021 },
-    { id: "l1done", label: "Finished lesson 1", count: 790, delta: -0.014 },
-    { id: "day2", label: "Came back on day 2", count: 410, delta: 0.03 },
-    { id: "paid", label: "Went Pro", count: 118, delta: 0.006 },
+    { id: "visited", label: "Visited the site", count: 0, delta: 0 },
+    { id: "signed", label: "Signed up", count: 0, delta: 0 },
+    { id: "l1start", label: "Started lesson 1", count: 0, delta: 0 },
+    { id: "l1done", label: "Finished lesson 1", count: 0, delta: 0 },
+    { id: "day2", label: "Came back on day 2", count: 0, delta: 0 },
+    { id: "paid", label: "Went Pro", count: 0, delta: 0 },
   ],
-  feed: [
-    { id: "f1", kind: "paid", text: "A learner went Pro (yearly)", minutesAgo: 6 },
-    { id: "f2", kind: "signup", text: "12 new sign-ups since the last check", minutesAgo: 18 },
-    { id: "f3", kind: "lesson", text: "Allylic substitution: 41 finished today", minutesAgo: 44 },
-    { id: "f4", kind: "flag", text: "A question was flagged in Unit 1", minutesAgo: 95 },
-    { id: "f5", kind: "streak", text: "Longest live streak reached 61 days", minutesAgo: 210 },
-    { id: "f6", kind: "paid", text: "A payment needs another try", minutesAgo: 380 },
-  ],
+  feed: [],
   services: [],
   incidents: [],
   invoices: [],

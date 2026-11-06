@@ -124,7 +124,7 @@ describe("a wrong drawing is named, not just marked wrong (round 2)", () => {
       ["u1-12v14-draw-14", "the 1,2 product"],
       ["u1-kvt-draw-warm", "the 1,2 product, the kinetic one"],
       ["u1-x2-draw-warm", "the 1,2 product"],
-      ["u1-cd-pred-draw-para", "the meta product"],
+      ["u1-cd-pred-draw-para", "1,3 on the ring (the meta product)"], // CHANGED 3 Nov: ring numbering first (owner rule, context before o/m/p)
       ["u1-cd-nbs-draw-cyclohexene", "a Br on the C=C"],
     ];
     for (const [id, name] of expected) {
@@ -197,9 +197,15 @@ describe("every Unit 1 lesson produces something", () => {
     }
   });
 
-  it("puts a drawing third in each in-a-row run that has one, so the first tier reaches it", () => {
+  // CHANGED 3 Nov (Unit 1 review suggestion 8, owner approved): a drawing comes
+  // after recognition, not third, and opens on its starting material.
+  it("puts the drawings last in each in-a-row run that has one, each on a starting structure", () => {
     for (const node of ["u1-hx-dienes", "u1-quiz-b", "u1-nbs-practice", "u1-quiz-c", "u1-da-predict", "u1-quiz-d"]) {
-      expect(U1_POOLS[node]?.[2]?.item.kind, node).toBe("draw");
+      const pool = U1_POOLS[node] ?? [];
+      const first = pool.findIndex((entry) => entry.item.kind === "draw");
+      expect(first, node).toBeGreaterThan(0);
+      expect(pool.slice(first).every((entry) => entry.item.kind === "draw"), node).toBe(true);
+      for (const entry of pool.slice(first)) expect(entry.item.kind === "draw" ? entry.item.beat.start : undefined, entry.id).toBeTruthy();
     }
   });
 });
@@ -324,9 +330,11 @@ describe("round 4: the reveal and the drawing can not be copied", () => {
 });
 
 describe("the bridged drawing follows the lesson that teaches the bridge (audit 23 Oct, close behind)", () => {
-  it("draws norbornene in u1-da-stereo, right after u1-cd-st-bridged, and not in u1-dienes", () => {
+  // CHANGED 3 Nov (Unit 1 review suggestion 8): after u1-cd-st-bridged, at the end with the other drawings.
+  it("draws norbornene in u1-da-stereo, after u1-cd-st-bridged, and not in u1-dienes", () => {
     const stereo = (U1_POOLS["u1-da-stereo"] ?? []).map((entry) => entry.id);
-    expect(stereo.indexOf("u1-cd-st-draw-norbornene")).toBe(stereo.indexOf("u1-cd-st-bridged") + 1);
+    expect(stereo.indexOf("u1-cd-st-bridged")).toBeGreaterThanOrEqual(0);
+    expect(stereo.indexOf("u1-cd-st-draw-norbornene")).toBeGreaterThan(stereo.indexOf("u1-cd-st-bridged"));
     expect(drawFor("u1-cd-st-draw-norbornene").node).toBe("u1-da-stereo");
     const dienes = U1_POOLS["u1-dienes"] ?? [];
     expect(dienes.some((entry) => entry.item.kind === "draw" && /bicyclo/.test(entry.item.beat.answer.name))).toBe(false);

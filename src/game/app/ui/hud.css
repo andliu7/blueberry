@@ -950,6 +950,25 @@
     transform: translateY(0.25rem) scale(1);
   }
 }
+/* While the coins fly the +N is the whole payout and stays up; it pops again and
+   fades once the last coin is in (CoinCounter.tsx). */
+.coin-counter-gain[data-hold] {
+  animation: coin-gain-hold 420ms var(--bb-ease-out) both;
+}
+@keyframes coin-gain-hold {
+  0% {
+    opacity: 0;
+    transform: translateY(-0.5rem) scale(0.5);
+  }
+  55% {
+    opacity: 1;
+    transform: translateY(0) scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
 /* The sheet: stacks standing on the balance's rail. */
 .hud-panel-mark {
   flex-direction: column;

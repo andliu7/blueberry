@@ -48,6 +48,9 @@ import {
   type PracticeRunState,
 } from "./run";
 import { plural } from "@/lib/helpers";
+import { withFirstStep } from "../../content/u1/workedFade";
+import { U1_POOLS } from "../../content/u1";
+import { sayWhyBeatFor } from "../sayWhy";
 
 const McqRunner = lazy(() => import("../mcq/McqRunner").then((m) => ({ default: m.McqRunner })));
 const SortBeatView = lazy(() => import("../sort/SortBeatView").then((m) => ({ default: m.SortBeatView })));
@@ -98,6 +101,8 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
   // because the header's count must move the moment the tray says "Nice!",
   // not later when the student presses KEEP GOING (A2 round 5).
   const [judged, setJudged] = useState<boolean | null>(null);
+  // "Say why" first (Unit 1 review suggestion 3): the problem key whose reason step is done.
+  const [whyDone, setWhyDone] = useState<string | null>(null);
   const shownRun = judged === null ? state.run : judged ? state.run + 1 : 0;
 
   // Write the run after every judged answer, as if its Continue had been
@@ -240,6 +245,37 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
 
   const key = `${entry.id}:${state.answered}`;
   const item = entry.item;
+  // THE FADE (Unit 1 review suggestion 1): the run's first problem carries the
+  // worked example's first step in its brief; every later one carries nothing.
+  // Never on a Challenge or an exam, which promise no help.
+  const fade = state.answered === 0 && !state.challenge && state.exam !== true;
+  // SAY WHY FIRST (Unit 1 review suggestion 3, the owner's standing rule): a
+  // missed problem that comes back opens on its reason, asked at level 0 so it
+  // cannot fail, then the problem itself. Not on a Challenge or an exam.
+  const sayWhy =
+    state.missed.includes(entry.id) && !state.challenge && state.exam !== true && whyDone !== key
+      ? sayWhyBeatFor(entry, U1_POOLS[node] ?? pool, Object.values(U1_POOLS).flat())
+      : null;
+  if (sayWhy !== null) {
+    return (
+      <div className="beat-runner">
+        <div className="beat-runner__stage">
+          <Suspense fallback={<p role="status">Loading the next problem.</p>}>
+            <McqRunner
+              key={`why:${key}`}
+              node={node}
+              level={0}
+              beats={[sayWhy]}
+              onExit={onExit}
+              reducedMotion={reducedMotion}
+              progressSlot={<RunStatus {...status} />}
+              onDone={() => setWhyDone(key)}
+            />
+          </Suspense>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="beat-runner">
       {item.kind === "mcq" ? null : header}
@@ -250,7 +286,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
               key={key}
               node={node}
               level={levelOf(item.beat.levels)}
-              beats={[state.missed.includes(entry.id) ? rotated(item.beat) : item.beat]}
+              beats={[state.missed.includes(entry.id) ? rotated(item.beat) : fade ? withFirstStep(node, item.beat) : item.beat]}
               onExit={onExit}
               reducedMotion={reducedMotion}
               progressSlot={<RunStatus {...status} />}
@@ -279,7 +315,7 @@ export function PracticeRunner({ node, onExit, onFinish, reducedMotion = false, 
             />
           ) : null}
           {item.kind === "draw" ? (
-            <DrawBeatView key={key} beat={item.beat} level={levelOf(item.beat.levels)} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />
+            <DrawBeatView key={key} beat={fade ? withFirstStep(node, item.beat) : item.beat} level={levelOf(item.beat.levels)} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />
           ) : null}
           {item.kind === "keqTyped" ? (
             <KeqTypedQuestion key={key} question={item.question} level={levelOf([2])} onResult={keepFirst} onContinue={() => answer(firstResult.current)} />

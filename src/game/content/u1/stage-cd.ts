@@ -15,8 +15,8 @@
  * script from RDKit 2D coordinates. mcqFigures.ts keeps its tables private and
  * keyed by beat id, so this file exports its own two tables beside the pools,
  * STAGE_CD_VISUALS and STAGE_CD_OPTION_TILES, in the exact McqVisual and
- * NamedFigure shapes that file uses. Wiring them into mcqVisualFor and
- * mcqOptionTiles is an engine change and is logged, not made, here.
+ * NamedFigure shapes that file uses. mcqVisualFor and mcqOptionTiles read
+ * them through content/u1 (U1_VISUALS, U1_OPTION_TILES), so they are drawn.
  *
  * STEREO IS DRAWN. A stereo answer's tiles use the wedge and hash figures
  * (keys st-*) the script picks out of its section 5 isomers by relation, meso
@@ -43,7 +43,7 @@ const OS = "OpenStax Organic Chemistry (openstax.org/books/organic-chemistry)";
 const P_NBS = `${SCRIPT} section 1 (allylic C-H classes by symmetry, both resonance products, E/Z counted once). Checked against ${OS} 10.3 and 10.4.`;
 const P_MO = `${SCRIPT} section 2 (Huckel ladder: energies, node counts, HOMO and LUMO, end-lobe phases, gap). Checked against ${OS} 14.8 (lambda max 217, 258, 290 nm).`;
 const P_DA = `${SCRIPT} section 3 (Diels-Alder reaction SMARTS products, fused or bridged from shared ring atoms). Checked against ${OS} 14.4 and 14.5.`;
-const P_REGIO = `${SCRIPT} section 3 (Huckel frontier coefficients pick the pairing, ring relation read off the product). No licensed page checked: ${OS} 14.5 and 30.5 do not cover regiochemistry.`;
+const P_REGIO = `${SCRIPT} section 3 (resonance picture: the donor's delta-minus diene end joins the withdrawing group's delta-plus dienophile end, asserted equal to the Huckel frontier-coefficient pairing; ring relation read off the product). No licensed page checked: ${OS} 14.5 and 30.5 do not cover regiochemistry.`;
 const P_CONF = `${SCRIPT} section 4 (C=C-C=C dihedral; ring-locked or MMFF s-cis strain scan). Checked against ${OS} 14.5 (s-cis requirement).`;
 const P_STEREO = `${SCRIPT} section 5 (stereoisomers embedded in 3D, cis/trans by ring face, meso by mirror, CIP labels, endo/exo by distance to the CH2 bridge). Checked against ${OS} 14.5 and 30.5.`;
 const P_RETRO = `${SCRIPT} sections 6 and 6b (retro template, then every offered pair run forward; only the keyed pair gives the target). Checked against ${OS} 14.4.`;
@@ -115,8 +115,15 @@ interface Spec {
   readonly tiles?: Readonly<Record<string, NamedFigure>>;
 }
 
-const VIDEO: readonly MasteryLevel[] = [0, 1, 2];
-const PRACTICE: readonly MasteryLevel[] = [1, 2];
+/*
+ * CHANGED 3 Nov (Unit 1 review suggestion 12): every item carries ONE honest
+ * rung. A video lesson's recognise items are rung 1 (they played there
+ * already); a practice item is rung 1 when it applies one taught rule and rung
+ * 2 when it combines rules, works backward or turns on a subtle point. Each
+ * practice pool then plays easiest first (easiestFirst below), so "count the
+ * MOs" comes before "phase of the end lobes".
+ */
+const ONE: readonly MasteryLevel[] = [1];
 const QUIZ: readonly MasteryLevel[] = [2];
 
 function entry(s: Spec): PoolEntry {
@@ -152,7 +159,7 @@ const U1_NBS: readonly Spec[] = [
     id: "u1-cd-nbs-why",
     node: "u1-nbs",
     concept: "resonance_delocalisation",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Cyclohexene meets NBS and light. Pick why NBS is used instead of a bottle of Br2.",
     correct: "low",
     options: [
@@ -181,7 +188,7 @@ const U1_NBS: readonly Spec[] = [
     id: "u1-cd-nbs-weakest",
     node: "u1-nbs",
     concept: "resonance_delocalisation",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Pick the C-H in cyclohexene that breaks first when NBS and light are added.",
     brief: "The circled carbons carry the hydrogen in question.",
     correct: "allylic",
@@ -216,7 +223,7 @@ const U1_NBS: readonly Spec[] = [
     id: "u1-cd-nbs-initiator",
     node: "u1-nbs",
     concept: "resonance_delocalisation",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Run the cyclohexene and NBS reaction with a peroxide instead of light. Pick the product.",
     brief: "ROOR is a peroxide: a weak O-O bond that splits into two radicals on warming.",
     correct: "same",
@@ -258,7 +265,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-cyclopentene",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Treat cyclopentene with NBS and light. Pick the product.",
     correct: "allylic",
     options: [
@@ -292,7 +299,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-cyclohexene-count",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Cyclohexene, NBS and light. Pick how many different products form.",
     brief: "The circles mark the allylic carbons.",
     correct: "one",
@@ -322,7 +329,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-hexene-site",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Hex-1-ene meets NBS and light. Pick the carbon that loses its H.",
     correct: "c3",
     options: [
@@ -362,7 +369,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-hexene-shifted",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Hex-1-ene, NBS, light. Pick the product made at the shifted end of the radical.",
     brief: "The radical starts on C3 and is shared with C1.",
     correct: "shifted",
@@ -397,7 +404,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-isobutylene",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "2-Methylpropene, NBS, light. Pick the product.",
     correct: "allylic",
     options: [
@@ -431,7 +438,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-butene2",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "(E)-But-2-ene, NBS, light. Pick the product made at the shifted end of the radical.",
     brief: "Here the H comes off a methyl, so the radical starts on C1.",
     correct: "shifted",
@@ -466,7 +473,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-tetramethyl-count",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "2,3-Dimethylbut-2-ene, NBS, light. Pick how many different products form.",
     brief: "All twelve methyl H are equivalent.",
     correct: "two",
@@ -496,7 +503,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-methylenecyclohexane",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Methylenecyclohexane, NBS, light. Pick the product made at the shifted end.",
     brief: "The H comes off a ring CH2 next to the C=C.",
     correct: "shifted",
@@ -531,7 +538,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-mch-sites",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "1-Methylcyclohexene: pick the drawing that circles every allylic carbon.",
     correct: "all",
     options: [
@@ -564,7 +571,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-abstractor",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "In the NBS chain, pick the species that pulls the allylic H off.",
     correct: "br-rad",
     options: [
@@ -593,7 +600,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-nbs-job",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick the job NBS does once the chain is running.",
     correct: "hbr",
     options: [
@@ -622,7 +629,7 @@ const U1_NBS_PRACTICE: readonly Spec[] = [
     id: "u1-cd-nbsp-reagents",
     node: "u1-nbs-practice",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick the reagents that turn cyclohexene into 3-bromocyclohexene.",
     correct: "nbs",
     options: [
@@ -983,7 +990,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-count",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick how many pi molecular orbitals buta-1,3-diene has.",
     correct: "four",
     options: [
@@ -1011,7 +1018,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-bd-homo",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Fill butadiene's ladder with its four pi electrons. Pick the HOMO.",
     brief: "Lowest level first, two electrons per level.",
     correct: "psi2",
@@ -1040,7 +1047,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-bd-lumo",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick butadiene's LUMO.",
     correct: "psi3",
     options: [
@@ -1068,7 +1075,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-hex-homo",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Hexa-1,3,5-triene has six pi electrons. Pick its HOMO.",
     correct: "psi3",
     options: [
@@ -1096,7 +1103,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-ethene-lumo",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick how many nodes ethene's LUMO (its pi star) has.",
     correct: "one",
     options: [
@@ -1124,7 +1131,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-antibonding",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick butadiene's antibonding pi orbitals.",
     correct: "34",
     options: [
@@ -1152,7 +1159,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-allyl-anion",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "The allyl anion has four pi electrons over three carbons. Pick its HOMO.",
     correct: "psi2",
     options: [
@@ -1180,7 +1187,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-allyl-node",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Allyl ψ2 has its node on C2. Pick what that explains.",
     correct: "ends",
     options: [
@@ -1208,7 +1215,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-psi2-ends",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Butadiene ψ2: pick how its two end lobes compare, on the same face.",
     correct: "opposite",
     options: [
@@ -1236,7 +1243,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-longest",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick the compound that absorbs UV at the longest wavelength.",
     correct: "hexatriene",
     options: [
@@ -1269,7 +1276,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-isolated",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Pick the C5 compound with the longest-wavelength absorption.",
     brief: "Two of these have two C=C. Look at what sits between them.",
     correct: "conj",
@@ -1303,7 +1310,7 @@ const U1_MO: readonly Spec[] = [
     id: "u1-cd-mo-gap",
     node: "u1-mo",
     concept: "resonance_delocalisation",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick what more conjugation does to the HOMO to LUMO gap.",
     correct: "smaller",
     options: [
@@ -1338,7 +1345,7 @@ const U1_DA: readonly Spec[] = [
     id: "u1-cd-da-ring",
     node: "u1-da",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Butadiene and ethene are heated together. Pick the ring that forms.",
     correct: "six",
     options: [
@@ -1358,7 +1365,7 @@ const U1_DA: readonly Spec[] = [
         why: "Three pi bonds break and only one forms. The diene's two C=C are used up making the new sigma bonds, so one C=C is left, not two.",
       },
     ],
-    explanation: "Diels-Alder: diene plus dienophile give a cyclohexene in one step. Two new sigma bonds form, and one C=C remains, between the diene's old C2 and C3.",
+    explanation: "Diels-Alder: diene plus an alkene dienophile give a cyclohexene in one step. Two new sigma bonds form, and one C=C remains, between the diene's old C2 and C3. An alkyne dienophile keeps one extra C=C.",
     conditions: "Heat, no catalyst.",
     provenance: P_DA,
     visual: pair("butadiene", "buta-1,3-diene", "ethene", "ethene"),
@@ -1372,7 +1379,7 @@ const U1_DA: readonly Spec[] = [
     id: "u1-cd-da-concerted",
     node: "u1-da",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Pick how the Diels-Alder makes its two new sigma bonds.",
     correct: "one-step",
     options: [
@@ -1400,7 +1407,7 @@ const U1_DA: readonly Spec[] = [
     id: "u1-cd-da-orbitals",
     node: "u1-da",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Pick the two orbitals that have to overlap in phase for a Diels-Alder.",
     correct: "homo-lumo",
     options: [
@@ -1435,7 +1442,7 @@ const U1_DIENES: readonly Spec[] = [
     id: "u1-cd-dienes-fastest",
     node: "u1-dienes",
     concept: "diels_alder_geometry",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Pick the diene that reacts fastest with maleic anhydride.",
     correct: "cp",
     options: [
@@ -1469,7 +1476,7 @@ const U1_DIENES: readonly Spec[] = [
     id: "u1-cd-dienes-strans",
     node: "u1-dienes",
     concept: "diels_alder_geometry",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "3-Methylenecyclohexene meets maleic anhydride on heating. Pick what happens.",
     correct: "none",
     options: [
@@ -1498,7 +1505,7 @@ const U1_DIENES: readonly Spec[] = [
     id: "u1-cd-dienes-edg-locked",
     node: "u1-dienes",
     concept: "diels_alder_geometry",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "This locked s-trans diene carries an OCH3 donor. Pick the outcome with maleic anhydride.",
     correct: "none",
     options: [
@@ -1534,7 +1541,7 @@ const U1_DIENOPHILES: readonly Spec[] = [
     id: "u1-cd-phile-fastest",
     node: "u1-dienophiles",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Pick the dienophile that reacts fastest with butadiene.",
     correct: "ma",
     options: [
@@ -1568,7 +1575,7 @@ const U1_DIENOPHILES: readonly Spec[] = [
     id: "u1-cd-phile-acn-role",
     node: "u1-dienophiles",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Acrylonitrile meets butadiene. Pick its role and the reason.",
     correct: "phile",
     options: [
@@ -1588,7 +1595,7 @@ const U1_DIENOPHILES: readonly Spec[] = [
         why: "The role is right, the reason is not. A nitrile withdraws; that is why acrylonitrile is reactive.",
       },
     ],
-    explanation: "Diene or dienophile, more likely X because Y: acrylonitrile is the dienophile, more reactive because the CN withdraws and lowers its LUMO.",
+    explanation: "Acrylonitrile is the dienophile, and a fast one, because its CN withdraws and lowers its LUMO. Ask the role first, then the reason.",
     provenance: P_DA,
     visual: pair("butadiene", "buta-1,3-diene", "acrylonitrile", "acrylonitrile"),
   },
@@ -1596,7 +1603,7 @@ const U1_DIENOPHILES: readonly Spec[] = [
     id: "u1-cd-phile-ether-role",
     node: "u1-dienophiles",
     concept: "ewg_edg_rubric",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Methyl vinyl ether next to butadiene. Pick the best description.",
     correct: "poor",
     options: [
@@ -1631,7 +1638,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-acrolein",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Butadiene plus propenal (acrolein). Pick the Diels-Alder product.",
     correct: "right",
     options: [
@@ -1671,7 +1678,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-anhydride",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Butadiene plus maleic anhydride. Pick the product's skeleton.",
     brief: "Stereochemistry comes later. Choose the connectivity.",
     correct: "right",
@@ -1706,7 +1713,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-dmb-acn",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "2,3-Dimethylbuta-1,3-diene plus acrylonitrile. Pick the product.",
     correct: "right",
     options: [
@@ -1740,7 +1747,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-dmad",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Butadiene plus an alkyne dienophile, DMAD. Pick the product.",
     brief: "DMAD is dimethyl acetylenedicarboxylate: a C≡C with an ester on each end.",
     correct: "right",
@@ -1775,7 +1782,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-which-bond",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Working backward from this product, pick the bond that was the diene's C2-C3.",
     correct: "ene",
     options: [
@@ -1803,7 +1810,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-retro-cn",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Pick the diene and dienophile that make this product.",
     correct: "right",
     options: [
@@ -1833,31 +1840,97 @@ const U1_DA_PREDICT: readonly Spec[] = [
     }),
   },
   {
+    // ADDED 3 Nov (Unit 1 review M2, suggestion 2): the resonance picture,
+    // step one. scripts/u1_pools_cd.py delta_minus_end asserts the far end.
+    id: "u1-cd-pred-delta-minus",
+    node: "u1-da-predict",
+    concept: "ewg_edg_rubric",
+    alsoConcepts: ["resonance_delocalisation"],
+    levels: [1],
+    prompt: "In (E)-1-methoxybuta-1,3-diene the O lone pair pushes in. Pick the end that turns δ−.",
+    brief: "Draw the contributor: O forms a C=O+ bond and each pi pair slides one bond along.",
+    correct: "c4",
+    options: [
+      {
+        id: "c1",
+        text: "C1, the carbon carrying the OCH3",
+        why: "C1 is where the push starts. Its pi pair leaves it, so it cannot end up holding the extra electrons.",
+      },
+      {
+        id: "c4",
+        text: "C4, the far end of the diene",
+        why: "Right. O makes a double bond to C1, the C1=C2 pair slides to C2-C3, and the C3=C4 pair lands on C4. The same Orgo I resonance that makes OCH3 a donor puts δ− on C4.",
+      },
+      {
+        id: "none",
+        text: "Neither end, only the middle carbons",
+        why: "Slide the arrows to the end of the chain. The last pair has nowhere to go but onto C4, an end carbon, and that is the end that bonds.",
+      },
+    ],
+    explanation: "A donor on diene C1 pushes electrons to the far end: δ− on C4. A donor on C2 puts δ− on C1. That δ− end is the one that bonds to the dienophile's δ+ end.",
+    conditions: "Heat, one equivalent each.",
+    provenance: P_REGIO,
+    visual: structure("methoxybutadiene1", "(E)-1-methoxybuta-1,3-diene"),
+  },
+  {
+    // ADDED 3 Nov (Unit 1 review suggestion 2): the resonance picture, step two.
+    // scripts/u1_pools_cd.py delta_plus_end asserts the CH2 end.
+    id: "u1-cd-pred-delta-plus",
+    node: "u1-da-predict",
+    concept: "ewg_edg_rubric",
+    alsoConcepts: ["resonance_delocalisation"],
+    levels: [1],
+    prompt: "In propenal the C=O pulls. Pick the C=C carbon that turns δ+.",
+    brief: "Draw the contributor: the C=O pair moves onto O, then the C=C pair slides toward it.",
+    correct: "ch2",
+    options: [
+      {
+        id: "ch2",
+        text: "The CH2 end, furthest from the C=O",
+        why: "Right. O takes the C=O pair, the C=C pair slides over to make C=C-O−, and the CH2 is left with the plus charge. The same resonance that makes C=O a withdrawing group puts δ+ there.",
+      },
+      {
+        id: "ch",
+        text: "The CH next to the C=O",
+        why: "That carbon passes the electrons along. In the contributor it is part of the new C=C, so it is not the one left short.",
+      },
+      {
+        id: "both",
+        text: "Both C=C carbons equally",
+        why: "Only one end loses its share when the pair slides toward the oxygen. Drawing the contributor shows the plus on the CH2 alone.",
+      },
+    ],
+    explanation: "A withdrawing group on the dienophile pulls the C=C pair toward itself and leaves δ+ on the far CH2. Join that δ+ CH2 to the diene's δ− end.",
+    conditions: "Heat, one equivalent each.",
+    provenance: P_REGIO,
+    visual: structure("acrolein", "propenal"),
+  },
+  {
     id: "u1-cd-pred-ortho-acrolein",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "(E)-Penta-1,3-diene plus propenal. Pick the major regioisomer.",
     brief: "The methyl is on diene C1, the end carbon.",
     correct: "ortho",
     options: [
       {
         id: "ortho",
-        text: "1,2 (ortho) relationship",
-        why: "Right. Largest HOMO lobe (diene C4) bonds to largest LUMO lobe (the CH2 end of propenal). That leaves CHO and CH3 on adjacent carbons.",
+        text: "1,2 on the ring (ortho)",
+        why: "Right. The CH3 on C1 donates a little and puts δ− on diene C4. The C=O pulls and puts δ+ on the CH2 end of propenal. Join δ− to δ+ and CHO lands next to CH3. In orbital terms, the biggest HOMO lobe meets the biggest LUMO lobe.",
       },
       {
         id: "meta",
-        text: "1,3 (meta) relationship",
-        why: "This is the minor product. A donor on C1 makes C4 the diene's largest HOMO lobe, and that pairs with the CH2 end of the dienophile, which puts CHO next to CH3.",
+        text: "1,3 on the ring (meta)",
+        why: "This is the minor product. It joins the δ− end of the diene, C4, to the CHO carbon instead of to the δ+ CH2 end, which puts CHO one carbon further from CH3.",
       },
       {
         id: "para",
-        text: "1,4 (para) relationship",
+        text: "1,4 on the ring (para)",
         why: "A C1 substituent cannot end up para: it stays on an sp3 carbon next to the C=C, and the CHO can only land one or two carbons from it. Para needs a substituent on C2.",
       },
     ],
-    explanation: "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product.",
+    explanation: "Join the diene's δ− end to the dienophile's δ+ end. 1-Substituted dienes give the 1,2 product on the ring; 2-substituted dienes give the 1,4 product. Chemists call these ortho and para, nicknames from benzene that the aromatic unit explains.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("piperylene", "(E)-penta-1,3-diene", "acrolein", "propenal"),
@@ -1871,28 +1944,28 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-para-ester",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Isoprene plus methyl acrylate. Pick the major regioisomer.",
     brief: "Isoprene's methyl is on C2, an inner carbon.",
     correct: "para",
     options: [
       {
         id: "para",
-        text: "1,4 (para) relationship",
-        why: "Right. A donor on C2 makes C1 the largest HOMO lobe. It bonds to the CH2 end of the acrylate, which leaves the ester 1,4 to the methyl.",
+        text: "1,4 on the ring (para)",
+        why: "Right. The CH3 on C2 donates a little and puts δ− on C1. The ester puts δ+ on the acrylate CH2. Join them and the ester sits 1,4 to the methyl. In orbital terms, C1 carries the biggest HOMO lobe.",
       },
       {
         id: "meta",
-        text: "1,3 (meta) relationship",
-        why: "This forms, as the minor isomer. It pairs the small lobes and the large lobes the wrong way round.",
+        text: "1,3 on the ring (meta)",
+        why: "This forms, as the minor isomer. It joins the δ− end of the diene to the ester carbon instead of to the δ+ CH2.",
       },
       {
         id: "ortho",
-        text: "1,2 (ortho) relationship",
+        text: "1,2 on the ring (ortho)",
         why: "Ortho needs the substituent on the diene's end carbon. Isoprene's methyl is on C2, so it ends up on the ring C=C and cannot be next to the ester.",
       },
     ],
-    explanation: "A 2-substituted diene gives the para product; a 1-substituted one gives ortho.",
+    explanation: "A 2-substituted diene puts δ− on C1, which bonds to the dienophile's δ+ CH2: the 1,4 product on the ring (para). A 1-substituted one gives 1,2 (ortho).",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("isoprene", "isoprene", "methylacrylate", "methyl acrylate"),
@@ -1906,27 +1979,27 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-ortho-ome",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "(E)-1-Methoxybuta-1,3-diene plus acrylonitrile. Pick the major regioisomer.",
     correct: "ortho",
     options: [
       {
         id: "para",
-        text: "1,4 (para) relationship",
+        text: "1,4 on the ring (para)",
         why: "The OCH3 is on an end carbon, which becomes sp3 next to the C=C. From there the CN can be only one or two carbons away.",
       },
       {
         id: "meta",
-        text: "1,3 (meta) relationship",
-        why: "This is the minor isomer. It puts the diene's largest HOMO lobe, C4, on the CN-bearing carbon, a small LUMO lobe.",
+        text: "1,3 on the ring (meta)",
+        why: "This is the minor isomer. It joins the δ− end of the diene, C4, to the CN carbon instead of to the δ+ CH2.",
       },
       {
         id: "ortho",
-        text: "1,2 (ortho) relationship",
-        why: "Right. OCH3 donates and makes C4 the largest HOMO lobe; it bonds to the acrylonitrile CH2. OCH3 and CN end up adjacent.",
+        text: "1,2 on the ring (ortho)",
+        why: "Right. The O lone pair pushes in and puts δ− on C4. The CN pulls and puts δ+ on the acrylonitrile CH2. Join them and OCH3 and CN end up adjacent. In orbital terms, C4 carries the biggest HOMO lobe.",
       },
     ],
-    explanation: "A donor on diene C1, a withdrawing group on the dienophile: ortho product.",
+    explanation: "A donor on diene C1 puts δ− on C4; a withdrawing group puts δ+ on the dienophile's CH2. Joined, they give the 1,2 product on the ring (ortho).",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("methoxybutadiene1", "1-methoxybutadiene", "acrylonitrile", "acrylonitrile"),
@@ -1940,27 +2013,27 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-para-ome",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "2-Methoxybuta-1,3-diene plus acrylonitrile. Pick the major regioisomer.",
     correct: "para",
     options: [
       {
         id: "ortho",
-        text: "1,2 (ortho) relationship",
+        text: "1,2 on the ring (ortho)",
         why: "The OCH3 is on C2, which becomes a ring C=C carbon. The CN goes on an sp3 carbon, so ortho, on adjacent carbons, is not available here.",
       },
       {
         id: "para",
-        text: "1,4 (para) relationship",
-        why: "Right. OCH3 on C2 makes C1 the largest HOMO lobe, which bonds to the CH2 of acrylonitrile and leaves CN 1,4 to the OCH3.",
+        text: "1,4 on the ring (para)",
+        why: "Right. The O lone pair on C2 pushes in and puts δ− on C1. That bonds to the δ+ CH2 of acrylonitrile and leaves CN 1,4 to the OCH3.",
       },
       {
         id: "meta",
-        text: "1,3 (meta) relationship",
-        why: "This is the minor regioisomer, from pairing the large lobe of the diene with the small lobe of the dienophile.",
+        text: "1,3 on the ring (meta)",
+        why: "This is the minor regioisomer. It joins the δ− end of the diene to the CN carbon instead of to the δ+ CH2.",
       },
     ],
-    explanation: "Donor on C2 of the diene: para product. The OCH3 ends up on the ring C=C.",
+    explanation: "Donor on C2 of the diene: δ− on C1, which bonds to the δ+ CH2, so the product is 1,4 on the ring (para). The OCH3 ends up on the ring C=C.",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("methoxybutadiene2", "2-methoxybutadiene", "acrylonitrile", "acrylonitrile"),
@@ -1974,7 +2047,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-retro-para",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Pick the starting pair that gives this product as the major isomer.",
     correct: "iso",
     options: [
@@ -1991,7 +2064,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
       {
         id: "iso",
         text: "Isoprene plus acrylonitrile",
-        why: "Right. Cutting across from the C=C gives isoprene and acrylonitrile, and a 2-substituted diene gives the para product as major.",
+        why: "Right. Cutting across from the C=C gives isoprene and acrylonitrile, and a 2-substituted diene gives the 1,4 product on the ring (para) as major.",
       },
     ],
     explanation: "A group on the ring C=C came from diene C2 or C3. A group on an sp3 carbon next to the C=C came from diene C1 or C4. A group on the other sp3 carbons came from the dienophile.",
@@ -2007,7 +2080,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
     id: "u1-cd-pred-retro-ortho",
     node: "u1-da-predict",
     concept: "ewg_edg_rubric",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Pick the starting pair that gives this product as the major isomer.",
     brief: "The CH3 sits on an sp3 carbon next to the ring C=C.",
     correct: "pip",
@@ -2015,7 +2088,7 @@ const U1_DA_PREDICT: readonly Spec[] = [
       {
         id: "pip",
         text: "(E)-Penta-1,3-diene plus propenal",
-        why: "Right. A CH3 beside the C=C came from diene C1, and a 1-substituted diene gives the ortho product as major.",
+        why: "Right. A CH3 beside the C=C came from diene C1, and a 1-substituted diene gives the 1,2 product on the ring (ortho) as major.",
       },
       {
         id: "crot",
@@ -2048,7 +2121,7 @@ const U1_DA_STEREO: readonly Spec[] = [
     id: "u1-cd-st-cis",
     node: "u1-da-stereo",
     concept: "diels_alder_geometry",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Butadiene plus dimethyl maleate, whose esters are cis. Pick the product's esters.",
     correct: "cis",
     options: [
@@ -2083,7 +2156,7 @@ const U1_DA_STEREO: readonly Spec[] = [
     node: "u1-da-stereo",
     concept: "diels_alder_geometry",
     alsoConcepts: ["kinetic_vs_thermodynamic_control"],
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Cyclopentadiene and maleic anhydride at room temperature. Pick the major adduct.",
     correct: "endo",
     options: [
@@ -2117,7 +2190,7 @@ const U1_DA_STEREO: readonly Spec[] = [
     id: "u1-cd-st-bridged",
     node: "u1-da-stereo",
     concept: "diels_alder_geometry",
-    levels: VIDEO,
+    levels: ONE,
     prompt: "Cyclopentadiene meets ethene. Pick the shape of the product.",
     correct: "bridged",
     options: [
@@ -2147,6 +2220,76 @@ const U1_DA_STEREO: readonly Spec[] = [
       bridged: ["norbornene", "bridged"],
     }),
   },
+  {
+    // ADDED 3 Nov (Unit 1 review suggestion 10): the inside/outside rule, taught
+    // before u1-da-3d leans on it. scripts/u1_pools_cd.py inside_outside_da
+    // finds each methyl inside or outside in the s-cis diene.
+    id: "u1-cd-st-inside-outside",
+    node: "u1-da-stereo",
+    concept: "diels_alder_geometry",
+    levels: [1],
+    prompt: "Turn (2E,4Z)-hexa-2,4-diene s-cis. Pick where its two end methyls point.",
+    brief: "Outside points away from the other end of the diene; inside points toward it.",
+    correct: "one-each",
+    options: [
+      {
+        id: "both-out",
+        text: "Both outside",
+        why: "That is the E,E diene. Here one end is Z, and a Z methyl on an s-cis diene curls in toward the other end.",
+      },
+      {
+        id: "one-each",
+        text: "One inside, one outside",
+        why: "Right. The E end keeps its methyl pointing away from the other end, outside. The Z end puts its methyl in the gap between the two ends, inside.",
+      },
+      {
+        id: "both-in",
+        text: "Both inside",
+        why: "That is the Z,Z diene, and both methyls crowd the gap, which is why it struggles to reach s-cis at all. Only one end here is Z.",
+      },
+    ],
+    explanation: "On an s-cis diene, an E end group points outside and a Z end group points inside. Outside groups end up cis to each other in the ring; an inside and an outside group end up trans.",
+    provenance: `${P_STEREO} Inside or outside measured on an embedded s-cis conformer (section 5, inside_outside_da).`,
+    visual: structure("hexadieneEZ", "(2E,4Z)-hexa-2,4-diene"),
+  },
+  {
+    // ADDED 3 Nov (Unit 1 review suggestion 10). The product is built on the
+    // s-cis geometry with both new bonds on one face, then matched to the trans
+    // isomer of 3,6-dimethylcyclohexene (inside_outside_da).
+    id: "u1-cd-st-inside-outside-product",
+    node: "u1-da-stereo",
+    concept: "diels_alder_geometry",
+    levels: [2],
+    prompt: "(2E,4Z)-Hexa-2,4-diene plus ethene. Pick the relation of the two ring methyls.",
+    brief: "One methyl is inside and one is outside on the s-cis diene.",
+    correct: "trans",
+    options: [
+      {
+        id: "cis",
+        text: "Cis, and the product is meso",
+        why: "Cis comes from two outside groups, the E,E diene. Here one methyl is inside, and an inside group lands on the opposite face from an outside one.",
+      },
+      {
+        id: "trans",
+        text: "Trans",
+        why: "Right. Both new bonds form on the same face of the diene, so an outside group and an inside group are carried to opposite faces of the ring.",
+      },
+      {
+        id: "mix",
+        text: "A cis and trans mixture",
+        why: "The step is concerted, so the diene's geometry is fixed while the bonds form. One diene isomer gives one relative configuration.",
+      },
+    ],
+    explanation: "Outside groups end up cis to each other in the ring; an inside and an outside group end up trans. The (2E,4Z) diene has one of each, so its methyls end up trans.",
+    conditions: "Heat.",
+    provenance: `${P_STEREO} Product built suprafacially on the s-cis geometry and matched to the trans isomer (section 5, inside_outside_da).`,
+    visual: structure("hexadieneEZ", "(2E,4Z)-hexa-2,4-diene"),
+    tiles: tiles({
+      cis: ["st-dmch-cis", "cis, meso"],
+      trans: ["st-dmch-trans", "trans"],
+      mix: ["st-dmch-mix", "cis and trans"],
+    }),
+  },
 ];
 
 /* ================================================================== */
@@ -2158,7 +2301,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-maleate",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Butadiene plus dimethyl maleate. Pick how the two esters sit in the product.",
     correct: "cis",
     options: [
@@ -2192,7 +2335,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-fumarate",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Butadiene plus dimethyl fumarate. Pick how the two esters sit in the product.",
     correct: "trans",
     options: [
@@ -2226,7 +2369,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-cis-meso",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Dimethyl maleate gives the cis diester. Pick what the flask holds.",
     correct: "meso",
     options: [
@@ -2260,7 +2403,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-trans-racemate",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Pick what the trans diester from dimethyl fumarate forms as.",
     correct: "racemate",
     options: [
@@ -2295,7 +2438,7 @@ const U1_DA_3D: readonly Spec[] = [
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
     alsoConcepts: ["kinetic_vs_thermodynamic_control"],
-    levels: PRACTICE,
+    levels: [1],
     prompt: "In this norbornene adduct, pick where an endo substituent points.",
     correct: "under",
     options: [
@@ -2323,7 +2466,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-junction",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Cyclopentadiene plus maleic anhydride. Pick the two H at the anhydride ring junction.",
     brief: "Each junction H points to the face opposite its wedged or hashed ring bond.",
     correct: "cis",
@@ -2359,7 +2502,7 @@ const U1_DA_3D: readonly Spec[] = [
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
     alsoConcepts: ["kinetic_vs_thermodynamic_control"],
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Heat the endo adduct until the reaction runs backward and forward. Pick what builds up.",
     brief: "Same logic as warm HBr and butadiene in stage B.",
     correct: "exo",
@@ -2367,7 +2510,7 @@ const U1_DA_3D: readonly Spec[] = [
       {
         id: "exo",
         text: "Exo, the more stable adduct",
-        why: "Right. Reversible means thermodynamic control, so exo grows from almost nothing toward equilibrium. For this pair it only edges ahead, about 55:45 at 190 degrees. Same split as 1,2 against 1,4 in stage B.",
+        why: "Right. Reversible means thermodynamic control, so exo grows from almost nothing toward equilibrium. For this pair it only edges ahead, about 55:45 at 190 degrees. Same idea as 1,2 against 1,4 in stage B.",
       },
       {
         id: "endo",
@@ -2389,7 +2532,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-fused",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Butadiene plus maleic anhydride. Pick the ring shape of the product.",
     correct: "fused",
     options: [
@@ -2418,7 +2561,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-which-bridged",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [1],
     prompt: "Pick the diene that gives a bridged product with ethene.",
     correct: "cp",
     options: [
@@ -2452,7 +2595,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-hexadiene",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "(2E,4E)-Hexa-2,4-diene plus ethene. Pick the relation of the two ring methyls.",
     brief: "In s-cis, both methyls of the E,E diene point outward.",
     correct: "cis",
@@ -2475,7 +2618,7 @@ const U1_DA_3D: readonly Spec[] = [
     ],
     explanation: "Diene stereo carries over too: in an E,E diene both outward groups end up cis in the ring.",
     conditions: "Heat.",
-    provenance: `${P_STEREO} The outside-groups-cis rule is applied, then the script confirms the cis isomer is meso.`,
+    provenance: `${P_STEREO} The outside-groups-cis rule is derived on an s-cis model (inside_outside_da), then the script confirms the cis isomer is meso.`,
     visual: structure("dimethylcyclohexene36", "3,6-dimethylcyclohexene"),
     tiles: tiles({
       cis: ["st-dmch-cis", "cis, meso"],
@@ -2487,7 +2630,7 @@ const U1_DA_3D: readonly Spec[] = [
     id: "u1-cd-3d-one-centre",
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Butadiene plus acrylonitrile gives one stereocentre. Pick what forms.",
     correct: "racemate",
     options: [
@@ -2522,7 +2665,7 @@ const U1_DA_3D: readonly Spec[] = [
     node: "u1-da-3d",
     concept: "diels_alder_geometry",
     alsoConcepts: ["kinetic_vs_thermodynamic_control"],
-    levels: PRACTICE,
+    levels: [2],
     prompt: "Cyclopentadiene plus dimethyl fumarate. Pick where the two esters point.",
     brief: "Fumarate's esters are trans.",
     correct: "one-each",
@@ -2560,6 +2703,39 @@ const U1_DA_3D: readonly Spec[] = [
 /* ================================================================== */
 
 const U1_QUIZ_D: readonly Spec[] = [
+  {
+    // ADDED 3 Nov (Unit 1 review suggestion 11): stage A resonance spaced into
+    // the stage D checkpoint. scripts/u1_pools_cd.py delta_minus_end puts the
+    // pushed-in charge on C1 of 2-methoxybutadiene.
+    id: "u1-cd-qd-space-donor",
+    node: "u1-quiz-d",
+    concept: "ewg_edg_rubric",
+    alsoConcepts: ["resonance_delocalisation"],
+    levels: QUIZ,
+    prompt: "2-Methoxybuta-1,3-diene is a fast diene. Pick the reason, in stage A terms.",
+    correct: "res",
+    options: [
+      {
+        id: "induct",
+        text: "O pulls electrons through the sigma bond",
+        why: "O does pull through the sigma bond, and that alone would make the diene poorer. The lone pair pushing in through the pi system is the bigger effect.",
+      },
+      {
+        id: "res",
+        text: "Its O lone pair pushes into the pi system",
+        why: "Right. Draw the contributor: O forms a double bond to C2 and the pi pair lands on C1. The same resonance that spreads a charge in stage A raises the diene's HOMO here.",
+      },
+      {
+        id: "lock",
+        text: "OCH3 locks the diene s-cis",
+        why: "Nothing locks it: the C2-C3 bond still rotates. Shape decides whether a diene can react at all; the donor decides how fast.",
+      },
+    ],
+    explanation: "A donor speeds a diene by resonance: its lone pair pushes into the pi system, puts δ− on an end carbon and raises the HOMO. That is stage A resonance at work in stage D.",
+    conditions: "Heat.",
+    provenance: P_REGIO,
+    visual: structure("methoxybutadiene2", "2-methoxybuta-1,3-diene"),
+  },
   {
     id: "u1-cd-qd-hex-lumo",
     node: "u1-quiz-d",
@@ -2738,15 +2914,15 @@ const U1_QUIZ_D: readonly Spec[] = [
       {
         id: "meta",
         text: "Ester 1,3 to the methyl",
-        why: "This is the minor isomer: it pairs the diene's large HOMO lobe with the dienophile's small LUMO lobe.",
+        why: "This is the minor isomer: it joins the diene's δ− end to the ester carbon instead of to the δ+ CH2.",
       },
       {
         id: "ortho",
         text: "Ester 1,2 to the methyl",
-        why: "Right. A 1-substituted diene gives the ortho product.",
+        why: "Right. The methyl on C1 puts δ− on C4, which joins the δ+ CH2 of the acrylate: the 1,2 product (ortho).",
       },
     ],
-    explanation: "A 1-substituted diene gives ortho; a 2-substituted diene gives para.",
+    explanation: "Join δ− to δ+. A 1-substituted diene gives the 1,2 product (ortho); a 2-substituted diene gives 1,4 (para).",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("piperylene", "(E)-penta-1,3-diene", "methylacrylate", "methyl acrylate"),
@@ -2767,7 +2943,7 @@ const U1_QUIZ_D: readonly Spec[] = [
       {
         id: "meta",
         text: "Ketone 1,3 to the methyl",
-        why: "This is the minor regioisomer.",
+        why: "This is the minor regioisomer: it joins the δ− end of isoprene to the ketone carbon instead of to the δ+ CH2.",
       },
       {
         id: "ortho",
@@ -2777,10 +2953,10 @@ const U1_QUIZ_D: readonly Spec[] = [
       {
         id: "para",
         text: "Ketone 1,4 to the methyl",
-        why: "Right. A 2-substituted diene gives the para product.",
+        why: "Right. Isoprene's methyl on C2 puts δ− on C1, which joins the δ+ CH2 of the ketone: the 1,4 product (para).",
       },
     ],
-    explanation: "Isoprene is 2-substituted, so it gives the para product.",
+    explanation: "Isoprene is 2-substituted, so δ− sits on C1 and the product is 1,4 on the ring (para).",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("isoprene", "isoprene", "mvk", "methyl vinyl ketone"),
@@ -2844,7 +3020,7 @@ const U1_QUIZ_D: readonly Spec[] = [
         why: "A group on C2 sits on the outside of the s-cis diene and does not block it. Electronically it helps.",
       },
     ],
-    explanation: "Diene or dienophile, more likely X because Y: 2-methoxybutadiene is the diene, more reactive because OCH3 donates and raises its HOMO.",
+    explanation: "2-Methoxybutadiene is the diene, and a fast one, because its OCH3 donates and raises its HOMO. Ask the role first, then the reason.",
     provenance: P_DA,
     visual: pair("methoxybutadiene2", "2-methoxybutadiene", "acrylonitrile", "acrylonitrile"),
   },
@@ -2962,12 +3138,12 @@ const U1_EXAM_D: readonly Spec[] = [
       {
         id: "para",
         text: "Ester 1,4 to the OCH3",
-        why: "Right. A donor on C2 makes C1 the largest HOMO lobe, which bonds to the acrylate CH2: para product.",
+        why: "Right. A donor on C2 puts δ− on C1, which bonds to the δ+ acrylate CH2: the 1,4 product (para).",
       },
       {
         id: "meta",
         text: "Ester 1,3 to the OCH3",
-        why: "This is the minor isomer, from pairing the large lobe on one partner with the small lobe on the other.",
+        why: "This is the minor isomer, from joining the δ− end to the ester carbon instead of to the δ+ CH2.",
       },
       {
         id: "ortho",
@@ -2975,7 +3151,7 @@ const U1_EXAM_D: readonly Spec[] = [
         why: "Ortho would need the OCH3 on the diene's end carbon. Here it is on C2 and lands on the ring C=C.",
       },
     ],
-    explanation: "A 2-substituted diene gives the para product.",
+    explanation: "A 2-substituted diene puts δ− on C1, so it gives the 1,4 product on the ring (para).",
     conditions: "Heat, one equivalent each.",
     provenance: P_REGIO,
     visual: pair("methoxybutadiene2", "2-methoxybutadiene", "methylacrylate", "methyl acrylate"),
@@ -3099,8 +3275,14 @@ const BY_NODE: Readonly<Record<string, readonly Spec[]>> = {
 
 const ALL: readonly Spec[] = Object.values(BY_NODE).flat();
 
+/** Lowest rung first, authored order within a rung (Array.prototype.sort is stable). */
+function easiestFirst(specs: readonly Spec[]): readonly Spec[] {
+  const rung = (s: Spec): number => s.levels.find((level) => level > 0) ?? s.levels[0] ?? 1;
+  return [...specs].sort((a, b) => rung(a) - rung(b));
+}
+
 export const STAGE_CD_POOLS: UnitPools = Object.freeze(
-  Object.fromEntries(Object.entries(BY_NODE).map(([node, specs]) => [node, Object.freeze(specs.map(entry))])),
+  Object.fromEntries(Object.entries(BY_NODE).map(([node, specs]) => [node, Object.freeze(easiestFirst(specs).map(entry))])),
 );
 
 /** The beat-level visual for every entry, keyed by entry id (which is also the beat id). */

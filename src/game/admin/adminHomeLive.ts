@@ -9,14 +9,14 @@
  * supabase/migrations/20261029120000_entitlements_staff_read.sql:
  *   entitlements      who is on Pro, and when they bought
  * Money amounts are not stored anywhere the client can read (Stripe holds them), so
- * monthly revenue, payouts, invoices and system status stay sample, and each of those
+ * monthly revenue, payouts, invoices and system status stay unread, and each of those
  * cards says so. Nothing here is ever shown as real unless a query returned it.
  *
  * Pure builders first (tested in adminHomeLive.test.ts), then the one fetch.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { PATHWAY_UNITS } from "../demo/pathwayMap";
-import { sampleAdminHome, type AdminHomeData, type FeedItem, type FunnelStage, type Purchase, type StatCell, type TodayBlock } from "./adminHomeData";
+import { emptyAdminHome, type AdminHomeData, type FeedItem, type FunnelStage, type Purchase, type StatCell, type TodayBlock } from "./adminHomeData";
 
 /* ------------------------------------------------------------------ period */
 
@@ -207,9 +207,9 @@ export function buildFeed(profiles: readonly string[], events: readonly EventLit
   return items.sort((a, b) => b.t - a.t).slice(0, 8).map(({ t: _t, ...rest }) => rest);
 }
 
-/* ------------------------------------------------------------------ sample, scoped to a period */
+/* ------------------------------------------------------------------ the unread page, scoped to a period */
 
-/** The sample page for any period: same made-up shape, cut to the days chosen. */
+/** The unread page for any period: the flat series cut to the days chosen. Every figure stays zero. */
 export function sampleView(base: AdminHomeData, p: Period, now: Date): AdminHomeData {
   const n = periodDays(p);
   const endAgo = Math.round((sod(now).getTime() - sod(p.to).getTime()) / DAY);
@@ -217,15 +217,8 @@ export function sampleView(base: AdminHomeData, p: Period, now: Date): AdminHome
     const end = series.length - Math.max(0, endAgo);
     return series.slice(Math.max(0, end - n), Math.max(end, 0));
   };
-  const signups = slice(base.signups);
   const signupsBefore = slice(base.signupsBefore).length ? slice(base.signupsBefore) : base.signupsBefore.slice(0, n);
-  const total = signups.reduce((a, b) => a + b, 0);
-  const totalBefore = signupsBefore.reduce((a, b) => a + b, 0);
-  const k = Math.min(1.6, Math.max(0.05, n / 30));
-  const scale = (c: number) => Math.max(1, Math.round(c * k));
-  const stats = base.stats.map((s): StatCell => (s.id === "signups" ? { ...s, value: total, delta: change(total, totalBefore), hint: "In the chosen period" } : s.id === "active" ? { ...s, value: scale(s.value) } : s));
-  const feed = endAgo > 0 ? [] : base.feed;
-  return { ...base, signups, signupsBefore, stats, funnel: base.funnel.map((f) => ({ ...f, count: scale(f.count) })), feed };
+  return { ...base, signups: slice(base.signups), signupsBefore, feed: endAgo > 0 ? [] : base.feed };
 }
 
 /* ------------------------------------------------------------------ the fetch */
@@ -249,7 +242,7 @@ export async function fetchAll<T>(make: (from: number, to: number) => PromiseLik
   return { rows, error: false };
 }
 
-/** Pull real figures for `period` (and the one before it) and lay them over the sample page. */
+/** Pull real figures for `period` (and the one before it) and lay them over the unread page. */
 export async function fetchLive(supabase: SupabaseClient | null, period: Period, now: Date): Promise<LiveResult> {
   if (supabase === null) return { ok: false, reason: "no-supabase" };
   try {
@@ -270,7 +263,7 @@ export async function fetchLive(supabase: SupabaseClient | null, period: Period,
     const profTimes = profs.rows.map((r) => r.created_at);
     const events = evs.rows;
     const live: string[] = [];
-    const base = sampleAdminHome;
+    const base = emptyAdminHome;
 
     // Visits are only trusted when the staff policy let rows through.
     const visitsOf = (p: Period): number | null => (visitRes.error || visitRes.rows.length === 0 ? null : new Set(visitRes.rows.filter((v) => inPeriod(v.occurred_at, p)).map((v) => v.anon_id)).size);

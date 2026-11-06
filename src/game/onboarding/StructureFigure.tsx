@@ -17,7 +17,7 @@
  * A duplicate description of the drawing would read the answer twice.
  */
 
-import type { Figure, FigureBond, FigureBox, FigureLabel } from "./figures";
+import type { Figure, FigureBond, FigureBox, FigureCurve, FigureLabel } from "./figures";
 import { bondEndsJoined, doubleBondSide, FIGURE_HEIGHT, FIGURE_WIDTH, formulaRuns, stereoShape } from "./figures";
 
 /** Bond weight, in viewBox units. Reads at the 145px the tile draws it at. */
@@ -166,6 +166,37 @@ function Bond({
   );
 }
 
+/**
+ * A curved electron-pushing arrow, the textbook's full-headed arrow for a pair,
+ * or a half-headed fishhook for one electron (Unit 1 review suggestion 9). The head points along the curve's own tangent
+ * at its end, so it always reads as arriving at the bond it makes.
+ */
+function CurvedArrow({ curve }: { readonly curve: FigureCurve }) {
+  const { x1, y1, cx, cy, x2, y2 } = curve;
+  const tx = x2 - cx;
+  const ty = y2 - cy;
+  const length = Math.hypot(tx, ty) || 1;
+  const ux = tx / length;
+  const uy = ty / length;
+  const head = 5;
+  const nx = -uy;
+  const ny = ux;
+  return (
+    <g stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" fill="none" data-curve="push">
+      <path d={`M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`} />
+      {curve.half === true ? (
+        // A fishhook: one barb only, for one electron.
+        <path d={`M ${x2 - ux * head + nx * head * 0.55} ${y2 - uy * head + ny * head * 0.55} L ${x2} ${y2}`} />
+      ) : (
+        <path
+          d={`M ${x2 - ux * head + nx * head * 0.55} ${y2 - uy * head + ny * head * 0.55} L ${x2} ${y2} L ${x2 - ux * head - nx * head * 0.55} ${y2 - uy * head - ny * head * 0.55}`}
+          fill="currentColor"
+        />
+      )}
+    </g>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* The figure                                                          */
 /* ------------------------------------------------------------------ */
@@ -214,6 +245,9 @@ export function StructureFigure({
       ))}
       {(figure.labels ?? []).map((label, index) => (
         <Label key={`l${index}`} label={label} />
+      ))}
+      {(figure.curves ?? []).map((curve, index) => (
+        <CurvedArrow key={`c${index}`} curve={curve} />
       ))}
     </svg>
   );

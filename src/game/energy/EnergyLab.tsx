@@ -207,8 +207,8 @@ export function ColdOrWarm() {
       </div>
       <div aria-live="polite" className="mt-2 rounded-xl border-2 border-bb-border bg-bb-card p-3 text-scale-sm">
         {warm
-          ? "Warm, every step can reverse. The 1,2 product climbs back out and material settles into the deeper well: mostly the 1,4 product, the one with the more substituted double bond. Thermodynamic control."
-          : "Cold, neither step can be undone. The lower hump is crossed more often, so the 1,2 product forms and stays. Kinetic control."}
+          ? "Warm, every step can reverse. The 1,2 product climbs back out and material settles into the deeper well: mostly the 1,4 product, the one with the more substituted double bond. About 15:85 (1,2 to 1,4) at 40 °C. Thermodynamic control."
+          : "Cold, neither step can be undone. The lower hump is crossed more often, so the 1,2 product forms and stays: about 71:29 (1,2 to 1,4) at 0 °C. Kinetic control."}
       </div>
     </div>
   );
@@ -378,8 +378,9 @@ const TABS = [
   ["temp", "Cold or warm"],
 ] as const;
 
-export default function EnergyLab() {
-  const [tab, setTab] = useState<"build" | "walk" | "real" | "temp" | "work">("work");
+/** `start` opens the lab on one tab: a lesson card about butadiene and HBr opens it on Cold or warm. */
+export default function EnergyLab({ start = "work" }: { readonly start?: "build" | "walk" | "real" | "temp" | "work" } = {}) {
+  const [tab, setTab] = useState<"build" | "walk" | "real" | "temp" | "work">(start);
   return (
     <section aria-label="Interactive energy diagram" className="rounded-xl border-2 border-bb-border bg-bb-background p-3">
       <h4 className="font-semibold">Try it yourself</h4>

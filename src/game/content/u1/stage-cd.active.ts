@@ -27,7 +27,7 @@ export interface ActiveEntry {
 function match(spec: { readonly beat: MatchBeat; readonly explanation: string; readonly provenance: string }): PoolEntry {
   return {
     id: spec.beat.id,
-    item: { kind: "match", board: buildMatchBoard(spec.beat, 1) },
+    item: { kind: "match", board: buildMatchBoard(spec.beat, spec.beat.levels[0] ?? 1) },
     explanation: spec.explanation,
     provenance: spec.provenance,
     placeholder: true,
@@ -164,6 +164,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "Br replaces an H on the carbon next to the C=C. The allylic radical's two ends are equivalent in the ring, so one product forms.",
           "lookAt": "Br replaces an H on a carbon right beside the C=C, and the C=C stays where it was in the ring.",
+          "start": "C1=CCCCC1",
           "misses": [
             {
               "id": "vinyl0",
@@ -196,7 +197,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-nbs-practice": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-nbs-draw-cyclopentene",
       "item": {
         "kind": "draw",
@@ -312,6 +313,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The allylic radical's two ends are equivalent in the ring, so Br on either one gives 3-bromocyclopentene.",
           "lookAt": "Put Br on a carbon next to the C=C and keep the double bond where it was.",
+          "start": "C1=CCCC1",
           "misses": [
             {
               "id": "vinyl0",
@@ -344,7 +346,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-quiz-c": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-qc-draw-isobutylene",
       "item": {
         "kind": "draw",
@@ -436,6 +438,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "Both ends of the radical are CH2 groups on the same carbon, so the direct and shifted products are one molecule.",
           "lookAt": "Br goes on a CH3 carbon, and one C=C stays. Shifting the double bond gives the same drawing.",
+          "start": "C=C(C)C",
           "misses": [
             {
               "id": "vinyl0",
@@ -612,6 +615,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The diene's ends bond to the two alkene carbons of propenal, closing a six-membered ring. The leftover C=C sits between the old C2 and C3, and the CHO rides along on the ring.",
           "lookAt": "New bonds at C1 and C4 of the diene, new C=C at C2-C3. Draw the six-membered ring, then put its one C=C across from the carbon that carries the CHO.",
+          "start": "C=CC=C.C=CC=O",
           "misses": [
             {
               "id": "no-ene",
@@ -791,6 +795,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The diene's two end carbons bond to the two ethene carbons, closing a six-membered ring. The new C=C sits where the diene's single bond was, between the two carbons that carry the methyls.",
           "lookAt": "New bonds at the diene's C1 and C4. Draw the six-membered ring, then put its one C=C between the two methyl-bearing carbons.",
+          "start": "C=C.C=C(C)C(=C)C",
           "misses": [
             {
               "id": "no-ene",
@@ -837,7 +842,6 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "diels_alder_geometry"
         ],
         "levels": [
-          1,
           2
         ],
         "prompt": "Match each diene to its shape.",
@@ -1192,6 +1196,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The C=C of acrylonitrile is the dienophile; the C≡N only pulls electrons out of it. The product is a cyclohexene with CN on the carbon that was the CH of acrylonitrile.",
           "lookAt": "Only the C=C of acrylonitrile reacts; the C≡N stays a substituent. Close the ring with the C=C.",
+          "start": "C=CC#N.C=CC=C",
           "misses": [
             {
               "id": "cn-ring",
@@ -1238,7 +1243,6 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "ewg_edg_rubric"
         ],
         "levels": [
-          1,
           2
         ],
         "prompt": "Match each product to the diene and dienophile that made it.",
@@ -1541,7 +1545,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     }) },
   ],
   "u1-da-predict": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-pred-draw-para",
       "item": {
         "kind": "draw",
@@ -1702,25 +1706,26 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             }
           },
           "stereo": false,
-          "why": "The diene's largest HOMO coefficient bonds to the dienophile's largest LUMO coefficient. For isoprene and propenal that puts CH3 and CHO 1,4 on the ring: the para product.",
-          "lookAt": "A 2-substituted diene gives the para product. Draw the cyclohexene, put CH3 on the ring C=C, and CHO three carbons away, across the ring.",
+          "why": "The CH3 on isoprene's C2 donates a little and puts δ− on C1. The C=O of propenal puts δ+ on its CH2 end. Join δ− to δ+ and CH3 and CHO land 1,4 on the ring, the product chemists call para.",
+          "lookAt": "A 2-substituted diene gives the 1,4 product. Draw the cyclohexene, put CH3 on the ring C=C, and CHO three carbons away, across the ring.",
+          "start": "C=CC(=C)C.C=CC=O",
           "misses": [
             {
               "id": "meta",
               "inchi": "InChI=1S/C8H12O/c1-7-3-2-4-8(5-7)6-9/h3,6,8H,2,4-5H2,1H3",
               "smiles": "CC1=CCCC(C=O)C1",
-              "name": "the meta product",
+              "name": "1,3 on the ring (the meta product)",
               "says": "Right ring, wrong alignment: CH3 and CHO end up 1,3. Line up the diene's most electron-rich end with the dienophile's most electron-poor carbon."
             }
           ]
         }
       },
-      "explanation": "2-Substituted dienes give the para (1,4) product.",
+      "explanation": "2-Substituted dienes give the 1,4 product on the ring (para): the δ− end of the diene joins the δ+ end of the dienophile.",
       "conditions": "heat",
-      "provenance": "scripts/u1_pools_cd.py section 3 (Huckel frontier coefficients pick the pairing, para read off the product) and section 8; name checked with OPSIN.",
+      "provenance": "scripts/u1_pools_cd.py section 3 (resonance picture, delta-minus end to delta-plus end, asserted equal to the Huckel pairing; para read off the product) and section 8; name checked with OPSIN.",
       "placeholder": true
     } },
-    { at: 6, entry: {
+    { entry: {
       "id": "u1-cd-pred-draw-diene",
       "item": {
         "kind": "draw",
@@ -1858,6 +1863,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The ring C=C was C2-C3 of the diene. The two sigma bonds that formed sit one carbon away from it on each side; cutting them gives back propenal and 2,3-dimethylbutadiene, whose methyls sat on C2 and C3.",
           "lookAt": "Find the ring C=C. The diene is the four carbons starting one carbon either side of it, with a C=C at each end.",
+          "start": "CC1=C(C)CC(C=O)CC1",
           "misses": [
             {
               "id": "phile",
@@ -1876,7 +1882,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-quiz-d": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-qd-draw-dmad",
       "item": {
         "kind": "draw",
@@ -2138,6 +2144,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "The triple bond uses one pi bond to form the ring and keeps the other, so the product has two C=C: one from the diene's old C2-C3 and one carrying both esters.",
           "lookAt": "An alkyne dienophile leaves a second C=C in the ring. Close the six-membered ring, then put a C=C between the two ester carbons as well as across from them.",
+          "start": "C=CC=C.COC(=O)C#CC(=O)OC",
           "misses": [
             {
               "id": "one-ene",
@@ -2156,7 +2163,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-mo": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-mo-draw-conjugated",
       "item": {
         "kind": "draw",
@@ -2244,6 +2251,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "Conjugated means the two C=C are joined by one single bond, so their four p orbitals line up into one pi system. In penta-1,3-diene they share C2-C3.",
           "lookAt": "Slide the C4=C5 bond to C3=C4. Now only the C2-C3 single bond separates the two C=C.",
+          "start": "C=CCC=C",
           "misses": [
             {
               "id": "start",
@@ -2434,15 +2442,16 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
             }
           },
           "stereo": false,
-          "why": "Isoprene's largest HOMO coefficient is on C1, next to the methyl-bearing carbon; methyl vinyl ketone's largest LUMO coefficient is on its CH2 end. Bonding those two puts CH3 and the acetyl group 1,4: the para product.",
-          "lookAt": "A 2-substituted diene gives the para product: draw the cyclohexene, CH3 on the ring C=C, and the C(=O)CH3 three carbons away, across the ring.",
+          "why": "Isoprene's methyl on C2 puts δ− on C1, the end next to it. The ketone puts δ+ on the CH2 end of methyl vinyl ketone. Joining δ− to δ+ puts CH3 and the acetyl group 1,4 on the ring: the para product. In orbital terms, the biggest HOMO lobe meets the biggest LUMO lobe.",
+          "lookAt": "A 2-substituted diene gives the 1,4 product: draw the cyclohexene, CH3 on the ring C=C, and the C(=O)CH3 three carbons away, across the ring.",
+          "start": "C=CC(=C)C.C=CC(C)=O",
           "misses": [
             {
               "id": "meta",
               "inchi": "InChI=1S/C9H14O/c1-7-4-3-5-9(6-7)8(2)10/h4,9H,3,5-6H2,1-2H3",
               "smiles": "CC(=O)C1CCC=C(C)C1",
-              "name": "the meta product",
-              "says": "Right ring, wrong alignment: CH3 and the acetyl end up 1,3. Pair the diene's biggest HOMO lobe with the dienophile's biggest LUMO lobe."
+              "name": "1,3 on the ring (the meta product)",
+              "says": "Right ring, wrong alignment: CH3 and the acetyl end up 1,3. Join the diene's δ− end to the dienophile's δ+ CH2."
             },
             {
               "id": "no-ene",
@@ -2468,14 +2477,14 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           ]
         }
       },
-      "explanation": "2-Substituted dienes give the para (1,4) product.",
+      "explanation": "2-Substituted dienes give the 1,4 product on the ring (para): the δ− end of the diene joins the δ+ end of the dienophile.",
       "conditions": "heat",
-      "provenance": "scripts/u1_pools_cd.py section 3 (Huckel frontier coefficients pick the pairing, para read off the product) and section 8; name checked with OPSIN.",
+      "provenance": "scripts/u1_pools_cd.py section 3 (resonance picture, delta-minus end to delta-plus end, asserted equal to the Huckel pairing; para read off the product) and section 8; name checked with OPSIN.",
       "placeholder": true
     } },
   ],
   "u1-da-stereo": [
-    { at: 3, entry: {
+    { entry: {
       "id": "u1-cd-st-draw-norbornene",
       "item": {
         "kind": "draw",
@@ -2622,6 +2631,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": false,
           "why": "Cyclopentadiene's ends bond to the two ethene carbons. Its CH2 was between those ends, so it ends up as a one-carbon bridge over the new six-membered ring: a bridged bicycle.",
           "lookAt": "The CH2 of the five-membered ring becomes a bridge. Draw the new six-membered ring with its C=C, then join the two carbons that made new bonds with that one CH2.",
+          "start": "C1=CCC=C1.C=C",
           "misses": [
             {
               "id": "no-ene",
@@ -2901,6 +2911,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": true,
           "why": "The Diels-Alder is one concerted step, so the dienophile's geometry survives. Maleate's esters are cis, so they end up on the same face of the new ring: both wedged, or both dashed.",
           "lookAt": "Cis stays cis. Draw both esters on wedges, the same face of the ring.",
+          "start": "C=CC=C.COC(=O)/C=C\\C(=O)OC",
           "misses": [
             {
               "id": "trans",
@@ -2926,7 +2937,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
     } },
   ],
   "u1-da-3d": [
-    { at: 2, entry: {
+    { entry: {
       "id": "u1-cd-3d-draw-fumarate",
       "item": {
         "kind": "draw",
@@ -3189,6 +3200,7 @@ export const STAGE_CD_ACTIVE: Readonly<Record<string, readonly ActiveEntry[]>> =
           "stereo": true,
           "why": "Fumarate's esters are trans, and the concerted reaction keeps them trans: one on a wedge, one on a dash. It forms as a racemic pair, so either mirror image is right.",
           "lookAt": "Trans stays trans. Put one ester on a wedge and the other on a dash.",
+          "start": "C=CC=C.COC(=O)/C=C/C(=O)OC",
           "misses": [
             {
               "id": "cis",

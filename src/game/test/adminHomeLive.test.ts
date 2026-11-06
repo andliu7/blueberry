@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Calendar, addMonths, monthGrid, nextRange, sameDay } from "../../components/ui/calendar";
 import { buildFunnel, buildToday, capFunnel, dailyCounts, periodDays, presetPeriod, previousPeriod, returningUsers, sampleView, termStart } from "../admin/adminHomeLive";
-import { sampleAdminHome } from "../admin/adminHomeData";
+import { emptyAdminHome } from "../admin/adminHomeData";
 import { moveTask, step, SEED_TASKS } from "../admin/TaskBoard";
 
 const now = new Date(2026, 9, 29, 15, 0);
@@ -58,7 +58,7 @@ describe("live builders", () => {
     expect([...returningUsers(ev, p)]).toEqual(["a"]);
   });
   it("the sample view is cut to the period and stays sample", () => {
-    const v = sampleView(sampleAdminHome, presetPeriod("7", now), now);
+    const v = sampleView(emptyAdminHome, presetPeriod("7", now), now);
     expect(v.signups).toHaveLength(7);
     expect(v.source).toBe("sample");
     expect(v.liveParts).toEqual([]);

@@ -138,7 +138,9 @@ describe("the hint offer on a wrong-again miss", () => {
   });
 
   it("the recycle slot hands the lesson's missed ids to its runner", () => {
-    expect(read("../beats/BeatRunner.tsx")).toMatch(/beats=\{recycleBeatsFor\(run\.plan, run\.missedMcqIds\)\}\s+missedBefore=\{run\.missedMcqIds\}/);
+    // CHANGED 3 Nov (Unit 1 review suggestion 3): the recycled beats are wrapped in withSayWhy, which asks each
+    // missed question's reason first; the missed ids still reach the runner.
+    expect(read("../beats/BeatRunner.tsx")).toMatch(/beats=\{withSayWhy\(recycleBeatsFor\(run\.plan, run\.missedMcqIds\)[^}]*\}\s+missedBefore=\{run\.missedMcqIds\}/);
   });
 });
 

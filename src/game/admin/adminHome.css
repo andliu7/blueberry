@@ -23,7 +23,7 @@
   margin: 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-sm);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-icon {
   flex: none;
@@ -35,7 +35,9 @@
 
 .ah-nav {
   position: sticky;
-  top: calc(56px + env(safe-area-inset-top, 0px));
+  /* No app header sits above the admin (App.tsx renders it outside the Shell), so the
+     menu pins to the top edge rather than 56px below it. */
+  top: env(safe-area-inset-top, 0px);
   z-index: 2;
   display: flex;
   gap: 0.25rem;
@@ -47,6 +49,15 @@
 }
 .ah-nav::-webkit-scrollbar {
   display: none;
+}
+/* The phone strip scrolls sideways: its right edge fades so a cut-off item reads as
+   "more this way", and the end padding lets the last item scroll clear of the fade. */
+@media (max-width: 899.98px) {
+  .ah-nav {
+    padding-right: 2.5rem;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 2.5rem), transparent);
+  }
 }
 .ah-nav__brand,
 .ah-nav__label,
@@ -75,7 +86,7 @@
   padding: 0 0.875rem;
   border-radius: 999px;
   color: var(--bb-muted-foreground);
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
   transition: background-color 200ms, color 200ms;
@@ -107,8 +118,8 @@
   border-radius: 999px;
   background: var(--warn-soft-solid);
   color: var(--warn-ink-strong);
-  font-size: 0.75rem;
-  font-weight: 900;
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- main */
@@ -118,6 +129,9 @@
   max-width: 1240px;
   margin: 0 auto;
   display: grid;
+  /* One column that may shrink: an auto track grew to its widest child's
+     min-content and pushed the page 60px past a phone's edge. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   min-width: 0;
   padding: 1rem var(--ah-pad) 3rem;
@@ -131,9 +145,9 @@
 }
 .ah-hello__title {
   margin: 0;
-  color: var(--bb-primary-ink);
-  font-size: var(--text-scale-2xl);
-  font-weight: 900;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-display);
+  font-weight: 600;
   line-height: 1.15;
 }
 .ah-chip {
@@ -142,7 +156,7 @@
   border-radius: 999px;
   background: var(--bb-card);
   font-size: var(--text-scale-xs);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- stat strip */
@@ -176,7 +190,7 @@
   margin: 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
 }
 .ah-stat__row {
   display: flex;
@@ -187,7 +201,7 @@
 }
 .ah-stat__value {
   font-size: var(--text-scale-xl);
-  font-weight: 900;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
@@ -196,7 +210,7 @@
   margin: 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-spark {
   width: 100%;
@@ -223,7 +237,7 @@
   padding: 0 0.5rem;
   border-radius: 999px;
   font-size: var(--text-scale-xs);
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1.6;
   font-variant-numeric: tabular-nums;
 }
@@ -266,7 +280,7 @@
 .ah-card__title {
   margin: 0;
   font-size: var(--text-scale-lg);
-  font-weight: 900;
+  font-weight: 600;
 }
 .ah-card__lede {
   margin-bottom: 0.75rem;
@@ -279,7 +293,7 @@
   padding: 0 0.25rem;
   color: var(--bb-primary-ink);
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: none;
 }
 .ah-link:hover {
@@ -288,7 +302,7 @@
 .ah-big {
   margin: 0;
   font-size: var(--text-scale-display);
-  font-weight: 900;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
 }
@@ -317,7 +331,7 @@
   color: var(--bb-muted-foreground);
   font: inherit;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 200ms, color 200ms;
 }
@@ -354,7 +368,7 @@
   margin: 0;
   min-height: 2.6em;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
 }
 .ah-growth__read strong {
   font-size: var(--text-scale-lg);
@@ -422,7 +436,7 @@
   margin-top: 0.375rem;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-legend {
   display: flex;
@@ -432,7 +446,7 @@
   margin: 0.5rem 0 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-legend__key {
   width: 18px;
@@ -477,7 +491,7 @@
   gap: 0.5rem;
   min-height: 36px;
   font-size: var(--text-scale-sm);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-todo {
   display: grid;
@@ -488,7 +502,7 @@
   align-items: center;
   gap: 0.625rem;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- pills and dots */
@@ -500,7 +514,7 @@
   padding: 0 0.625rem;
   border-radius: 999px;
   font-size: var(--text-scale-xs);
-  font-weight: 900;
+  font-weight: 600;
   line-height: 1.8;
   white-space: nowrap;
 }
@@ -564,11 +578,11 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 0.5rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 .ah-fn__count {
   font-size: var(--text-scale-lg);
-  font-weight: 900;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .ah-fn__track {
@@ -596,7 +610,7 @@
   gap: 0.5rem;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 @keyframes ah-grow {
   from {
@@ -625,13 +639,13 @@
 }
 .ah-feed__text {
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
 }
 .ah-feed__time {
   grid-column: 2;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 @keyframes ah-in {
   from {
@@ -662,7 +676,7 @@
   gap: 0.5rem;
 }
 .ah-svc__name {
-  font-weight: 900;
+  font-weight: 600;
 }
 .ah-svc__meta {
   display: flex;
@@ -672,7 +686,7 @@
   margin: 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-ticks {
   display: grid;
@@ -698,7 +712,7 @@
   color: var(--bb-primary-ink);
   font: inherit;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .ah-more:hover {
@@ -713,7 +727,7 @@
 .ah-incidents p {
   margin: 0;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- billing */
@@ -730,7 +744,7 @@
   color: var(--bb-foreground);
   font: inherit;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .ah-iconbtn:hover:not(:disabled) {
@@ -747,7 +761,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-scale-sm);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-table th,
 .ah-table td {
@@ -760,10 +774,10 @@
   border-top: 0;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 800;
+  font-weight: 600;
 }
 .ah-table tbody th {
-  font-weight: 900;
+  font-weight: 600;
 }
 .ah-table th.ah-num,
 .ah-table td.ah-num {
@@ -773,7 +787,7 @@
   display: block;
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-xs);
-  font-weight: 700;
+  font-weight: 500;
 }
 .ah-hide-sm {
   display: none;
@@ -785,7 +799,7 @@
   border-radius: 0.875rem;
   text-align: center;
   color: var(--bb-muted-foreground);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---------------------------------------------------------------- wider screens */
@@ -824,10 +838,10 @@
     grid-template-columns: 68px minmax(0, 1fr);
   }
   .ah-nav {
-    top: calc(56px + env(safe-area-inset-top, 0px));
+    top: env(safe-area-inset-top, 0px);
     flex-direction: column;
     gap: 0.75rem;
-    height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+    height: calc(100dvh - env(safe-area-inset-top, 0px));
     padding: 1rem 0.75rem;
     overflow: hidden auto;
     border-right: 2px solid var(--bb-border);
@@ -849,10 +863,10 @@
     border-radius: 0.625rem;
     background: var(--bb-primary);
     color: var(--bb-primary-foreground);
-    font-weight: 900;
+    font-weight: 600;
   }
   .ah-nav__name {
-    font-weight: 900;
+    font-weight: 600;
   }
   .ah-nav__group {
     display: block;
@@ -863,7 +877,7 @@
     padding: 0 0.5rem;
     color: var(--bb-muted-foreground);
     font-size: var(--text-scale-xs);
-    font-weight: 800;
+    font-weight: 600;
   }
   .ah-nav ul {
     display: grid;
@@ -891,7 +905,7 @@
     background: transparent;
     color: var(--bb-muted-foreground);
     font: inherit;
-    font-weight: 800;
+    font-weight: 600;
     cursor: pointer;
   }
   .ah-nav__hide:hover {
@@ -970,5 +984,5 @@ html[data-motion="reduced"] .ah *::before {
 }
 .ah-nc__title {
   margin: 0;
-  font-weight: 700;
+  font-weight: 500;
 }

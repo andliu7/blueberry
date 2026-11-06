@@ -59,3 +59,17 @@ describe("gauntlet projects", () => {
     expect(nodeStatus(PROJECTS[1]!.nodes[1]!, st)).toBe("stuck");
   });
 });
+
+import { topTasks, type Task } from "../admin/TaskBoard";
+
+describe("topTasks, the admin home's short list", () => {
+  const t = (id: string, column: Task["column"], pri?: Task["pri"]): Task => ({ id, title: id, label: "Admin", column, due: null, pri });
+  const all = [t("a", "todo", 3), t("b", "todo", 1), t("c", "todo"), t("d", "todo", 1), t("e", "doing"), t("f", "done"), t("g", "done")];
+  it("lists To do by priority, ties in board order, leaving out the Next up card", () => {
+    expect(topTasks(all, "todo", 5, "b").map((x) => x.id)).toEqual(["d", "a", "c"]);
+  });
+  it("caps the list and shows Done newest first", () => {
+    expect(topTasks(all, "todo", 2).map((x) => x.id)).toEqual(["b", "d"]);
+    expect(topTasks(all, "done", 5).map((x) => x.id)).toEqual(["g", "f"]);
+  });
+});

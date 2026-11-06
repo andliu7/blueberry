@@ -155,7 +155,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
   }, [transient]);
 
   return (
-    <div className="min-h-dvh bg-bb-background p-4 md:p-8">
+    <div className="min-h-dvh overflow-x-clip bg-bb-background p-4 md:p-8">
       <header className="mx-auto max-w-6xl">
         <h1 className="bb-title-face text-scale-2xl font-semibold text-bb-foreground">Bloom, all four axes</h1>
         <p className="mt-2 max-w-3xl text-scale-sm text-bb-muted-foreground">
@@ -169,7 +169,7 @@ export default function BerryGallery({ reducedMotion }: { readonly reducedMotion
         </label>
       </header>
 
-      <div className="mx-auto mt-6 grid max-w-6xl gap-6">
+      <div className="mx-auto mt-6 grid max-w-6xl grid-cols-1 gap-6">
         <Panel title="Every mood" note="The face alone, at 40px and 96px. 40px is where an answer reaction must still read.">
           <div className="flex flex-wrap gap-4">
             {BERRY_MOODS.map((option) => (

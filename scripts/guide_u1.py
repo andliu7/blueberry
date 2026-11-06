@@ -718,8 +718,8 @@ def build() -> dict:
     assert len(regio) == 2, regio
     para = [s for s in regio if ring_distance(s, "[CH0;R](C)=C", "[CH1;R]C=O") == 3]
     assert len(para) == 1, regio
-    ex["u1-da-predict"] = {"caption": "A 2-substituted diene gives the para (1,4) product.",
-                           "panels": [mol("C=C(C)C=C", "Isoprene"), PLUS, mol("C=CC=O", "Propenal"), arrow("heat"), focus(mol(in_pool(para[0]), "Para", hi=("[CH3][C;R]", "[C;R][CH]=O")))]}
+    ex["u1-da-predict"] = {"caption": "A 2-substituted diene puts δ− on C1, which joins the dienophile's δ+ CH2: the 1,4 product (para).",
+                           "panels": [mol("C=C(C)C=C", "Isoprene"), PLUS, mol("C=CC=O", "Propenal"), arrow("heat"), focus(mol(in_pool(para[0]), "1,4 (para)", hi=("[CH3][C;R]", "[C;R][CH]=O")))]}
 
     def stereo_product(dienophile: str, want: str) -> str:
         flat = diels_alder("C=CC=C", dienophile)

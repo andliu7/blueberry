@@ -129,17 +129,20 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
     // fails a link with nothing behind it.
     nodes: [
       // STAGE A, allylic stability.
-      { id: "u1-allylic", kind: "spine", role: "video", videoMinutes: 2, title: "Allylic/resonance delocalization", blurb: "Draw and rank the resonance forms of the allyl cation, radical and anion.", playable: { kind: "beat", id: "u1-allylic" }, backgroundTopics: [BG_CATION, BG_HOMO_LUMO] },
+      { id: "u1-allylic", kind: "spine", role: "video", videoMinutes: 2, title: "Allylic/resonance delocalization", blurb: "Spot an allylic carbon and slide the pi pair to see where its charge is shared.", playable: { kind: "beat", id: "u1-allylic" }, backgroundTopics: [BG_CATION, BG_HOMO_LUMO] },
       { id: "u1-rank-cation", kind: "spine", role: "practice", title: "Rank carbocation stability", blurb: "Order the ladders, then answer quick questions on substitution and resonance.", playable: { kind: "beat", id: "u1-rank-cation" }, backgroundTopics: BG_STAGE_A },
       { id: "u1-rank-anion", kind: "spine", role: "practice", title: "Rank carbanion stability", blurb: "The alkyl trend flips; resonance and s-character still help.", playable: { kind: "beat", id: "u1-rank-anion" }, backgroundTopics: BG_STAGE_A },
-      // Optional, owner 2026-09-29: radicals stay off Practice and the stage quiz.
-      { id: "u1-rank-radical", kind: "branch", role: "practice", title: "Rank radical stability", blurb: "Optional: radicals follow the cation trend; allylic and benzylic win.", playable: { kind: "beat", id: "u1-rank-radical" }, after: ["u1-rank-anion"], backgroundTopics: BG_STAGE_A },
+      // Optional, owner 2026-09-29 and 24 Oct: radicals reach the stage quiz only through its
+      // Challenge, or as a few lent problems when the student's syllabus covers this node.
+      // CHANGED 4 Nov (checker): the blurb said "radicals follow the cation trend", which the
+      // node's side-by-side card now qualifies: alkyl groups help both, but resonance counts for more.
+      { id: "u1-rank-radical", kind: "branch", role: "practice", title: "Rank radical stability", blurb: "Optional: alkyl groups help radicals as they help cations, but resonance counts for more, so allylic and benzylic win.", playable: { kind: "beat", id: "u1-rank-radical" }, after: ["u1-rank-anion"], backgroundTopics: BG_STAGE_A },
       { id: "u1-quiz-a", kind: "spine", role: "quiz", title: "Allylic stability checkpoint", blurb: "Use resonance to find the most stable cation and anion.", playable: { kind: "beat", id: "u1-quiz-a" }, backgroundTopics: BG_STAGE_A },
       // STAGE B, addition to dienes. 12v14 BEFORE kvt, against the whiteboard's order, because
       // the owner's 1 Oct dependency rule wins: mcq-kvt-cold, -warm and -statement all ask for
       // "the 1,2 product" or "the 1,4 product" of HBr and butadiene, which 12v14 teaches.
       // seq-diene protonates butadiene to the allyl cation u1-allylic drills.
-      { id: "u1-12v14", kind: "spine", role: "video", title: "1,2- vs 1,4-addition of HX", blurb: "Kinetic 1,2 cold, thermodynamic 1,4 warm.", playable: { kind: "beat", id: "u1-12v14" }, backgroundTopics: BG_STAGE_A },
+      { id: "u1-12v14", kind: "spine", role: "video", title: "1,2- vs 1,4-addition of HX", blurb: "Cold keeps the faster 1,2 product; warm lets the more stable alkene win.", playable: { kind: "beat", id: "u1-12v14" }, backgroundTopics: BG_STAGE_A },
       { id: "u1-kvt", kind: "spine", role: "video", title: "Kinetic vs thermodynamic control", blurb: "Hammond postulate, reaction coordinate diagrams.", playable: { kind: "beat", id: "u1-kvt" } },
       { id: "u1-energy-diagram", kind: "spine", role: "practice", title: "Energy diagrams and reaction coordinate", blurb: "Read TS height against product depth on a two-product diagram.", playable: { kind: "beat", id: "u1-energy-diagram" } },
       { id: "u1-hx-dienes", kind: "spine", role: "practice", title: "HX + dienes: kinetic or thermodynamic", blurb: "Given a diene, HX and a temperature, give the major product.", backgroundTopics: BG_STAGE_A, playable: { kind: "beat", id: "u1-hx-dienes" } },
@@ -167,7 +170,7 @@ export const PATHWAY_UNITS: readonly PathwayUnit[] = [
       { id: "u1-da", kind: "spine", role: "video", videoMinutes: 3, title: "Diels–Alder", blurb: "s-cis diene + EWG dienophile; endo rule, stereospecific.", playable: { kind: "beat", id: "u1-da" }, backgroundTopics: BG_STAGE_D },
       { id: "u1-dienes", kind: "spine", role: "video", title: "Dienes", blurb: "The diene must reach s-cis; locked s-cis is fast.", playable: { kind: "beat", id: "u1-dienes" }, backgroundTopics: BG_STAGE_D },
       { id: "u1-dienophiles", kind: "spine", role: "video", title: "Dienophiles", blurb: "EWGs on the dienophile: C=O, CN, NO₂.", playable: { kind: "beat", id: "u1-dienophiles" }, backgroundTopics: BG_STAGE_D },
-      { id: "u1-da-predict", kind: "spine", role: "practice", title: "Predict starting materials or product", blurb: "Forward and backward, with ortho/para regiochemistry.", playable: { kind: "beat", id: "u1-da-predict" }, backgroundTopics: BG_STAGE_D },
+      { id: "u1-da-predict", kind: "spine", role: "practice", title: "Predict starting materials or product", blurb: "Forward and backward, with 1,2 and 1,4 regiochemistry on the ring.", playable: { kind: "beat", id: "u1-da-predict" }, backgroundTopics: BG_STAGE_D },
       { id: "u1-da-stereo", kind: "spine", role: "video", title: "Diels–Alder stereochemistry", blurb: "Suprafacial, endo, fused and bridged rings.", playable: { kind: "beat", id: "u1-da-stereo" }, backgroundTopics: BG_STAGE_D },
       { id: "u1-da-3d", kind: "spine", role: "practice", title: "3D products", blurb: "Wedge-dash products, endo vs exo, ring cases.", playable: { kind: "beat", id: "u1-da-3d" }, backgroundTopics: BG_STAGE_D },
       { id: "u1-quiz-d", kind: "spine", role: "quiz", title: "Diels–Alder checkpoint", blurb: "The Diels–Alder, start to finish.", playable: { kind: "beat", id: "u1-quiz-d" }, backgroundTopics: BG_STAGE_D },

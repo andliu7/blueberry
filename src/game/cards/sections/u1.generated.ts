@@ -45,6 +45,14 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "why": "Score each cation on resonance and on substitution."
   },
   {
+    "id": "sec:u1-rank-cation:idea:u1-cat-hyperconj",
+    "lesson": "u1-rank-cation",
+    "kind": "idea",
+    "front": "Why substitution counts for so much on a cation: ____",
+    "back": "an empty orbital gains a lot from alkyl donation.",
+    "why": "An empty orbital gains a lot from that donation, which is why substitution counts for so much on a cation."
+  },
+  {
     "id": "sec:u1-rank-cation:slip:u1-cat-vinyl",
     "lesson": "u1-rank-cation",
     "kind": "slip",
@@ -83,6 +91,14 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "front": "Allylic and benzylic ____: a benzylic radical beats a 3° alkyl one.",
     "back": "resonance beats substitution",
     "why": "For radicals, allylic and benzylic resonance beats substitution"
+  },
+  {
+    "id": "sec:u1-rank-radical:idea:u1-rad-vs-cation",
+    "lesson": "u1-rank-radical",
+    "kind": "idea",
+    "front": "Why radicals differ from cations: alkyl groups help an empty orbital a lot and ____.",
+    "back": "a half-filled one only a little",
+    "why": "Alkyl groups help an empty orbital a lot and a half-filled one only a little."
   },
   {
     "id": "sec:u1-rank-radical:idea:u1-rad-trend",
@@ -347,9 +363,9 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "id": "sec:u1-da:idea:u1-cd-da-ring",
     "lesson": "u1-da",
     "kind": "idea",
-    "front": "Diene plus dienophile give ____.",
+    "front": "Diene plus an alkene dienophile give ____. An alkyne keeps one extra C=C.",
     "back": "a cyclohexene in one step",
-    "why": "diene plus dienophile give a cyclohexene in one step"
+    "why": "diene plus an alkene dienophile give a cyclohexene in one step"
   },
   {
     "id": "sec:u1-da:idea:u1-cd-da-concerted",
@@ -412,8 +428,8 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "lesson": "u1-da-predict",
     "kind": "reaction",
     "front": "Isoprene + Propenal, with heat: what forms?",
-    "back": "Para",
-    "why": "A 2-substituted diene gives the para (1,4) product.",
+    "back": "1,4 (para)",
+    "why": "A 2-substituted diene puts δ− on C1, which joins the dienophile's δ+ CH2: the 1,4 product (para).",
     "fig": 0,
     "reactants": [
       "C=CC(=C)C",
@@ -427,9 +443,9 @@ export const SECTION_CARDS: readonly SectionCardSeed[] = [
     "id": "sec:u1-da-predict:idea:u1-cd-pred-ortho-acrolein",
     "lesson": "u1-da-predict",
     "kind": "idea",
-    "front": "A 1-substituted diene gives the ortho product; ____.",
-    "back": "a 2-substituted diene gives para",
-    "why": "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product."
+    "front": "____. A 1-substituted diene gives the 1,2 product on the ring (ortho); a 2-substituted diene gives 1,4 (para).",
+    "back": "Join the diene's δ− end to the dienophile's δ+ end",
+    "why": "Join the diene's δ− end to the dienophile's δ+ end. 1-Substituted dienes give the 1,2 product on the ring; 2-substituted dienes give the 1,4 product."
   },
   {
     "id": "sec:u1-da-predict:slip:u1-cd-pred-anhydride",

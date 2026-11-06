@@ -27,6 +27,10 @@ export const U0_PRIMERS: Readonly<Record<string, Primer>> = {
     title: "Orbitals and the pi bond",
     text: "A p orbital has two lobes of opposite sign. A pi bond forms when p orbitals on neighbouring atoms overlap side by side. Lobes of the same sign overlap and bond; lobes of opposite sign cancel. Later lessons use this to explain why some molecules react together.",
   },
+  "u0:equilibrium": {
+    title: "Keq, ΔG and reaction rate",
+    text: "How far a reaction goes and how fast it goes are separate questions. The energy gap between start and finish, ΔG, sets Keq: the lower the products sit, the more of them at equilibrium. The height of the hump in between, the barrier, sets the rate: the lower the hump, the faster.",
+  },
   "u0:radical": {
     title: "Radicals and the chain idea",
     text: "A radical has one unpaired electron. Radical reactions run as a chain: a radical takes something from a molecule, which leaves a new radical, and that one repeats the step. A single-headed arrow moves one electron, where a double-headed arrow moves a pair.",

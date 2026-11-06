@@ -1,0 +1,253 @@
+/*
+ * THE HEXAGON RING NODE (piece "hex", Nov 2026). Its own file, loaded by
+ * HexNode.tsx, so the round chip's stylesheet is untouched. Opt in: the chip carries
+ * .hx-node only while app/ui/hexLook.ts is on. Same chip, same states, same
+ * press travel; the disc's ellipses give way to a regular flat-topped
+ * hexagon 80px across (69.28px tall) drawn in HexNode.tsx. The glow moves
+ * from box-shadow to a drop-shadow so it follows the ring instead of an oval.
+ */
+.path-node.hx-node {
+  --hx-node-h: 69.28px;
+  height: calc(var(--hx-node-h) + var(--node-lip));
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  filter: drop-shadow(0 2px 2px rgb(60 48 24 / 0.16)) drop-shadow(0 0 7px var(--node-glow));
+}
+.path-node.hx-node.path-node--press:active,
+.path-node.hx-node.path-node--current {
+  box-shadow: none;
+}
+.path-node.hx-node.path-node--current {
+  animation: hx-node-halo 1.9s ease-in-out infinite;
+}
+@keyframes hx-node-halo {
+  0%,
+  100% {
+    filter: drop-shadow(0 2px 2px rgb(60 48 24 / 0.16)) drop-shadow(0 0 10px var(--path-halo));
+  }
+  50% {
+    filter: drop-shadow(0 2px 2px rgb(60 48 24 / 0.16)) drop-shadow(0 0 18px var(--path-halo-soft));
+  }
+}
+.path-node.hx-node:focus-visible {
+  outline: none;
+}
+.hx-node__lip {
+  position: absolute;
+  left: calc(50% - 40px);
+  top: var(--node-lip);
+  width: 80px;
+  height: var(--hx-node-h);
+  fill: var(--node-edge);
+  pointer-events: none;
+}
+.hx-node .path-node__face,
+.path-node--press:active.hx-node .path-node__face {
+  left: calc(50% - 40px);
+  width: 80px;
+  height: var(--hx-node-h);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+.hx-node .path-node__face > :not(.hx-node__ring) {
+  position: relative;
+  z-index: 1;
+}
+.hx-node__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.hx-node__fill {
+  fill: var(--node-face);
+  stroke: var(--node-line);
+  stroke-width: 2;
+  transition: fill 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.path-node--press:active .hx-node__fill {
+  fill: var(--node-face-press);
+  transition-duration: 0s;
+}
+/* The focus ring follows the hexagon: a stroke on the face's own outline. */
+.path-node.hx-node:focus-visible .hx-node__fill {
+  stroke: var(--bb-ring);
+  stroke-width: 4;
+}
+.hx-node .hx-ring,
+.hx-node .hx-bond {
+  fill: none;
+  stroke: var(--node-glyph);
+  stroke-width: var(--hx-stroke, 2.4px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hx-node .hx-ring {
+  opacity: 0.8;
+}
+/* Locked or unwritten: cyclohexane, the ring alone, quieter. */
+.hx-node__ring--sat .hx-kek {
+  display: none;
+}
+.hx-node__ring--sat .hx-ring {
+  opacity: 0.55;
+}
+/* The glyph is 24px (round 4, down from 26) so the bulb, which reaches
+   further up its box than the check does, keeps clear of the top bond:
+   ringLayout(40) puts that bond 20px above centre, the bulb's top 11px. */
+.path-node.hx-node .path-node__face > svg.path-node__motif,
+.hx-node .path-node__face > svg:not(.hx-node__ring) {
+  width: 24px;
+  height: 24px;
+}
+/* A press cross-fades set a to set b in place, the other Kekule structure
+   (see app/ui/hex.css); the ring and the glyph never move. */
+.hx-node .hx-kek {
+  transition: opacity 90ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hx-node .hx-kek--b {
+  opacity: 0;
+}
+.path-node--press:active.hx-node .hx-kek--a {
+  opacity: 0;
+}
+.path-node--press:active.hx-node .hx-kek--b {
+  opacity: 1;
+}
+/* The live node resonates on its own, slowly: rest on one Kekule structure,
+   fade to the other, rest, fade back. */
+.hx-node.path-node--current .hx-kek--a {
+  animation: hx-res-a 4.2s ease-in-out infinite;
+}
+.hx-node.path-node--current .hx-kek--b {
+  animation: hx-res-b 4.2s ease-in-out infinite;
+}
+@keyframes hx-res-a {
+  0%, 40%, 100% { opacity: 1; }
+  50%, 90% { opacity: 0; }
+}
+@keyframes hx-res-b {
+  0%, 40%, 100% { opacity: 0; }
+  50%, 90% { opacity: 1; }
+}
+
+/*
+ * OPEN IS NOT LOCKED (round 4, 4 Nov judges: "the white open hex next to the
+ * grey locked hex looks almost the same"). With the ring on, a side quest you
+ * can play wears a tinted violet face with a violet ring; one you cannot is
+ * the lesson's own flat grey, ring faded, no double bonds. The higher
+ * specificity is the point: pathway.css's two :not()s otherwise left a locked
+ * side quest on its white open face.
+ */
+.path-side .path-node.hx-node:not(.path-node--done):not(.path-node--review) {
+  --node-face: #e4dcff;
+  --node-face-press: #d6cbff;
+  --node-edge: #b9a8f5;
+  --node-line: #8b6df2;
+  --node-glyph: #4a2aa8;
+  --node-engrave: #4a2aa8;
+}
+.path-side .path-node.hx-node.path-node--locked:not(.path-node--done):not(.path-node--review) {
+  --node-face: #e5e5e5;
+  --node-face-press: #e5e5e5;
+  --node-edge: #c4c4c4;
+  --node-line: #b8b8b8;
+  --node-glyph: #7a7a7a;
+  --node-engrave: #7a7a7a;
+}
+.dark .path-side .path-node.hx-node:not(.path-node--done):not(.path-node--review) {
+  --node-face: #3a3070;
+  --node-face-press: #43387e;
+  --node-edge: #241c4f;
+  --node-line: #a98ffc;
+  --node-glyph: #e4dcff;
+  --node-engrave: #e4dcff;
+}
+.dark .path-side .path-node.hx-node.path-node--locked:not(.path-node--done):not(.path-node--review) {
+  --node-face: #5d6884;
+  --node-face-press: #5d6884;
+  --node-edge: #3c4560;
+  --node-line: #7a86a3;
+  --node-glyph: #c9cfdd;
+  --node-engrave: #c9cfdd;
+}
+
+/*
+ * THE START POPOVER (round 4, 4 Nov judges). One filled card under the live
+ * hexagon, the way the bar's path opens a node: the lesson's name, then one
+ * full-width lipped START key. It replaces the outlined START tag and the
+ * separate name box, neither of which was a real button. Its tail points up
+ * at the chip wherever the chip swung (--wind), and the card itself stays
+ * centred in the column so it never runs off a phone.
+ */
+.hx-pop {
+  position: relative;
+  margin: 16px auto 0;
+  width: min(18.5rem, calc(100% - 2rem));
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  background: var(--bb-primary);
+  color: var(--bb-primary-foreground);
+  box-shadow: 0 4px 0 var(--bb-primary-lip);
+  text-align: left;
+  z-index: 2;
+}
+.hx-pop::before {
+  content: "";
+  position: absolute;
+  top: -9px;
+  left: calc(50% + var(--wind) * var(--wind-step) - 10px);
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--bb-primary);
+  transform: rotate(45deg);
+}
+.hx-pop__eyebrow {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+.hx-pop__title {
+  position: relative;
+  margin: 2px 0 12px;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+/* The key: white on the violet card, violet ink, a lilac lip. */
+.hx-pop__start.btn3d {
+  --b3-face: #ffffff;
+  --b3-lip: #c9bcf7;
+  --b3-ink: var(--bb-primary);
+  --b3-rim: transparent;
+  width: 100%;
+  min-height: 3rem;
+}
+.dark .hx-pop__start.btn3d {
+  --b3-face: #f4f0ff;
+  --b3-lip: #8f7ad6;
+}
+.hx-pop__start.btn3d:focus-visible {
+  outline-color: #ffffff;
+}
+@media (prefers-reduced-motion: reduce) {
+  .path-node.hx-node.path-node--current,
+  .hx-node.path-node--current .hx-kek--a,
+  .hx-node.path-node--current .hx-kek--b {
+    animation: none;
+  }
+  .hx-node .hx-kek {
+    transition: none;
+  }
+}

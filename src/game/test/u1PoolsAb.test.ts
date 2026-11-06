@@ -23,8 +23,12 @@ import {
   STAGE_AB_POOLS,
   STAGE_AB_SORT_FIGURES,
   STAGE_AB_VISUALS,
+  STAGE_AB_WORKED_FIGURES,
 } from "../content/u1/stage-ab";
 import type { PoolEntry } from "../content/u1/types";
+import { U1_POOLS } from "../content/u1";
+import { sideQuestProblems } from "../syllabus/syllabusQuizzes";
+import { challengePool } from "../beats/practice/pools";
 import { FIGURE_HEIGHT, FIGURE_WIDTH, type Figure } from "../onboarding/figures";
 
 /**
@@ -45,14 +49,19 @@ const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u1-allylic": 5,
   "u1-rank-cation": 13,
   "u1-rank-anion": 13,
-  "u1-rank-radical": 11,
-  "u1-quiz-a": 11,
+  // 12 since 3 Nov: u1-rad-vs-cation, the cation and radical rules side by side (Unit 1 review suggestion 4).
+  // 13 since 4 Nov: u1-rad-allylic-vs-tbu, the radical half of the side-by-side rule, moved here from
+  // u1-quiz-a because the radical branch is optional (owner 24 Oct; checker 4 Nov).
+  "u1-rank-radical": 13,
+  // 12 since 3 Nov: u1-qa-why-alkyl-counts, the cation half of the side-by-side rule (Unit 1 review suggestion 4).
+  "u1-quiz-a": 12,
   "u1-kvt": 6,
   "u1-energy-diagram": 13,
   "u1-12v14": 6,
   "u1-hx-dienes": 13,
   "u1-x2": 13,
-  "u1-quiz-b": 11,
+  // 12 since 3 Nov: u1-qb-space-cations, stage A spaced into the stage B quiz (Unit 1 review suggestion 11).
+  "u1-quiz-b": 12,
 };
 
 const RADICAL_NODE = "u1-rank-radical";
@@ -82,6 +91,8 @@ function everyFigure(): readonly { readonly where: string; readonly figure: Figu
     for (const { where, figure } of figuresOf(entry.item.beat.visual)) out.push({ where: `${entry.id} ${where}`, figure });
     out.push({ where: `${entry.id} answer`, figure: entry.item.beat.answer.figure });
   }
+  // ADDED 3 Nov: the worked-example drawings (lessonExplainers.ts) are held to the same box.
+  for (const [key, named] of Object.entries(STAGE_AB_WORKED_FIGURES)) out.push({ where: `worked ${key}`, figure: named.figure });
   return out;
 }
 
@@ -136,7 +147,17 @@ describe("u1 stage A and B pools", () => {
     }
   });
 
-  it("keeps radical items inside the radical node only", () => {
+  // ADDED 3 Nov (checker, Unit 1 review suggestion 4): the side-by-side rule is among the problems the
+  // radical branch lends u1-quiz-a and the exam, for a student whose syllabus covers radicals. Without that
+  // it reaches u1-quiz-a only through Challenge (CHALLENGE_EXTRAS, beats/practice/pools.ts).
+  it("lends the cation and radical rules side by side to the stage quiz when the syllabus covers radicals", () => {
+    expect(sideQuestProblems(RADICAL_NODE, U1_POOLS).map((entry) => entry.id)).toContain("u1-rad-vs-cation");
+    expect(challengePool("u1-quiz-a").map((entry) => entry.id)).toContain("u1-rad-allylic-vs-tbu");
+  });
+
+  // CHANGED back 4 Nov (checker): the radical branch is optional (owner 24 Oct), so no stage quiz carries
+  // a radical item of its own; u1-rad-allylic-vs-tbu lives in the radical node.
+  it("keeps every radical item inside the radical node", () => {
     for (const [node, entry] of entries) {
       if (node === RADICAL_NODE) continue;
       const shown = JSON.stringify(entry.item) + entry.explanation;
@@ -174,14 +195,14 @@ describe("u1 stage A and B sort ladders", () => {
 });
 
 describe("owner-directed content (2026-10-17)", () => {
-  it("compares crotyl with isopropyl on u1-cat-allyl-vs-2, crotyl the answer, no tie", () => {
+  it("compares but-3-en-2-yl with isopropyl on u1-cat-allyl-vs-2, but-3-en-2-yl the answer, no tie", () => {
     const entry = entries.find(([, e]) => e.id === "u1-cat-allyl-vs-2")?.[1];
     expect(entry?.item.kind).toBe("mcq");
     if (entry?.item.kind !== "mcq") return;
     expect(entry.item.beat.correctOptionId).toBe("crotyl");
     expect(entry.item.beat.options.map((o) => o.id).sort()).toEqual(["crotyl", "ipr", "tie"]);
     expect(entry.placeholder).toBe(true);
-    expect(JSON.stringify(STAGE_AB_VISUALS["u1-cat-allyl-vs-2"])).toContain("crotyl cation");
+    expect(JSON.stringify(STAGE_AB_VISUALS["u1-cat-allyl-vs-2"])).toContain("but-3-en-2-yl cation");
   });
 
   it("never puts the rank in a ladder card's label (round 2 critic: 3°/2°/1° gave the order away)", () => {
@@ -247,17 +268,25 @@ describe("audit 23 Oct fixes (24 Oct)", () => {
   // The rung a run plays an entry at: an MCQ's first graded level, 2 for a ladder (scripts/u1_pools_ab.py play_level).
   const rung = (entry: PoolEntry): number =>
     entry.item.kind === "sort" ? 2 : entry.item.kind === "mcq" ? (entry.item.beat.levels.find((l) => l > 0) ?? entry.item.beat.levels[0]!) : -1;
-  const RUNS = ["u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-quiz-b"];
+  const RUNS = ["u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-x2", "u1-quiz-b"];
 
-  it.each(RUNS)("plays %s easiest first, drawings left in their seats (top-25 #12)", (node) => {
+  // CHANGED 3 Nov (Unit 1 review suggestion 8, owner approved): drawings come
+  // LAST, after the recognise questions, each opening on its starting material.
+  it.each(RUNS)("plays %s easiest first, drawings last on a starting structure (top-25 #12, review 8)", (node) => {
     const pool = STAGE_AB_POOLS[node] ?? [];
     const rungs = pool.filter((entry) => entry.item.kind !== "draw").map(rung);
     expect(rungs, node).toEqual([...rungs].sort((a, b) => a - b));
-    expect(pool[2]?.item.kind, node).toBe("draw");
-    expect(pool.slice(0, 2).every((entry) => entry.item.kind === "mcq"), node).toBe(true);
+    const firstDraw = pool.findIndex((entry) => entry.item.kind === "draw");
+    expect(firstDraw, node).toBeGreaterThan(0);
+    expect(pool.slice(firstDraw).every((entry) => entry.item.kind === "draw"), node).toBe(true);
+    for (const entry of pool.slice(firstDraw)) {
+      expect(entry.item.kind === "draw" ? entry.item.beat.start : undefined, entry.id).toBeTruthy();
+    }
   });
 
-  it.each(["u1-hx-label-thermo", "u1-hx-too-close", "u1-hx-label-kinetic", "u1-x2-chd-14", "u1-x2-chd-warm"])(
+  // u1-hx-too-close and u1-x2-chd-warm left this list 3 Nov: the owner retired
+  // "the rule can't call it", so they now ask the reason, in words.
+  it.each(["u1-hx-label-thermo", "u1-hx-label-kinetic", "u1-x2-chd-14"])(
     "draws the products of %s as option tiles, not names alone (top-25 #21)",
     (id) => {
       const beat = mcqs.find((one) => one.id === id)!;

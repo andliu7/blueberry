@@ -19,6 +19,8 @@ import type { Explainer } from "../content/u1/lessonExplainers";
 import { helpPathFor } from "../content/u1/lessonPath";
 
 const EnergyLab = lazy(() => import("../energy/EnergyLab"));
+// The turnable 3-D models (Unit 1 review suggestion 9), loaded only on a card that has one.
+const ModelSet = lazy(() => import("./ModelSet"));
 
 /**
  * The narrated drawing: one card at a time, each beside the structure it is
@@ -74,9 +76,17 @@ export function ReadAlong({ explainer }: { readonly explainer: Explainer }) {
     setAt(n);
   };
   return (
-    <section aria-label="Narrated drawing" className="rounded-xl border-2 border-bb-border bg-bb-background p-3">
+    <section aria-label={explainer.worked === true ? "Worked example" : "Narrated drawing"} className="rounded-xl border-2 border-bb-border bg-bb-background p-3">
       <h4 className="font-semibold">
-        Show me it drawn <span className="font-normal text-bb-muted-foreground">(narrated drawing, about {explainer.minutes} min, not a filmed video)</span>
+        {explainer.worked === true ? (
+          <>
+            Worked example, step by step <span className="font-normal text-bb-muted-foreground">(about {explainer.minutes} min)</span>
+          </>
+        ) : (
+          <>
+            Show me it drawn <span className="font-normal text-bb-muted-foreground">(narrated drawing, about {explainer.minutes} min, not a filmed video)</span>
+          </>
+        )}
       </h4>
       {visual === null ? null : (
         <div className="mt-2 flex justify-center rounded-xl border border-bb-border bg-bb-card p-2">
@@ -93,10 +103,17 @@ export function ReadAlong({ explainer }: { readonly explainer: Explainer }) {
         <p className="mt-1 font-semibold">{card.heading}</p>
         <p className="mt-1">{card.body}</p>
       </div>
-      {card.lab === true ? (
+      {card.lab !== undefined ? (
         <div className="mt-3">
           <Suspense fallback={null}>
-            <EnergyLab />
+            <EnergyLab start={card.lab === "temp" ? "temp" : "work"} />
+          </Suspense>
+        </div>
+      ) : null}
+      {card.model !== undefined ? (
+        <div className="mt-3 rounded-xl border border-bb-border bg-bb-card p-2">
+          <Suspense fallback={null}>
+            <ModelSet set={card.model} />
           </Suspense>
         </div>
       ) : null}

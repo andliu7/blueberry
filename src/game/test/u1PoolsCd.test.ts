@@ -32,10 +32,13 @@ const EXPECTED_SIZES: Readonly<Record<string, number>> = {
   "u1-da": 3,
   "u1-dienes": 3,
   "u1-dienophiles": 3,
-  "u1-da-predict": 12,
-  "u1-da-stereo": 3,
+  // 14 since 3 Nov: the δ− and δ+ questions that teach regiochemistry by resonance (Unit 1 review M2, suggestion 2).
+  "u1-da-predict": 14,
+  // 5 since 3 Nov: the inside/outside card's two questions (Unit 1 review suggestion 10).
+  "u1-da-stereo": 5,
   "u1-da-3d": 12,
-  "u1-quiz-d": 10,
+  // 11 since 3 Nov: u1-cd-qd-space-donor, stage A spaced into the stage D quiz (Unit 1 review suggestion 11).
+  "u1-quiz-d": 11,
   "u1-exam": 6,
 };
 

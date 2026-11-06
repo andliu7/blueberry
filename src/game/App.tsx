@@ -85,6 +85,8 @@ const MistakesPage = lazy(() => import("./mistakes/MistakesPage"));
 
 /** The button and heading sheet, at #/gallery/buttons. Development only, lazy. */
 const ButtonGallery = lazy(() => import("./app/ui/ButtonGallery"));
+/** The hexagon key sheet, at #/app/gallery/hex. Development only, lazy. */
+const HexGallery = lazy(() => import("./app/ui/HexGallery"));
 
 /** The streak page states, at #/app/gallery/streak?state=lit. Development only, lazy. */
 const CelebrationGallery = lazy(() => import("./lesson/CelebrationGallery"));
@@ -211,6 +213,14 @@ function Body({
         <Suspense fallback={<TabSkeleton label="the button sheet" />}>
           <BootReady />
           <ButtonGallery />
+        </Suspense>
+      );
+    }
+    if (route.name === "hex") {
+      return (
+        <Suspense fallback={<TabSkeleton label="the hexagon keys" />}>
+          <BootReady />
+          <HexGallery />
         </Suspense>
       );
     }

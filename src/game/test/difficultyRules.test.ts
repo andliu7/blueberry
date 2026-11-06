@@ -124,6 +124,7 @@ describe("Unit 1 context for students without the background", () => {
     const unit = PATHWAY_UNITS.find((u) => u.id === "u1")!;
     const node = unit.nodes.find((x) => x.id === "u1-allylic")!;
     const titles = guidebookFor({ id: node.id, title: node.title, blurb: node.blurb, kind: node.kind } as never).context.map((c) => c.title);
-    expect(titles).toEqual(["Resonance and curved arrows", "What a carbocation is"]);
+    // CHANGED 3 Nov (Unit 1 review L5): u1-allylic asks for butadiene's protonation, so it assumes u0:hx-addition too.
+    expect(titles).toEqual(["Resonance and curved arrows", "What a carbocation is", "HX adding across a C=C"]);
   });
 });

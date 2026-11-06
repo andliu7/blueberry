@@ -17,7 +17,7 @@
 .aa-sub {
   margin: 0.25rem 0 0;
   color: var(--bb-muted-foreground);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .aa-controls {
@@ -35,7 +35,7 @@
 .aa-updated {
   color: var(--bb-muted-foreground);
   font-size: var(--text-scale-sm);
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* ------------------------------------------------------------ picker */
@@ -52,7 +52,7 @@
   align-items: center;
   min-height: 44px;
   padding: 0 0.875rem;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .aa-search {
@@ -75,7 +75,7 @@
   background: transparent;
   color: var(--bb-primary);
   font: inherit;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .aa-accounts {
@@ -91,7 +91,7 @@
   align-items: center;
   gap: 0.5rem;
   min-height: 44px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 }
 .aa-accounts input {
@@ -111,7 +111,7 @@
   border: 2px dashed var(--bb-border);
   border-radius: 0.875rem;
   background: var(--bb-card);
-  font-weight: 700;
+  font-weight: 500;
   overflow-wrap: anywhere;
 }
 .aa-note--warn {
@@ -141,7 +141,7 @@
 }
 .aa-table th {
   color: var(--bb-muted-foreground);
-  font-weight: 800;
+  font-weight: 600;
 }
 .aa-table tbody tr:last-child td {
   border-bottom: 0;
@@ -150,7 +150,7 @@
   display: inline-block;
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 }
 .aa-status--cleared {
@@ -190,6 +190,6 @@
   .aa-table td::before {
     content: attr(data-label);
     color: var(--bb-muted-foreground);
-    font-weight: 800;
+    font-weight: 600;
   }
 }

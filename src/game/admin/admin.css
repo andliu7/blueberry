@@ -42,8 +42,8 @@
 .av-bar__title {
   flex: 1;
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 900;
+  font-size: var(--text-scale-xl);
+  font-weight: 600;
 }
 .av-bar__lessons {
   min-height: 44px;
@@ -53,7 +53,7 @@
   background: var(--bb-card);
   color: var(--bb-foreground);
   font: inherit;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 /* The Activity and Lessons links share the pill: a link is inline until told otherwise. */
@@ -72,7 +72,7 @@ a.av-bar__lessons {
   border-radius: 0.875rem;
   background: var(--bb-card);
   font-size: var(--text-scale-sm);
-  font-weight: 700;
+  font-weight: 500;
 }
 .av-toggles {
   display: flex;
@@ -88,7 +88,7 @@ a.av-bar__lessons {
 .av-seg__label {
   margin-right: 0.25rem;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--bb-muted-foreground);
 }
 .av-seg__btn {
@@ -99,13 +99,25 @@ a.av-bar__lessons {
   background: var(--bb-card);
   color: var(--bb-foreground);
   font: inherit;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .av-seg__btn[aria-pressed="true"] {
   border-color: var(--bb-primary);
   background: var(--bb-primary);
   color: var(--bb-primary-foreground);
+}
+
+/* The picker page's title, matching Learners, Activity and Tasks. */
+.av-head {
+  padding: 1rem 1rem 0;
+}
+.av-head__title {
+  margin: 0;
+}
+.av-head__sub {
+  margin: 0.25rem 0 0;
+  color: var(--bb-muted-foreground);
 }
 
 /* -------------------------------------------------------- body, picker */
@@ -135,12 +147,12 @@ a.av-bar__lessons {
 .av-picker__unit-title {
   margin: 1rem 0 0.25rem;
   padding: 0 0.625rem 0.375rem;
-  border-bottom: 2px solid var(--bb-foreground);
-  font-size: var(--text-scale-sm);
-  font-weight: 900;
+  border-bottom: 1px solid var(--bb-border);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--bb-foreground);
+  color: var(--bb-muted-foreground);
 }
 .av-picker__lesson {
   display: flex;
@@ -149,7 +161,7 @@ a.av-bar__lessons {
   padding: 0.5rem 0.625rem;
   border-bottom: 1px solid var(--btn-line);
   color: var(--bb-foreground);
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.3;
   text-decoration: none;
 }
@@ -160,7 +172,7 @@ a.av-bar__lessons {
   background: var(--bb-primary);
   border-radius: 0.625rem;
   color: var(--bb-primary-foreground);
-  font-weight: 900;
+  font-weight: 600;
 }
 @media (hover: hover) {
   .av-picker__lesson:hover {
@@ -201,7 +213,7 @@ a.av-bar__lessons {
 .av-show__title {
   flex: 1 1 auto;
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--text-scale-2xl);
 }
 .av-prefs {
   margin: 0.5rem 1rem 0;
@@ -211,7 +223,7 @@ a.av-bar__lessons {
   align-items: center;
   min-height: 44px;
   font-size: var(--text-scale-sm);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--bb-muted-foreground);
   cursor: pointer;
 }
@@ -227,7 +239,7 @@ a.av-bar__lessons {
 }
 .av-empty {
   padding: 2rem 0;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--bb-muted-foreground);
 }
 
@@ -284,7 +296,7 @@ a.av-bar__lessons {
   padding: 0.5rem 0.75rem;
   border-radius: 0.75rem;
   background: var(--bb-muted);
-  font-weight: 700;
+  font-weight: 500;
 }
 .av-choice {
   display: grid;
@@ -292,7 +304,7 @@ a.av-bar__lessons {
   padding: 0.625rem 0.875rem;
   border: 2px solid var(--btn-line);
   border-radius: 0.875rem;
-  font-weight: 700;
+  font-weight: 500;
 }
 .av-choice--correct {
   border-color: var(--tray-good-line);
@@ -303,7 +315,7 @@ a.av-bar__lessons {
   max-width: 10rem;
 }
 .av-mark {
-  font-weight: 900;
+  font-weight: 600;
 }
 .av-choice__why {
   font-size: var(--text-scale-sm);
@@ -323,14 +335,14 @@ a.av-bar__lessons {
   font-size: var(--text-scale-sm);
 }
 .av-meta dt {
-  font-weight: 900;
+  font-weight: 600;
 }
 .av-meta dd {
   margin: 0;
   overflow-wrap: anywhere;
 }
 .av-id {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
   color: var(--bb-muted-foreground);
 }
 
@@ -343,7 +355,7 @@ a.av-bar__lessons {
   min-height: 10rem;
   padding: 1rem;
   text-align: center;
-  font-weight: 700;
+  font-weight: 500;
 }
 .av-lock p {
   margin: 0;
@@ -356,7 +368,7 @@ a.av-bar__lessons {
   border: 2px dashed var(--bb-border);
   border-radius: 1rem;
   color: var(--bb-muted-foreground);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .av-steps {
@@ -367,7 +379,7 @@ a.av-bar__lessons {
   margin-top: 1rem;
 }
 .av-steps__count {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 /* ---- pathway deck (PathwayDeck.tsx) ---- */
@@ -391,7 +403,7 @@ a.av-bar__lessons {
 .pd-fig__cap {
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--bb-muted-foreground);
 }
 .pd-top {
@@ -404,8 +416,8 @@ a.av-bar__lessons {
 .pd-top__title {
   flex: 1 0 100%;
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 900;
+  font-size: var(--text-scale-lg);
+  font-weight: 600;
 }
 .pd-rail {
   display: flex;
@@ -429,7 +441,7 @@ a.av-bar__lessons {
   background: var(--bb-card);
   color: var(--bb-foreground);
   font: inherit;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 }
 .pd-rail__btn[aria-current="step"] {
@@ -454,28 +466,13 @@ a.av-bar__lessons {
   background: transparent;
   color: var(--bb-primary-ink);
   font: inherit;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
 }
-.pd-bar {
-  height: 6px;
-  margin-bottom: 0.75rem;
-  border-radius: 999px;
-  background: var(--bb-border);
-  overflow: hidden;
-}
-.pd-bar span {
-  display: block;
-  height: 100%;
-  background: var(--bb-primary);
-  transition: width 0.2s ease;
-}
-/* The stage holds one slide and scrolls inside itself, so Prev and Next never leave the screen. */
+/* In the page the slide takes its own height and the page scrolls; the foot below is
+   sticky, so Prev and Next stay on screen without a second scrollbar inside the deck. */
 .pd-stage {
-  max-height: calc(100dvh - 14rem);
   min-height: 18rem;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 .pd-move {
   animation: pd-in 0.22s ease-out;
@@ -499,7 +496,8 @@ a.av-bar__lessons {
 .pd-foot {
   position: sticky;
   bottom: 0;
-  padding-top: 0.5rem;
+  z-index: 2;
+  padding: 0.5rem 0;
   background: var(--bb-background);
 }
 .pd-slide {
@@ -524,7 +522,7 @@ a.av-bar__lessons {
 .pd-slide__lead {
   margin: 0 0 1rem;
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.45;
 }
 .pd-points {
@@ -549,13 +547,13 @@ a.av-bar__lessons {
 }
 .pd-facts dt {
   font-size: 0.875rem;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--bb-muted-foreground);
 }
 .pd-facts dd {
   margin: 0.25rem 0 0;
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.3;
 }
 .pd-hint {
@@ -577,7 +575,7 @@ a.av-bar__lessons {
 }
 .pd-dg text {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 600;
 }
 .pd-dg__on,
 .pd-dg__off {
@@ -609,7 +607,7 @@ a.av-bar__lessons {
 .pd-dg__big {
   fill: var(--bb-foreground);
   font-size: 26px !important;
-  font-weight: 900;
+  font-weight: 600;
 }
 .pd-dg__box {
   fill: var(--bb-muted);
@@ -640,10 +638,10 @@ a.av-bar__lessons {
 }
 .pd-pass b {
   font-size: 1.25rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 .pd-pass span {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* ---- present mode: the deck owns the viewport ---- */
@@ -661,8 +659,12 @@ a.av-bar__lessons {
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: grid;
-  align-content: center;
+  /* "safe": a slide taller than the screen starts at its top instead of being
+     centred past it, which had cut the prompt off above the scroll range. */
+  align-content: safe center;
   width: 100%;
   max-width: 64rem;
   margin: 0 auto;
@@ -701,15 +703,85 @@ a.av-bar__lessons {
 .pd--present .pd-hint {
   display: block;
 }
+/* Presenting: the title and Exit on one row, then the section tabs as underlines on
+   their own row, wrapping rather than scrolling under the Exit button. */
+.pd-top__row {
+  display: flex;
+  flex: 1 0 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.pd-top__row .pd-top__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pd-top__section {
+  display: none;
+  margin-left: 0.5rem;
+  color: var(--bb-muted-foreground);
+  font-weight: 500;
+}
+.pd--present .pd-present {
+  flex: none;
+  min-height: 36px;
+  border-width: 1px;
+  border-color: var(--bb-border);
+  border-radius: 8px;
+  color: var(--bb-foreground);
+}
+.pd--present .pd-rail {
+  flex: 1 0 100%;
+  flex-wrap: wrap;
+  overflow: visible;
+  gap: 0 1.25rem;
+  border-bottom: 1px solid var(--bb-border);
+}
+.pd--present .pd-rail__btn {
+  min-height: 40px;
+  outline-offset: -2px;
+  margin-bottom: -1px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: none;
+  color: var(--bb-muted-foreground);
+  font-weight: 500;
+}
+.pd--present .pd-rail__btn[aria-current="step"] {
+  border-bottom-color: var(--bb-primary);
+  background: none;
+  color: var(--bb-primary);
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  /* A phone has no room for nine tabs: the row names the section and the arrows step. */
+  .pd--present .pd-rail {
+    display: none;
+  }
+  .pd--present .pd-top__section {
+    display: inline;
+  }
+}
+/* The answer choices sit side by side when there is room, so one question reads
+   without scrolling past three full-width cards. */
+.pd .av-choices {
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+.pd:not(.pd--present) .av-choice__figure {
+  max-width: 7.5rem;
+}
 .pd--present .pd-foot {
   width: 100%;
   max-width: 64rem;
   margin: 0 auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  .pd-bar span {
-    transition: none;
-  }
   .pd-move {
     animation: none;
   }

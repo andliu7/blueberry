@@ -47,6 +47,7 @@ const TITLES: Record<string, string> = {
   "app/admin/tasks": "Admin Tasks",
   "app/admin/stats": "Admin Stats",
   "app/admin/activity": "Admin Activity",
+  "app/admin/bloom": "Admin Bloom",
   "app/focus": "Focus timer",
   "app/spectra": "NMR and IR",
   // Dev only, like the page itself (src/App.tsx): in a build #/signoff is a 404 and titles itself so.

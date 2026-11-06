@@ -341,6 +341,28 @@ export const SCENARIOS: readonly Scenario[] = [
     ],
     takeaway: "When every step can run backwards the products trade places until the deepest well holds most of the material.",
   },
+  // ADDED 3 Nov (Unit 1 review suggestion 6): the one picture Unit 1's stage B
+  // is built around. Real molecules on the diagram: butadiene and HBr, the one
+  // shared allylic cation, then two humps (1,2 lower) and two wells (1,4 deeper).
+  // A sketch of the shape, not measured values; the ratios quoted with it are
+  // OpenStax 14.3's (71:29 1,2 to 1,4 at 0 degrees, 15:85 at 40 degrees).
+  {
+    id: "butadiene-hbr",
+    title: "Butadiene + HBr: one cation, two products",
+    profiles: [
+      { states: [s("R", "Butadiene + HBr", 0), s("C", "Allylic cation", 6), s("K", "1,2 product", -12)], ts: [14, 9] },
+      { states: [s("R", "Butadiene + HBr", 0), s("C", "Allylic cation", 6), s("T", "1,4 product", -16)], ts: [14, 12] },
+    ].map((p) => p as EnergyProfile),
+    startId: "R",
+    route: ["R", "C", "K", "C", "T"],
+    say: [
+      "H+ goes on an end carbon. Both products come from this one allylic cation.",
+      "From the cation, the hump to the 1,2 product is lower, so the 1,2 product forms first. Cold, it stays: about 71:29 at 0 degrees.",
+      "Warm, the 1,2 product can climb back out to the cation.",
+      "The 1,4 product sits in the deeper well, its C=C carries more carbons. Given time it collects the material: about 15:85 at 40 degrees.",
+    ],
+    takeaway: "One cation, two humps, two wells. Cold reads the humps (1,2 wins), warm reads the wells (1,4 wins).",
+  },
 ];
 
 export function scenarioById(id: string): Scenario | undefined {

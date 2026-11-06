@@ -1,0 +1,120 @@
+/*
+ * The admin home with nothing read (AdminHome.tsx, EmptyDesk). The tasks lead, since they
+ * are the real work; one compact note on the figures sits beside them on a desk and under
+ * them on a phone: a headline, one line of why, one outlined action, then billing and
+ * uptime as two calm rows. Hairlines, not shadows.
+ */
+
+.av-page .ahd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18rem;
+  align-items: start;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ------------------------------------------------------------------ the figures note */
+.av-page .ahd-note {
+  border: 1px solid var(--bb-border);
+  border-radius: 12px;
+  background: var(--bb-card);
+}
+.av-page .ahd-note__top {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: start;
+  padding: 1rem 1.125rem 1.125rem;
+}
+.av-page .ahd-note__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 0.25rem;
+  border-radius: 8px;
+  background: color-mix(in oklab, #5a3fd8 9%, var(--bb-card));
+  color: #4a31c4;
+}
+.av-page .ahd-note__title {
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-base);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.av-page .ahd-note__why {
+  margin: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+  line-height: 1.5;
+}
+.av-page .ahd-note__act {
+  margin-top: 0.5rem;
+  text-decoration: none;
+}
+.av-page .ahd-note__later {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--bb-border);
+  list-style: none;
+}
+.av-page .ahd-note__later li {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.75rem 1.125rem;
+  font-size: var(--text-scale-xs);
+  line-height: 1.45;
+  color: var(--bb-muted-foreground);
+}
+.av-page .ahd-note__later li + li {
+  border-top: 1px solid var(--bb-border);
+}
+.av-page .ahd-note__later strong {
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-sm);
+  font-weight: 600;
+}
+
+/* The New task button beside the title: outlined, so Start on Next up is the one filled action. */
+.av-page .ah-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 34px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 8px;
+  background: var(--bb-card);
+  color: var(--bb-foreground);
+  font: inherit;
+  font-size: var(--text-scale-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.av-page .ah-outline:hover {
+  border-color: color-mix(in oklab, #5a3fd8 40%, var(--bb-border));
+  color: #4a31c4;
+}
+.av-page .ah-outline:focus-visible {
+  outline: 3px solid #5a3fd8;
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ narrow: one column, tasks first */
+@media (max-width: 1100px) {
+  .av-page .ahd {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 860px) {
+  .av-page .ahd {
+    gap: 1rem;
+  }
+  .av-page .ahd-note__top {
+    padding: 0.875rem 1rem 1rem;
+  }
+  .av-page .ahd-note__later li {
+    padding: 0.625rem 1rem;
+  }
+}

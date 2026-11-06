@@ -33,11 +33,27 @@ import { sideQuestProblems, sideQuestsFor, withSideQuests } from "../../syllabus
 
 /**
  * The unit exam, played as an in-a-row run on the unit's checkpoint. Owner
- * prompt 2026-09-29: the exam covers stages A, B and D, and stage C and the
- * radical node appear only in Challenge, so their pools are never drawn here.
- * Stage A and B write no exam items of their own, so their stage quizzes stand
- * in for them; stage D's are the ids stage-cd.ts sets aside for the exam.
+ * prompt 2026-09-29: the exam covered stages A, B and D only. Stage A and B
+ * write no exam items of their own, so their stage quizzes stand in for them;
+ * stage D's are the ids stage-cd.ts sets aside for the exam.
+ *
+ * Stage C (NBS) and the radical node are side quests, and the owner's 24 Oct
+ * rule keeps them optional: they count on the exam only when the student's
+ * syllabus covers them (practicePool, syllabus/syllabusQuizzes.ts). CHANGED
+ * 4 Nov (checker): the 4 Nov pass put stage C and a radical item into every
+ * student's exam; both are back behind the syllabus. Unit 1 review suggestion
+ * 11 still holds for a student whose syllabus covers them: covered, u1-quiz-c
+ * lends the exam the three problems below (EXAM_LENDS), and u1-rank-radical
+ * lends its first graded ones, as every side quest does.
  */
+/** Stage C (NBS) in the unit exam when the syllabus covers u1-quiz-c: the reason, the shifted end, and a product count. */
+export const U1_EXAM_C_IDS: readonly string[] = Object.freeze(["u1-cd-qc-why-weak", "u1-cd-qc-butene1-shifted", "u1-cd-qc-mch-count"]);
+
+/** Side quests whose loan to their unit's exam the owner picked, in place of their first graded problems. */
+const EXAM_LENDS: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  "u1-quiz-c": U1_EXAM_C_IDS,
+});
+
 const EXAM_SOURCES: Readonly<Record<string, readonly (readonly string[] | string)[]>> = Object.freeze({
   [checkpointNodeId("u1")]: ["u1-quiz-a", "u1-quiz-b", STAGE_CD_EXAM_IDS],
   // Unit 2 draft: the ids u2_pools.py sets aside for the exam, split by the lesson they come from so the run
@@ -74,7 +90,11 @@ const ALL_POOLS: UnitPools = mergePools(U1_POOLS, U2_POOLS, U2T_POOLS, U2E_POOLS
 
 /**
  * What a node's Challenge adds to its own pool. Radical items may reach a quiz
- * only through Challenge, never Practice (owner prompt 2026-09-29, decision 6).
+ * only through Challenge, never Practice (owner prompt 2026-09-29, decision 6),
+ * unless the student's syllabus covers the radical node, which then lends a
+ * few to the quiz (owner 24 Oct). The side-by-side radical item,
+ * u1-rad-allylic-vs-tbu, lives in u1-rank-radical and reaches u1-quiz-a this
+ * way (CHANGED 4 Nov, checker: it had been moved into the quiz itself).
  */
 const CHALLENGE_EXTRAS: Readonly<Record<string, readonly string[]>> = Object.freeze({
   "u1-quiz-a": ["u1-rank-radical"],
@@ -109,6 +129,14 @@ function isRunNode(nodeId: string): boolean {
   return node.playable === undefined || node.playable.kind === "beat";
 }
 
+/** The problems a covered side quest lends this quiz: the owner's pick for a unit exam (EXAM_LENDS), else its first graded ones. */
+function lentBy(sideQuest: string, nodeId: string, pools: UnitPools): readonly PoolEntry[] {
+  const picked = EXAM_SOURCES[nodeId] !== undefined ? EXAM_LENDS[sideQuest] : undefined;
+  if (picked === undefined) return sideQuestProblems(sideQuest, pools);
+  const all = Object.values(pools).flat();
+  return picked.flatMap((id) => all.filter((entry) => entry.id === id));
+}
+
 /**
  * `covered` is the side quests the student's syllabus covers (owner rule,
  * STATUS C1): each lends a few problems to its unit's checkpoint and to the
@@ -117,7 +145,10 @@ function isRunNode(nodeId: string): boolean {
  */
 export function practicePool(nodeId: string, pools: UnitPools = ALL_POOLS, covered: ReadonlySet<string> = coveredSideQuests()): readonly PoolEntry[] {
   const own = EXAM_SOURCES[nodeId] !== undefined ? examPool(nodeId, pools) : isRunNode(nodeId) ? (pools[nodeId] ?? []) : [];
-  return withSideQuests(own, sideQuestsFor(nodeId, covered).map((id) => sideQuestProblems(id, pools)), interleave);
+  // A lent problem the quiz already asks is not lent again.
+  const asked = new Set(own.map((entry) => entry.id));
+  const lent = sideQuestsFor(nodeId, covered).map((id) => lentBy(id, nodeId, pools).filter((entry) => !asked.has(entry.id)));
+  return withSideQuests(own, lent, interleave);
 }
 
 /**

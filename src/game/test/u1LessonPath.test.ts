@@ -8,6 +8,7 @@ import { PATHWAY_UNITS } from "../demo/pathwayMap";
 import { U1_POOLS } from "../content/u1";
 import { readAlongVisual } from "../beats/readAlongDrawing";
 import { U1_EXPLAINERS, U1_LINKS, U1_VIDEO_SLOTS, U1_WALKTHROUGHS, filmingScriptFor, helpPathFor, teacherOf } from "../content/u1/lessonPath";
+import { U1_FIRST_STEPS, fadeFirst } from "../content/u1/workedFade";
 
 const UNIT = PATHWAY_UNITS.find((one) => one.id === "u1")!;
 const ORDER = UNIT.nodes.map((node) => node.id);
@@ -77,9 +78,11 @@ describe("the walk-throughs", () => {
 });
 
 describe("the need-help path", () => {
-  it("starts with the walk-through and ends with the guide", () => {
+  it("starts with the worked example, then the walk-through, and ends with the guide", () => {
+    // CHANGED 3 Nov (Unit 1 review suggestion 1): practice lessons carry a worked example now.
     const rows = helpPathFor("u1-hx-dienes");
-    expect(rows[0]?.kind).toBe("walkthrough");
+    expect(rows[0]?.kind).toBe("explainer");
+    expect(rows[1]?.kind).toBe("walkthrough");
     expect(rows.at(-1)?.kind).toBe("guide");
   });
 
@@ -182,6 +185,45 @@ describe("the read-along explainers", () => {
 
   it("opens the help path with the explainer when there is one", () => {
     expect(helpPathFor("u1-kvt")[0]?.kind).toBe("explainer");
-    expect(helpPathFor("u1-rank-anion")[0]?.kind).toBe("walkthrough");
+    expect(helpPathFor("u1-rank-anion")[0]?.kind).toBe("explainer");
+    expect(helpPathFor("u1-quiz-a")).toEqual([]);
+  });
+
+  // ADDED 3 Nov (Unit 1 review suggestion 1): one worked example per practice lesson, faded by its first step.
+  it("gives every practice lesson the review named a worked example with a first step to fade", () => {
+    for (const node of ["u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-energy-diagram", "u1-hx-dienes", "u1-x2", "u1-nbs-practice", "u1-da-predict", "u1-da-3d"]) {
+      const ex = U1_EXPLAINERS[node];
+      expect(ex?.worked, node).toBe(true);
+      expect(ex!.cards.length, node).toBeGreaterThanOrEqual(4);
+      expect(ex!.cards.length, node).toBeLessThanOrEqual(6);
+      expect(U1_FIRST_STEPS[node]?.length ?? 0, node).toBeGreaterThan(10);
+      expect(U1_FIRST_STEPS[node]!.length, node).toBeLessThanOrEqual(140);
+      // The fade: the first question carries the step, the second does not.
+      const two = fadeFirst(node, [{ brief: "a" }, { brief: "b" }]);
+      expect(two[0]!.brief, node).toBe(`${U1_FIRST_STEPS[node]} a`);
+      expect(two[1]!.brief, node).toBe("b");
+      for (const card of ex!.cards) expect(card.body.length, `${node}: ${card.heading}`).toBeLessThanOrEqual(320);
+    }
+  });
+
+  // ADDED 3 Nov (checker): a worked example that solved one of its own lesson's questions turned that
+  // question into recall. A worked example now draws only its own worked-example figures, never a pool
+  // question's drawing, and its first card's drawing is a problem no question in the lesson draws.
+  it("solves a problem of its own in every worked example, not one of the lesson's questions", () => {
+    for (const [node, ex] of Object.entries(U1_EXPLAINERS)) {
+      if (ex.worked !== true) continue;
+      for (const card of ex.cards) {
+        for (const ref of card.draw ?? []) {
+          expect("beat" in ref, `${node}: ${card.heading} draws a pool question`).toBe(false);
+        }
+      }
+    }
+  });
+
+  // ADDED 3 Nov (Unit 1 review suggestion 5): one "you already know this" Orgo I callback per stage.
+  it("opens each stage's first lesson with an Orgo I callback card", () => {
+    for (const node of ["u1-allylic", "u1-kvt", "u1-nbs", "u1-mo"]) {
+      expect(U1_EXPLAINERS[node]!.cards.some((c) => c.heading === "You already know this"), node).toBe(true);
+    }
   });
 });

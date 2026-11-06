@@ -63,7 +63,7 @@ import { clearsBeat, rightFirstTry, type BeatResult, type MasteryLevel } from ".
 import type { Card, Reco } from "../cards/types";
 import type { CardOffer } from "../cards/Recommendation";
 import { decks, PERSONAL_DECK_ID } from "../cards/store";
-import { isDraftCard } from "./practice/pools";
+import { isDraftCard, lessonPool } from "./practice/pools";
 import { CORRECT_CAUSE } from "./mcq/grade";
 import { questionForBeat } from "../tabs/trainer/engine/question";
 import { MATCH_BOARDS } from "./match";
@@ -88,6 +88,9 @@ import { Press } from "../app/ui/Press";
 import { ExitMark, GemMark } from "./chromeIcons";
 import { RecipeStrip } from "./RecipeStrip";
 import { LessonPreview } from "./LessonPreview";
+import { fadeFirst } from "../content/u1/workedFade";
+import { U1_POOLS } from "../content/u1";
+import { isSayWhyId, withSayWhy } from "./sayWhy";
 import { LessonRecap } from "./LessonRecap";
 import { PoolItemsStep } from "./PoolItemsStep";
 import { hasReactionLesson } from "../reactionLessons/ids";
@@ -853,7 +856,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           <McqRunner
             node={step.beat.node}
             level="declared"
-            beats={stepRecogniseBeats(step.beat)}
+            // The fade after a worked example (Unit 1 review suggestion 1): the first question carries its first step.
+            beats={run?.mode === "challenge" ? stepRecogniseBeats(step.beat) : fadeFirst(step.beat.node, stepRecogniseBeats(step.beat))}
             onExit={onExit}
             reducedMotion={reducedMotion}
             progressSlot={
@@ -987,7 +991,8 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
           <McqRunner
             node={node}
             level="declared"
-            beats={recycleBeatsFor(run.plan, run.missedMcqIds)}
+            // Each missed question's reason first, at level 0 (beats/sayWhy.ts, Unit 1 review suggestion 3).
+            beats={withSayWhy(recycleBeatsFor(run.plan, run.missedMcqIds), lessonPool(node), Object.values(U1_POOLS).flat())}
             missedBefore={run.missedMcqIds}
             hints={hintsAllowed(node, run.mode)}
             onExit={onExit}
@@ -1007,8 +1012,9 @@ export function BeatRunner({ node, level = 1, onExit, reducedMotion = false, cha
                   ? r
                   : reportRecycle(
                       r,
-                      before.cleared + results.filter((res) => clearsBeat(res)).length,
-                      before.total + results.length,
+                      // A say-why step teaches; it is not one of the questions being recycled.
+                      before.cleared + results.filter((res) => !isSayWhyId(res.beatId) && clearsBeat(res)).length,
+                      before.total + results.filter((res) => !isSayWhyId(res.beatId)).length,
                     ),
               );
             }}

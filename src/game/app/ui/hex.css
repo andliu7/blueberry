@@ -1,0 +1,189 @@
+/*
+ * The hexagon key (piece "hex", Nov 2026). Round icon keys only: text keys
+ * stay the rounded .btn3d, one family with the answer rows (round 3). It is a
+ * .btn3d in every respect but its silhouette: same four colour properties,
+ * same press (the whole key drops by the lip on :active), same disabled slab.
+ * HexFrame.tsx draws the shape as SVG behind the glyph; this file paints it
+ * from the .btn3d tokens.
+ *
+ * HIT AREA MATCHES THE SHAPE. The button itself takes no pointer; the drawn
+ * face and lip do (.hx-hit), so a tap in the empty corner outside a pointed
+ * end does not press the key. The glyph rides on top and stays pressable.
+ */
+
+/* Any .btn3d held in its pressed frame (the gallery's "Pressed" column). */
+.btn3d.is-pressed {
+  transform: translateY(var(--b3-lip-size));
+  box-shadow: 0 0 0 var(--b3-lip);
+}
+
+.btn3d.hx {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+.btn3d.hx:active:not(:disabled),
+.btn3d.hx.is-busy,
+.btn3d.hx.is-pressed {
+  box-shadow: none;
+}
+.btn3d.hx > :not(.hx-svg) {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+}
+.btn3d.hx:focus-visible {
+  outline: none;
+}
+
+.hx-svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.hx-hit {
+  pointer-events: visiblePainted;
+}
+
+.hx-lip {
+  fill: var(--b3-lip);
+  transition: opacity 90ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hx-face {
+  fill: var(--b3-face);
+  stroke: var(--b3-rim);
+  stroke-width: 2;
+  transition: fill 160ms ease;
+}
+.hx-focus {
+  fill: none;
+  stroke: var(--bb-ring);
+  stroke-width: 3;
+  opacity: 0;
+}
+.btn3d.hx:focus-visible .hx-focus {
+  opacity: 1;
+}
+
+/* The molecule on the face, in the glyph's ink: one thin line weight for
+   every bond, as in a skeletal drawing, so it reads as a ring and not as a
+   halo of marks. ringLayout (hexGeometry.ts) sets the weight per size. */
+.hx-ring,
+.hx-bond {
+  fill: none;
+  stroke: var(--b3-ink);
+  stroke-width: var(--hx-stroke, 2px);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.hx-ring {
+  opacity: 1;
+}
+
+/* ------------------------------------------------- what the bonds say */
+
+/* Benzene at rest: Kekule set a. Pressed: set b, the other Kekule
+   structure, cross-faded in place in the length of the face's drop. The ring
+   and the glyph stay exactly where they were, so it is the same key pushed
+   down, with the double bonds moved one place round the ring (resonance).
+   Released, set a comes back. */
+.hx-kek {
+  transition: opacity 90ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.hx-kek--b {
+  opacity: 0;
+}
+.btn3d.hx:active:not(:disabled) .hx-kek--a,
+.btn3d.hx.is-pressed .hx-kek--a {
+  opacity: 0;
+}
+.btn3d.hx:active:not(:disabled) .hx-kek--b,
+.btn3d.hx.is-pressed .hx-kek--b {
+  opacity: 1;
+}
+
+/* Down (pressed, busy, disabled): the lip is under the face. */
+.btn3d.hx:active:not(:disabled) .hx-lip,
+.btn3d.hx.is-pressed .hx-lip,
+.btn3d.hx.is-busy .hx-lip,
+.btn3d.hx:disabled .hx-lip {
+  opacity: 0;
+}
+
+/* Secondary: cyclohexane. The ring, no double bonds. */
+.btn3d--secondary.hx .hx-kek {
+  display: none;
+}
+
+/* Disabled: a faded cyclohexane on the grey slab. */
+.btn3d.hx:disabled:not(.is-busy) .hx-kek {
+  display: none;
+}
+.btn3d.hx:disabled:not(.is-busy) .hx-ring {
+  opacity: 0.45;
+}
+
+/* Busy: the double bonds draw in one at a time, then start over. The ring
+   stays: cyclohexane becoming benzene, bond by bond. */
+.btn3d.hx.is-busy .hx-kek--a .hx-bond {
+  opacity: 0;
+  animation: hx-bond-in 1.2s calc(var(--i) * 0.3s) infinite both;
+}
+.btn3d.hx.is-busy .hx-kek--b {
+  display: none;
+}
+.btn3d.hx.is-busy .busy-dot {
+  display: none;
+}
+@keyframes hx-bond-in {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------- shape */
+
+/* A regular flat-topped hexagon, width --hx-d, height d * sqrt(3) / 2.
+   64px across is the floor (55px tall, over the 44px tap minimum): below it
+   the ring and the glyph crowd each other. The glyph box is 30% of the width
+   (round 4, down from 34%), which ringLayout proves keeps 6px clear of every
+   bond at 64px and up. */
+.hx--round {
+  --hx-d: 4rem;
+  width: var(--hx-d);
+  min-width: 0;
+  height: calc(var(--hx-d) * 0.8660254);
+  min-height: 0;
+  padding: 0;
+}
+.hx--round .hx-label > svg {
+  width: calc(var(--hx-d) * 0.3);
+  height: calc(var(--hx-d) * 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-lip,
+  .hx-face,
+  .hx-kek {
+    transition: none;
+  }
+  /* No drawing loop: the bonds sit half drawn, still and legible. */
+  .btn3d.hx.is-busy .hx-kek--a .hx-bond {
+    animation: none;
+    opacity: 0.5;
+  }
+}

@@ -9,7 +9,7 @@ import { describe, expect, it } from "vitest";
 import { PATHWAY_UNITS, checkpointNodeId, hasChallengeRun, unitCheckpointNode } from "../demo/pathwayMap";
 import { U1_POOLS, U1_SORT_FIGURES, mergePools } from "../content/u1";
 import type { PoolEntry, UnitPools } from "../content/u1/types";
-import { challengePool, interleave, lessonPool, mayOfferCard, practicePool } from "../beats/practice/pools";
+import { U1_EXAM_C_IDS, challengePool, interleave, lessonPool, mayOfferCard, practicePool } from "../beats/practice/pools";
 import { STAGE_CD_EXAM_IDS, STAGE_CD_POOLS } from "../content/u1/stage-cd";
 import { STAGE_AB_POOLS } from "../content/u1/stage-ab";
 import { STAGE_CD_ACTIVE } from "../content/u1/stage-cd.active";
@@ -163,10 +163,22 @@ describe("the unit exam on u1-check", () => {
     ]);
   });
 
-  it("never draws stage C or the radical node: they appear only in Challenge", () => {
+  // CHANGED back 4 Nov (checker): stage C and the radical node are side quests, which count on the exam
+  // only when the student's syllabus covers them (owner 24 Oct). Covered, u1-quiz-c lends the three stage C
+  // problems the owner picked (Unit 1 review suggestion 11), and the exam keeps its length.
+  it("asks no stage C or radical problem unless the syllabus covers it", () => {
     for (const node of ["u1-nbs", "u1-nbs-practice", "u1-quiz-c", "u1-rank-radical"]) {
       for (const id of poolIds(node)) expect(ids.has(id), `${id} from ${node}`).toBe(false);
     }
+  });
+
+  it("lends stage C's three to the exam when the syllabus covers u1-quiz-c, keeping its length", () => {
+    for (const id of U1_EXAM_C_IDS) expect(poolIds("u1-quiz-c"), id).toContain(id);
+    const covered = practicePool(checkpointNodeId("u1"), undefined, new Set(["u1-quiz-c"]));
+    expect(covered.length).toBe(exam.length);
+    expect(covered.filter((entry) => poolIds("u1-quiz-c").includes(entry.id)).map((entry) => entry.id).sort()).toEqual([...U1_EXAM_C_IDS].sort());
+    const radical = practicePool(checkpointNodeId("u1"), undefined, new Set(["u1-rank-radical"]));
+    expect(radical.some((entry) => poolIds("u1-rank-radical").includes(entry.id))).toBe(true);
   });
 
   it("plays as the checkpoint's one practice step, and the checkpoint keeps no Challenge", () => {
@@ -288,6 +300,7 @@ describe("the concept ids and sort criteria Unit 1 had been borrowing", () => {
     for (const { entry, beat } of beats) for (const id of beat?.conceptIds ?? []) expect(known.has(id), `${entry.id} ${id}`).toBe(true);
   });
 
+  // CHANGED back 4 Nov (checker): the side-by-side radical item lives in the radical node again (u1-rad-allylic-vs-tbu).
   it("files every radical item under radical_stability, and only the radical node's", () => {
     for (const { entry, beat } of beats) {
       const radical = (U1_POOLS["u1-rank-radical"] ?? []).some((item) => item.id === entry.id);

@@ -195,8 +195,15 @@ describe("the screen", () => {
     expect(source.match(/setTally\(/g)).toHaveLength(1);
   });
 
-  it("writes the tally in the balance's own lettering", () => {
-    expect(source).toContain("<CoinNumerals text={`+${tally}`} />");
+  it("writes the balance in its own lettering, climbing by each landing, with the payout as a chip under it", () => {
+    expect(source).toContain("formatCoins(walletFrom + tally)");
+    expect(source).toContain("<CoinNumerals text={walletText} />");
+    expect(source).toContain('className="chest-open__tally-gain"');
+  });
+
+  it("never shows +0 over the box: the payoff is the whole payout from the burst", () => {
+    expect(source).not.toContain("text={`+${tally}`}");
+    expect(source.match(/<CoinNumerals text=\{finalText\} \/>/g)?.length).toBe(2);
   });
 
   it("listens to the site's motion switch as well as the OS, in code and in the stylesheet", () => {

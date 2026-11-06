@@ -202,7 +202,7 @@ const KINETIC_VS_THERMO: readonly McqBeat[] = Object.freeze([
         id: "one-four",
         text: "The 1,4 product",
         why: "The 1,4 product is the more stable one, and stability is what wins when the reaction can reverse. At minus 80 nothing reverses, so the faster route decides instead.",
-        cause: "attacked_wrong_electrophilic_site",
+        cause: "thermodynamic_product_under_kinetic_control",
       },
       {
         id: "even",
@@ -226,7 +226,7 @@ const KINETIC_VS_THERMO: readonly McqBeat[] = Object.freeze([
         id: "one-two",
         text: "The 1,2 product",
         why: "The 1,2 product is still the one that forms first. Warm gives it a way back to the allylic cation, and once a reaction can reverse the more stable product accumulates.",
-        cause: "attacked_wrong_electrophilic_site",
+        cause: "kinetic_product_under_thermodynamic_control",
       },
       {
         id: "one-four",
@@ -254,7 +254,7 @@ const KINETIC_VS_THERMO: readonly McqBeat[] = Object.freeze([
         id: "faster",
         text: "It forms over the lower barrier",
         why: "The lower barrier belongs to the 1,2 product, which is why cold runs give it. The 1,4 product wins on depth rather than on speed.",
-        cause: "attacked_wrong_electrophilic_site",
+        cause: "thermodynamic_product_under_kinetic_control",
       },
       {
         id: "stable",
@@ -265,7 +265,7 @@ const KINETIC_VS_THERMO: readonly McqBeat[] = Object.freeze([
         id: "first",
         text: "It wins because it forms first",
         why: "Forming first and being more stable are two different claims, and here they belong to different products. The 1,4 product is the stable one, and the 1,2 product is the fast one.",
-        cause: "attacked_wrong_electrophilic_site",
+        cause: "thermodynamic_product_under_kinetic_control",
       },
       {
         id: "only",
@@ -1091,7 +1091,7 @@ const ELECTRON_DEMAND: readonly McqBeat[] = Object.freeze([
     node: "u1-ied",
     conceptIds: ["ewg_edg_rubric"],
     levels: [0, 1, 2],
-    prompt: "A withdrawing group sits on the diene. Pick what that changes.",
+    prompt: "A withdrawing group sits on the diene and a donor on the dienophile. Pick what changes.",
     brief: "Normally the diene donates and the dienophile accepts. These groups are swapped.",
     diamonds: 7,
     correctOptionId: "roles-flip",

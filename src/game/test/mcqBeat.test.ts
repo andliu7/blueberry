@@ -263,7 +263,7 @@ describe("grading runs on the curriculum multiple_choice kind", () => {
     expect(isSound(reveal.result)).toBe(false);
     expect(reveal.result.distractorId).toBe("faster");
     // The option named a chemistry cause, so that is what is recorded.
-    expect(reveal.result.cause).toBe("attacked_wrong_electrophilic_site");
+    expect(reveal.result.cause).toBe("thermodynamic_product_under_kinetic_control");
   });
 
   it("falls back to the shape cause when the option names no chemistry cause", () => {

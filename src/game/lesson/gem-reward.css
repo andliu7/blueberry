@@ -239,107 +239,326 @@
 @media (prefers-reduced-motion: reduce) { .gr-bit, .gr-rays { animation: none !important; } }
 @media (max-height: 740px) { .gr-hero { width: min(70vw, 17rem) !important; } .gr-num { font-size: 5rem; } .gr--field .gr-big { font-size: 7rem; } }
 
-/* ---- Round 2: one field, one button, a mascot, a burst, a counting number ---- */
-.gr--field {
-  --gr-field: #5a3fd8;
-  background: var(--gr-field);
-  color: #fff;
-  --gr-ink: #fff;
+/* ---- The coin payout (reward gauntlet, Nov): the chest's own place, the real
+   counter in a top bar, the coins streamed from the box into it. ---- */
+.gr--pay {
   isolation: isolate;
+  padding: 0;
+  background: #cfeaf6;
+  color: #1d1d1f;
 }
-.gr--field.gr--rare { --gr-field: #2f6fe0; }
-.gr--field.gr--epic { --gr-field: #7a2fd0; }
-.gr--field::before {
-  content: "";
+.gr--pay .gr-pay-world {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: radial-gradient(ellipse 80% 45% at 50% 38%, rgb(255 255 255 / 0.28), transparent 70%);
+  z-index: 0;
+  padding: 0;
 }
-/* One button treatment across the set: white face, violet ink, soft lip. */
-.gr--field .gr-foot .btn3d {
-  --b3-face: #fff;
-  --b3-ink: #3a24b0;
-  --b3-lip: #c9bffa;
-  --b3-rim: transparent;
-  font-size: 1.1875rem;
-  min-height: 3.75rem;
+.gr--pay > :not(.gr-pay-world) { position: relative; z-index: 2; }
+.gr-pay-world .chest-world__foot.gr-pay-foot { --foot: 11rem; }
+
+/* The top bar: the app header's ground and the real counter, right aligned. */
+.gr-pay-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: 4rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 0 rgb(29 29 31 / 0.12);
 }
-.gr--field .gr-head-icon { width: 0.8em; height: 0.8em; }
-.gr--field .gr-head {
-  flex-direction: column;
-  gap: 0;
-  margin-top: clamp(1.5rem, 5vh, 3rem);
-  color: #fff;
-}
-.gr-num {
-  font-size: clamp(5.5rem, 30vw, 8rem);
+.gr-pay-title {
+  font-size: 1rem;
   font-weight: 900;
-  line-height: 0.95;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 6px 0 rgb(20 8 90 / 0.4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #3a2a00;
 }
-.gr-num--xp { color: #ffe27a; }
-.gr-unit { display: inline-flex; align-items: center; gap: 0.4rem; font-size: clamp(2rem, 10vw, 2.75rem); font-weight: 900; color: #8ff0e8; }
-.gr-unit--xp { color: #ffe27a; }
-.gr--field .gr-reason { font-size: 1.375rem; color: #fff; margin-top: 0.75rem; max-width: 20rem; }
+.gr-pay-counter { display: inline-flex; padding-right: 0.25rem; }
 
-.gr-stage { position: relative; display: grid; place-items: center; width: 100%; margin-top: 0.75rem; }
-.gr-stage .gr-hero { margin-top: 0; width: min(88vw, 21rem); position: relative; z-index: 1; }
-.gr-hero--mascot { width: auto !important; display: grid; place-items: center; }
-.gr-stage--xp { margin-top: clamp(1.25rem, 5vh, 2.5rem); }
-.gr-buddy { position: absolute; right: 0.25rem; bottom: 1.25rem; z-index: 2; }
-.gr-mascot { position: relative; width: var(--m); height: var(--m); display: grid; place-items: center; }
-.gr-glow { position: absolute; inset: -14%; border-radius: 50%; background: rgb(255 255 255 / 0.9); z-index: 0; }
-.gr-mascot > :not(.gr-glow) { position: relative; z-index: 1; }
-.gr-bolt-badge { position: absolute; right: -2.25rem; top: -0.5rem; width: 4rem; height: 4rem; transform: rotate(10deg); filter: drop-shadow(0 4px 0 rgb(20 8 90 / 0.35)); z-index: 2; }
+/* The amount, in the counter's own lettering, slammed in over the box. */
+.gr-pay-amount {
+  margin: clamp(0.75rem, 2.5vh, 1.5rem) 0 0;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+  line-height: 1;
+}
+.gr-pay-num {
+  --cc-digit: var(--coin-face-lit, #ffe27a);
+  --cc-digit-line: #140a00;
+  display: block;
+  line-height: 0;
+}
+.gr-pay-unit {
+  margin-top: 0.4em;
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #3a2a00;
+  text-shadow: 0 2px 0 rgb(255 255 255 / 0.9);
+}
 
-.gr-burst { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-.gr-rays {
+/* Words and the button stand on the dark foot of the ground. */
+.gr-pay-words {
+  margin-top: auto;
+  width: 100%;
+  max-width: 26rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.gr-pay-reason {
+  margin: 0;
+  max-width: 21rem;
+  font-size: 1.1875rem;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #ffffff;
+}
+
+/* The sun behind the box: gold rays, never a gradient over the field's colour. */
+.gr-pay-sun {
   position: absolute;
-  left: 50%; top: 50%;
-  width: 150vw; height: 150vw;
-  max-width: 60rem; max-height: 60rem;
-  transform: translate(-50%, -50%);
-  background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.16) 0 8deg, transparent 8deg 24deg);
-  -webkit-mask-image: radial-gradient(circle, #000 0, transparent 62%);
-  mask-image: radial-gradient(circle, #000 0, transparent 62%);
+  left: 50%;
+  top: calc(62% - 0.6 * var(--rig-h));
+  width: 44rem;
+  height: 44rem;
+  margin: -22rem 0 0 -22rem;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle, #000 10%, transparent 60%);
+  mask-image: radial-gradient(circle, #000 10%, transparent 60%);
 }
-.gr-bit { position: absolute; left: calc(50% + var(--dx)); top: calc(50% + var(--dy)); width: var(--sz); height: var(--sz); transform: translate(-50%, -50%); }
-.gr-bit--gem { background: var(--gr-gem-light); clip-path: circle(50%); }
-.gr-bit--xp { background: #ffe27a; clip-path: polygon(55% 0, 15% 55%, 48% 55%, 40% 100%, 88% 40%, 54% 40%); }
-.gr-bit--coin { background: #ffd45c; border-radius: 50%; box-shadow: inset 0 0 0 2px #b57a00; }
-.gr-bit--star { background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); }
-.gr-stage--streak { margin-top: clamp(1.25rem, 5vh, 2.5rem); }
-.gr--field .gr-flame { width: 9.5rem; margin-top: 0; position: relative; z-index: 1; filter: drop-shadow(0 8px 0 rgb(20 8 90 / 0.3)); }
+.gr-pay-sun i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgb(255 207 72 / 0.62) 0deg 9deg, rgb(255 207 72 / 0) 9deg 22.5deg);
+}
+/* The flash as the lid goes. */
+.gr-pay-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+}
 
-.gr--field .gr-big { font-size: clamp(8rem, 44vw, 11rem); margin-top: 0; color: #ffe27a; text-shadow: 0 8px 0 rgb(20 8 90 / 0.4); font-variant-numeric: tabular-nums; }
-.gr--field .gr-streak-label { font-size: 2rem; }
-.gr--field .gr-week { gap: 0.3rem; margin-top: 1.25rem; }
-.gr--field .gr-day { width: 2.9rem; }
-.gr--field .gr-day-name { font-size: 1rem; }
-.gr--field .gr-day-dot { width: 2.6rem; height: 2.6rem; background: rgb(20 8 90 / 0.35); color: transparent; font-size: 1.2rem; }
-.gr--field .gr-day--done .gr-day-dot { background: #ffe27a; color: #5a3fd8; }
-.gr--field .gr-day--today .gr-day-dot { background: #fff; color: #5a3fd8; }
-.gr--field .gr-btn-icon { width: 1.6rem; height: 1.6rem; margin-right: 0.35rem; }
-.gr--field .gr-quiet { font-size: 1.125rem; }
+/* Round 2: the payout starts shut and waits for a tap (data-phase="closed"),
+   then plays; the goal bar under the amount fills as the counter climbs. */
+.gr--pay .gr-pay-world { top: 4rem; }
+.gr--pay .gr-pay-world.chest-open { --rig-w: min(17.5rem, 68vw, 36vh); }
+.gr--pay > .gr-pay-tap {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+/* Focus lands here on arrival; the hint pill shows it, not a ring round the screen. */
+.gr-pay-tap:focus { outline: none; }
+.gr--pay:has(.gr-pay-tap:focus-visible) .gr-pay-hint { box-shadow: 0 0 0 3px #5a3fd8, 0 4px 0 rgb(29 29 31 / 0.18); }
+.gr-pay-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0 1rem;
+}
+.gr-pay-amount[hidden] { display: none; }
+.gr-pay-tease {
+  margin: clamp(1.25rem, 5vh, 3rem) 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #1d1d1f;
+  text-shadow: 0 2px 0 rgb(255 255 255 / 0.9);
+}
+.gr-pay-tease span { font-size: 1.125rem; font-weight: 800; color: #5b4a12; }
+.gr--pay[data-phase="closed"] .gr-pay-sun { opacity: 0.35; }
 
-.gr--field .gr-tiles { margin-top: 1.25rem; gap: 0.6rem; }
-.gr--field .gr-tile-top { font-size: 0.8125rem; padding: 0.4rem 0; }
-.gr--field .gr-tile-body { font-size: 1.625rem; padding: 0.8rem 0.25rem; }
-.gr--field .gr-ti { width: 1.5rem; height: 1.5rem; }
+/* The prompt while it is shut, and the button only once the last coin is in. */
+.gr-pay-hint {
+  margin: 0;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.95);
+  box-shadow: 0 4px 0 rgb(29 29 31 / 0.18);
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #3a24b0;
+}
+.gr--pay[data-phase="opening"] .gr-pay-cta { visibility: hidden; }
 
-.gr--field .gr-tier { font-size: 2rem; }
-.gr--field .gr-cap { font-size: 1.375rem; }
-.gr--field .gr-chestbtn { position: relative; z-index: 1; }
-.gr--field .gr-chestwrap .gr-burst { inset: -20%; }
-.gr--field .gr-updot--on { color: var(--gr-field); }
-.gr--field .gr-updot { width: 3rem; height: 3rem; }
+[data-motion="live"] .gr-pay-sun i { animation: chest-spin 16s linear infinite; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-sun { animation: gr-pay-sun-in 700ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-flash { animation: gr-pay-flash 620ms 140ms ease-out both; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-chest { animation: gr-pay-burst 620ms 100ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+.gr--pay[data-motion="live"][data-phase="closed"] .gr-pay-chest { animation: gr-pay-wait 1.8s 400ms ease-in-out infinite; transform-origin: 50% 90%; }
+.gr--pay[data-motion="live"][data-phase="closed"] .gr-pay-hint { animation: gr-pay-bob 1.8s 400ms ease-in-out infinite; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-amount { animation: gr-pay-slam 560ms 260ms cubic-bezier(0.2, 0.7, 0.4, 1) both; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-goal { animation: gr-in 380ms 560ms ease-out both; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-reason { animation: gr-in 380ms 700ms ease-out both; }
+.gr--pay[data-motion="live"][data-phase="paid"] .gr-pay-cta { animation: gr-in 320ms ease-out both; }
+.gr--pay[data-motion="live"][data-paid="true"] .gr-pay-num { animation: gr-pay-ring 420ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+.gr--pay[data-motion="live"] .gr-goal.coin-goal[data-reached="true"] { animation: gr-pay-ring 420ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+@keyframes gr-pay-wait {
+  0%, 62%, 100% { transform: none; }
+  68% { transform: rotate(-4deg) scale(1.03, 0.97); }
+  74% { transform: rotate(4deg) translateY(-6px); }
+  80% { transform: rotate(-3deg); }
+  86% { transform: rotate(2deg); }
+}
+@keyframes gr-pay-bob { 0%, 100% { transform: none; } 50% { transform: translateY(-4px); } }
+@keyframes gr-pay-sun-in { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: none; } }
+@keyframes gr-pay-flash { 0% { opacity: 0; } 18% { opacity: 0.92; } 100% { opacity: 0; } }
+@keyframes gr-pay-burst {
+  0% { transform: none; }
+  22% { transform: scale(1.12, 0.84); }
+  48% { transform: translateY(-18px) scale(0.94, 1.1); }
+  72% { transform: scale(1.04, 0.95); }
+  100% { transform: none; }
+}
+@keyframes gr-pay-slam {
+  0% { opacity: 0; transform: scale(2.3) rotate(-4deg); }
+  32% { opacity: 1; transform: scale(0.9) rotate(0.8deg); }
+  60% { transform: scale(1.07); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes gr-pay-ring { 40% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  .gr-pay-sun, .gr-pay-sun i, .gr-pay-flash, .gr-pay-chest, .gr-pay-amount, .gr-pay-words, .gr-pay-num,
+  .gr-goal, .gr-pay-hint, .gr-pay-reason, .gr-pay-cta { animation: none !important; }
+  .gr-pay-flash { display: none; }
+}
+@media (min-width: 768px) {
+  .gr-pay-bar { padding-left: 2rem; padding-right: 2rem; }
+  /* The ground starts lower, so the box stands just above the words and the
+     button: no empty band of grass between them. */
+  .gr--pay .gr-pay-world { top: 8.5rem; }
+  .gr--pay .gr-pay-world.chest-open { --rig-w: min(21rem, 38vh); }
+  .gr--pay .gr-pay-world .chest-world__foot.gr-pay-foot { --foot: 10rem; }
+  .gr-pay-tease { font-size: 2.5rem; margin-top: 3rem; }
+  /* A wide screen has height to spare under the box: the words and the
+     button stand in it rather than at the very bottom of a tall foot. */
+  .gr-pay-words { margin-bottom: clamp(1rem, 6vh, 3.5rem); }
+  .gr-pay-reason { font-size: 1.375rem; }
+}
 
-[data-motion="live"] .gr-bit { animation: gr-throw 700ms var(--d, 0ms) cubic-bezier(0.2, 0.8, 0.3, 1) both; }
-[data-motion="live"] .gr-rays { animation: gr-spin 40s linear infinite; }
-@keyframes gr-throw { from { left: 50%; top: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.2); } 30% { opacity: 1; } to { opacity: 1; } }
-@keyframes gr-spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .gr-bit, .gr-rays { animation: none !important; } }
-@media (max-height: 740px) { .gr-hero { width: min(70vw, 17rem) !important; } .gr-num { font-size: 5rem; } .gr--field .gr-big { font-size: 7rem; } }
+/* Round 3 (reward gauntlet, Nov): one layout from shut to paid. Top to bottom:
+   the bar, the amount, the chest, the goal card, the words, the one button.
+   The amount rises out of the box (--rise, measured from the chest's mouth) and
+   counts with the coins; the card waits under the box. The coins fly in their
+   own layer, over the bar and under every word. */
+.gr--pay > .gr-pay-coins { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.gr--pay > .gr-pay-top,
+.gr--pay > .gr-pay-words { z-index: 4; }
+.gr-pay-tease { position: absolute; left: 0; right: 0; top: 0; }
+.gr-pay-amount { position: relative; margin: clamp(1rem, 3.5vh, 2rem) 0 0; }
+.gr-pay-amount[data-shut],
+.gr-pay-goal[data-shut],
+.gr-pay-reason[data-shut] { visibility: hidden; }
+.gr-pay-num { display: flex; justify-content: center; }
+.gr-pay-tick { display: block; transform-origin: 50% 60%; }
+/* The burst behind the amount: gold rays that open as it rises. */
+.gr-pay-amount::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 22rem;
+  height: 22rem;
+  margin: -11rem 0 0 -11rem;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgb(255 207 72 / 0.75) 0deg 9deg, rgb(255 207 72 / 0) 9deg 22.5deg);
+  -webkit-mask-image: radial-gradient(circle, #000 14%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 14%, transparent 62%);
+  pointer-events: none;
+}
+.gr-pay-words { gap: 0.625rem; }
+.gr-pay-goal { display: flex; justify-content: center; width: 100%; }
+.gr-pay-cta { padding-top: 0.25rem; min-height: 5.25rem; justify-content: flex-start; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-amount { animation: gr-pay-rise 640ms 420ms cubic-bezier(0.2, 0.85, 0.3, 1) both; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-amount::before { animation: gr-pay-rays 900ms 420ms cubic-bezier(0.16, 1, 0.3, 1) both, chest-spin 18s 1.3s linear infinite; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-goal { animation: none; }
+.gr--pay[data-motion="live"]:not([data-phase="closed"]) .gr-pay-goal { animation: gr-in 360ms 520ms ease-out both; }
+.gr--pay[data-motion="live"][data-phase="opening"] .gr-pay-tick { animation: gr-pay-kick 200ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+.gr--pay[data-motion="live"][data-paid="true"] .gr-pay-num { animation: gr-pay-ring 460ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+@keyframes gr-pay-rise {
+  0% { opacity: 0; transform: translateY(var(--rise, 9rem)) scale(0.2); }
+  12% { opacity: 1; }
+  62% { transform: translateY(-0.6rem) scale(1.1); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes gr-pay-rays { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: none; } }
+@keyframes gr-pay-kick { from { transform: scale(1.16); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .gr-pay-amount::before, .gr-pay-goal, .gr-pay-tick { animation: none !important; }
+}
+@media (min-width: 768px) {
+  /* The card stands clear of the box's feet: the words sit lower on a wide screen. */
+  .gr--pay .gr-pay-words { margin-bottom: 1rem; }
+  .gr--pay .gr-pay-world.chest-open { --rig-w: min(20rem, 36vh); }
+  /* Round 4: the foot is a soft shade now (chestOpening.css); a shadow keeps the white line crisp on it. */
+  .gr--pay .gr-pay-reason { text-shadow: 0 2px 0 rgb(18 44 12 / 0.45); }
+}
+html[data-motion="reduced"] .gr--pay .gr-pay-amount,
+html[data-motion="reduced"] .gr--pay .gr-pay-amount::before,
+html[data-motion="reduced"] .gr--pay .gr-pay-goal,
+html[data-motion="reduced"] .gr--pay .gr-pay-tick { animation: none !important; }
+
+/* The Clouds look: no violet field behind the XP screen either. The same sky as
+   the payout, gold rays, ink in the page's dark, the solid violet button. */
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] {
+  --gr-field: #cfeaf6;
+  background: linear-gradient(180deg, #cfeaf6 0%, #e6f5fb 40%, #ffffff 72%);
+  color: #1d1d1f;
+  --gr-ink: #1d1d1f;
+}
+:root[data-look="white"]:not(.dark) .gr--field::before { display: none; }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-rays {
+  background: repeating-conic-gradient(from 0deg, rgb(255 196 40 / 0.5) 0 8deg, transparent 8deg 24deg);
+}
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-reason { color: #1d1d1f; }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-num--xp {
+  color: #ffc21a;
+  -webkit-text-stroke: 0.06em #140a00;
+  paint-order: stroke fill;
+  text-shadow: 0.04em 0.07em 0 #140a00;
+}
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-unit--xp { color: #8a5a00; }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-glow { background: rgb(255 255 255 / 0.95); box-shadow: 0 0 0 0.5rem rgb(255 207 72 / 0.35); }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-bit--star { background: #ffc21a; }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-tile { box-shadow: 0 4px 0 rgb(29 29 31 / 0.12); }
+:root[data-look="white"]:not(.dark) .gr--field[data-reward="xp"] .gr-foot .btn3d {
+  --b3-face: #5a3fd8;
+  --b3-ink: #ffffff;
+  --b3-lip: #3a24b0;
+}
+
+/* The XP screen on a wide screen (reward gauntlet, Nov): the group sits in the
+   middle and the button follows it, instead of a dead band between them, and
+   the stat cards take a width a desktop eye reads at a glance. */
+@media (min-width: 768px) and (min-height: 600px) {
+  .gr--field[data-reward="xp"] { justify-content: center; padding-top: 2rem; }
+  .gr--field[data-reward="xp"] .gr-stage--xp { margin-top: 0; }
+  .gr--field[data-reward="xp"] .gr-tiles { max-width: 40rem; gap: 1rem; margin-top: 1.75rem; }
+  .gr--field[data-reward="xp"] .gr-tile-top { font-size: 0.9375rem; padding: 0.5rem 0; }
+  .gr--field[data-reward="xp"] .gr-tile-body { font-size: 2rem; padding: 1.1rem 0.5rem; }
+  .gr--field[data-reward="xp"] .gr-ti { width: 1.85rem; height: 1.85rem; }
+  .gr--field[data-reward="xp"] .gr-foot { margin-top: 2.25rem; max-width: 26rem; padding-bottom: 2rem; }
+}

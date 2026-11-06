@@ -1,4 +1,5 @@
 import FinanceBento from "@/components/ui/finance-bento";
+import { EmptyValue, SourceNote } from "@/game/admin/honesty";
 import type {
   DeviceKey,
   DeviceSlice,
@@ -81,44 +82,49 @@ interface GrowthBoardProps {
   credit?: boolean;
 }
 
-/** What each part will read from once connected. Named, so the empty state says what is missing. */
-const NEEDS: Array<{ title: string; source: string; shape: number[] }> = [
-  { title: "Learners by plan", source: "plan history (entitlements over time)", shape: [2, 3, 3, 5, 6, 8, 9, 12] },
-  { title: "Acquisition cost", source: "logged ad spend", shape: [9, 8, 8, 6, 6, 5, 5, 4] },
-  { title: "Open feedback", source: "the feedback table", shape: [3, 5, 4, 6, 5, 7, 6, 8] },
+/** What each part will read from once connected. Named behind an info mark, so the empty state says what is missing without shouting it. */
+const NEEDS: Array<{ title: string; source: string; why: string }> = [
+  { title: "Learners by plan", source: "plan history (entitlements over time)", why: "Plan history is not kept yet." },
+  { title: "Acquisition cost", source: "logged ad spend", why: "Spend is not logged anywhere yet." },
+  { title: "Open feedback", source: "the feedback table", why: "There is no feedback table yet." },
 ];
 
-function ShapeLine({ points, label }: { points: number[]; label: string }) {
-  const max = Math.max(...points);
-  const min = Math.min(...points);
-  const d = points
-    .map((v, i) => `${i ? "L" : "M"}${(i / (points.length - 1)) * 120} ${30 - ((v - min) / (max - min || 1)) * 26 - 2}`)
-    .join(" ");
+/** An empty chart frame: gridlines and a flat line at zero. No invented shape. */
+function FlatLine() {
   return (
-    <svg viewBox="0 0 120 32" role="img" aria-label={label} className="h-10 w-full text-muted-foreground opacity-60">
-      <path d={d} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 4" />
-    </svg>
+    <div aria-hidden className="relative mt-3 h-12 w-full">
+      <div className="absolute inset-x-0 top-0 border-t border-dashed border-border" />
+      <div className="absolute inset-x-0 top-1/2 border-t border-dashed border-border" />
+      <div className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-muted-foreground/25" />
+    </div>
   );
 }
 
 export default function GrowthBoard({ data, credit = false }: GrowthBoardProps) {
   if (data === undefined || data.isSample) {
+    // The admin's one empty pattern: a single line that names the cause and the next
+    // step, then the tiles at their real size with a quiet dash and the source behind
+    // an info mark. No per-tile pill, no table names in the body.
     return (
-      <div className="mx-auto w-full max-w-[1480px] p-3 sm:p-5">
-        <section aria-labelledby="gb-empty" className="rounded-2xl border-2 border-dashed border-border bg-card p-5 text-card-foreground">
-          <h2 id="gb-empty" className="m-0 text-lg font-extrabold">
+      <div className="w-full min-w-0">
+        <section aria-labelledby="gb-empty" className="rounded-2xl border border-border bg-card p-5 text-card-foreground">
+          <h2 id="gb-empty" className="m-0 text-base font-semibold">
             Growth is not measured yet
           </h2>
           <p className="mb-4 mt-1 text-sm text-muted-foreground">
-            No data, example. Real sign-ups, retention and devices are on the Learners tab.
+            None of these three has a data source yet. Sign-ups, stay and devices are measured on the Overview tab.
           </p>
           <ul className="m-0 grid list-none gap-3 p-0 sm:grid-cols-3">
             {NEEDS.map((n) => (
-              <li key={n.title} className="rounded-xl border border-dashed border-border p-3">
-                <p className="m-0 text-sm font-bold">{n.title}</p>
-                <p className="m-0 text-2xl font-extrabold text-muted-foreground">No data</p>
-                <ShapeLine points={n.shape} label={`Example graph for ${n.title}`} />
-                <p className="m-0 text-xs text-muted-foreground">Feeds from {n.source} once connected.</p>
+              <li key={n.title} className="rounded-xl border border-border p-4">
+                <p className="m-0 flex items-center gap-1 text-xs text-muted-foreground">
+                  {n.title}
+                  <SourceNote live={false} source={n.source} why={n.why} />
+                </p>
+                <p className="m-0 mt-2 text-2xl font-semibold leading-none tabular-nums">
+                  <EmptyValue />
+                </p>
+                <FlatLine />
               </li>
             ))}
           </ul>

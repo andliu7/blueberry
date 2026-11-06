@@ -22,6 +22,7 @@
 import { lazy, Suspense, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
 import TaskProjects from "./TaskProjects";
+import { hrefForAdmin } from "../app/routes";
 import "./taskBoard.css";
 
 const Calendar = lazy(() => import("@/components/ui/calendar").then((m) => ({ default: m.Calendar })));
@@ -322,8 +323,18 @@ function TaskBoardCards({ embedded = false, onDueDates }: { embedded?: boolean; 
         setDraft("");
       }
     };
+    // The admin home's "New task" button beside the page title opens the same composer.
+    const onNew = () => {
+      setPhoneCol("todo");
+      setAdding("todo");
+      setDraft("");
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("bb-admin-new-task", onNew);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("bb-admin-new-task", onNew);
+    };
   }, []);
 
   const q = query.trim().toLowerCase();
@@ -708,6 +719,158 @@ function TaskBoardCards({ embedded = false, onDueDates }: { embedded?: boolean; 
       <p className="tb-sr" role="status" aria-live="polite">
         {said}
       </p>
+    </section>
+  );
+}
+
+/**
+ * The few cards the admin home shows (gauntlet, 4 Nov): To do by priority (the Next up card
+ * is left out, it has its own strip), Doing in board order, Done newest first.
+ */
+export function topTasks(tasks: readonly Task[], col: Column, n: number, skip: string | null = null): Task[] {
+  const inCol = tasks.filter((t) => t.column === col && t.id !== skip);
+  if (col === "todo") return inCol.map((t, i) => ({ t, i })).sort((a, b) => (a.t.pri ?? 9) - (b.t.pri ?? 9) || a.i - b.i).slice(0, n).map((x) => x.t);
+  if (col === "done") return inCol.slice(-n).reverse();
+  return inCol.slice(0, n);
+}
+
+/**
+ * The task card on the admin home: the Next up strip, a count tab per column (as Stripe's
+ * payments list counts each status) and the top five rows of the chosen one. The full board
+ * is its own page; this links there. Same saved cards as the board.
+ */
+export function TaskSummary({ limit = 5 }: { limit?: number }) {
+  const [tasks, setTasks] = useState<Task[]>(load);
+  const [tab, setTab] = useState<Column>("todo");
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState("");
+  const uid = useId();
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify(tasks));
+    } catch {
+      /* private window: the list still works for this visit */
+    }
+  }, [tasks]);
+  useEffect(() => {
+    const onNew = () => {
+      setTab("todo");
+      setAdding(true);
+      setDraft("");
+    };
+    window.addEventListener("bb-admin-new-task", onNew);
+    return () => window.removeEventListener("bb-admin-new-task", onNew);
+  }, []);
+
+  const next = useMemo(() => nextTask(tasks), [tasks]);
+  const rows = topTasks(tasks, tab, limit, tab === "todo" ? next?.id ?? null : null);
+  const count = tasks.filter((t) => t.column === tab).length;
+  const total = count - (tab === "todo" && next ? 1 : 0);
+  const board = hrefForAdmin("tasks");
+  const add = () => {
+    const text = draft.trim();
+    if (!text) return setAdding(false);
+    const num = tasks.reduce((m, t) => Math.max(m, t.num ?? 0), 0) + 1;
+    const t: Task = { id: `t${Date.now()}`, num, title: text, label: "Mine", column: "todo", due: null, owner: "Andrew" };
+    setTasks((all) => placeTask([...all, t], t.id, "todo", all.find((x) => x.column === "todo")?.id ?? null));
+    setDraft("");
+    setAdding(false);
+  };
+
+  return (
+    <section className="ts" id="ah-tasks" aria-labelledby={`${uid}-h`} data-testid="task-summary">
+      <header className="ts-head">
+        <h2 id={`${uid}-h`} className="ts-title">
+          Tasks
+        </h2>
+        <a className="ts-open" href={board}>
+          Open board
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden focusable="false">
+            <path d="M3 8h9M8.5 4.5 12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
+      </header>
+
+      {next ? (
+        <div className="ts-next">
+          <span className="ts-next__tag">Next up</span>
+          <PriIcon pri={next.pri} />
+          <span className="ts-next__title">
+            <span className="tb-id">BB-{next.num}</span> {next.title}
+          </span>
+          <span className="ts-next__owner">{next.owner ?? ""}</span>
+          <button type="button" className="ts-start" onClick={() => setTasks((all) => moveTask(all, next.id, "doing"))}>
+            Start
+          </button>
+        </div>
+      ) : null}
+
+      <div className="ts-tabs" role="group" aria-label="Show column">
+        {COLUMNS.map((c) => (
+          <button key={c.id} type="button" className="ts-tab" aria-pressed={tab === c.id} onClick={() => setTab(c.id)}>
+            {c.label}
+            <span className="ts-tab__n">{tasks.filter((t) => t.column === c.id).length}</span>
+          </button>
+        ))}
+      </div>
+
+      {adding ? (
+        <form
+          className="ts-new"
+          onSubmit={(e) => {
+            e.preventDefault();
+            add();
+          }}
+        >
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Escape" && setAdding(false)}
+            onBlur={() => { if (!draft.trim()) setAdding(false); }}
+            placeholder="Task title, then Enter"
+            aria-label="New task in To do"
+            maxLength={120}
+          />
+        </form>
+      ) : null}
+
+      <ul className="ts-list" aria-label={`${COLUMNS.find((c) => c.id === tab)!.label}, top ${rows.length}`}>
+        {rows.map((t) => (
+          <li key={t.id} className={`ts-row${t.column === "done" ? " is-done" : ""}`}>
+            <button
+              type="button"
+              className="tb-status"
+              aria-label={`${t.title}: move to ${COLUMNS.find((c) => c.id === (t.column === "done" ? "todo" : step(t.column, 1)))!.label}`}
+              onClick={() => setTasks((all) => moveTask(all, t.id, t.column === "done" ? "todo" : step(t.column, 1)))}
+            >
+              <StatusIcon column={t.column} />
+            </button>
+            <span className="tb-id ts-row__id">BB-{t.num}</span>
+            <span className="ts-row__title">{t.title}</span>
+            <span className="ts-row__label">
+              <i style={{ background: labelColor(t.label) }} aria-hidden />
+              {t.label}
+            </span>
+            <span className="ts-row__owner">{t.owner ?? ""}</span>
+            <span className="ts-row__pri" title={priName(t.pri)}>
+              <PriIcon pri={t.pri} />
+              <span className="tb-sr">{priName(t.pri)} priority</span>
+            </span>
+          </li>
+        ))}
+        {rows.length === 0 ? <li className="ts-empty">Nothing here.</li> : null}
+      </ul>
+
+      <footer className="ts-foot">
+        <span>Saved on this device only.</span>
+        {total > rows.length ? (
+          <a className="ts-more" href={board}>
+            See all {count} in {COLUMNS.find((c) => c.id === tab)!.label}
+          </a>
+        ) : null}
+      </footer>
     </section>
   );
 }

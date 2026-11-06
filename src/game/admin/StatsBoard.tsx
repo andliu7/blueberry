@@ -3,11 +3,14 @@
  * the same AdminGate as AdminViewer. Default export so it can be React.lazy-imported
  * as its own chunk and never enters the #/app entry.
  *
- * HONESTY RULE (owner, 29 Oct). Every tile is either real, with a footnote naming the
+ * HONESTY RULE (owner, 29 Oct). Once anything is read, every tile is either real, with a footnote naming the
  * table it was counted from, or a "No data, example" tile: the headline reads "No data",
  * the graph is faded and shows shape only, and the footnote says what will feed it. No
  * guessed number is ever shown as a figure. The page fetches through statsLive.ts; the
  * example graphs below are invented shapes and are never printed as numbers.
+ * Before anything is read (round 4), LearnersPreview shows fixed sample figures, each card
+ * tagged "Sample data" and the page under one strip that says so; they never sit beside
+ * a real figure.
  *
  * Sources, all read through staff RLS:
  *   Learners, sign-ups, join time, seasonality   profiles (created_at)
@@ -22,7 +25,9 @@ import { AnalyticsBento, type CardKey, type Point } from "@/components/ui/analyt
 import { getSupabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { fetchStats, type LiveStats } from "./statsLive";
-import { ExampleBadge, LiveBadge, SourceNote } from "./honesty";
+import { EmptyValue, LiveBadge, SourceNote, type FailReason } from "./honesty";
+import { hrefForSettingsFromAdmin } from "../app/routes";
+import "./learners.css";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -57,28 +62,244 @@ const GROUP_COLORS = ["#c9bdfb", "#9fd6c4", "#f6c98d", "#f3b6c6", "#a9c8f5", "#d
 
 function Stat({ label, value, note, live, source, why }: { label: string; value: string; note?: string; live: boolean; source: string; why?: string }) {
   return (
-    <div className={cn("min-w-0 rounded-2xl border bg-card p-4 text-card-foreground", live ? "border-border" : "border-dashed border-border")}>
-      <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-        {label}
-        {live ? <LiveBadge className="!ml-0" /> : <ExampleBadge className="!ml-0" />}
+    <div className="min-w-0 rounded-2xl border border-border bg-card p-4 text-card-foreground">
+      <div className="ah-tile-label">
+        <span className="ah-tile-label__text">{label}</span>
+        <SourceNote live={live} source={source} why={why} />
+        {live ? <LiveBadge className="ml-1" /> : null}
       </div>
-      <div className={cn("mt-1 font-bold leading-none tabular-nums", live ? "text-2xl" : "text-xl text-muted-foreground")}>{live ? value : "No data"}</div>
+      {/* The figure is the tile's headline: 30px, dark ink, above its caption (blind judges, 3 Nov). */}
+      <div className="ah-stat-value mt-2.5 text-[30px] font-semibold leading-none tracking-tight tabular-nums text-foreground">{live ? value : <EmptyValue />}</div>
       {live && note && <div className="mt-1.5 text-xs text-muted-foreground">{note}</div>}
-      <SourceNote live={live} source={source} why={why} />
     </div>
   );
 }
 
-const stateOf = (live: boolean, source: string, why?: string): { example: boolean; badge: React.ReactNode; note: React.ReactNode } => ({
+/** A card's state: empty or live, and its source behind an info mark in the card's corner. No pill, no footnote. */
+const stateOf = (live: boolean, source: string, why?: string): { example: boolean; badge: React.ReactNode; note?: React.ReactNode } => ({
   example: !live,
-  badge: live ? <LiveBadge className="!ml-0" /> : <ExampleBadge className="!ml-0" />,
-  note: <SourceNote live={live} source={source} why={why} />,
+  badge: <SourceNote live={live} source={source} why={why} />,
 });
+
+/* ------------------------------------------------------------------ the page before anything is read */
+
+/**
+ * Nothing read (round 4, blind judges): no grey skeleton, because bars at made-up heights
+ * read as a stuck page or a real trend. Instead the page shows SAMPLE DATA, the way
+ * Stripe's test mode shows test data: one strip on top says so and carries the action,
+ * and every card wears a "Sample data" tag beside its title. The numbers are fixed,
+ * written here, and agree with each other (the sign-ups card is the sum of its own
+ * bars). They never mix with real figures: the moment one figure is read, the live
+ * board replaces this whole view. While the session is still being checked, only the strip
+ * shows, so nothing flashes from sample to real and no bar is drawn at a made-up height.
+ */
+const PREVIEW_COPY: Record<FailReason | "checking", { line: string; action?: "account" | "retry"; label?: string }> = {
+  checking: { line: "Reading the figures. They fill in as soon as your admin session is found." },
+  "signed-out": {
+    line: "You are looking at sample data. Sign in with a staff account to see your own learners.",
+    action: "account",
+    label: "Sign in",
+  },
+  blocked: { line: "Sample data. This account cannot read the figures: check it is staff, or apply the staff read migration.", action: "retry", label: "Try again" },
+  error: { line: "Sample data. The real figures did not load.", action: "retry", label: "Try again" },
+  "no-supabase": { line: "Sample data. This build has no database connection, so no real figure can be read." },
+};
+
+/** Fixed sample figures. Invented, labelled as sample wherever they are shown, never mixed with live ones. */
+export const SAMPLE = {
+  days: [3, 5, 2, 4, 6, 4, 3, 7, 5, 4, 6, 8, 5, 4, 7, 9, 6, 5, 8, 7, 6, 9, 11, 8, 7, 10, 12, 9, 8, 11],
+  daysBefore: 162,
+  learners: 1284,
+  learnersBefore: 1092,
+  active7: 312,
+  active7Before: 287,
+  paying: 47,
+  payingBefore: 41,
+  stay: [
+    { joined: "Last 30 days", d: [0.41, 0.22, null] },
+    { joined: "30 to 60 days", d: [0.38, 0.2, 0.09] },
+    { joined: "60 to 90 days", d: [0.36, 0.18, 0.08] },
+  ] as { joined: string; d: (number | null)[] }[],
+  attempts: [
+    { unit: "Unit 1", v: [642, 2410, 7980] },
+    { unit: "Unit 2", v: [518, 1985, 6120] },
+    { unit: "Unit 3", v: [377, 1340, 3905] },
+  ],
+  months: [6, 14, 38, 52, 30, 8, 5, 22, 64, 71, 44, 18],
+};
+
+export const PREVIEW_KPIS = ["Learners", "Active, 7 days", "Paying", "New sign-ups"] as const;
+const SK_RHYTHM = [46, 58, 40, 64, 52, 70, 44, 60];
+const skH = (i: number): number => SK_RHYTHM[i % SK_RHYTHM.length]!;
+const DAY_FMT: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+const fmt = (v: number): string => v.toLocaleString("en-US");
+
+function Bone({ w, className = "" }: { w: string; className?: string }) {
+  return <span className={`ah-lsk-bone ${className}`.trim()} style={{ width: w }} aria-hidden />;
+}
+
+function SampleTag() {
+  return <span className="ah-lsk-tag">Sample data</span>;
+}
+
+function CardHead({ title, caption, sample }: { title: string; caption: string; sample: boolean }) {
+  return (
+    <header className="ah-lsk-card__head">
+      <h2 className="ah-lsk-card__title">{title}</h2>
+      {sample ? <SampleTag /> : null}
+      <span className="ah-lsk-card__caption">{caption}</span>
+    </header>
+  );
+}
+
+function PreviewTable({ title, caption, columns, rows, sample }: { title: string; caption: string; columns: readonly string[]; rows: readonly { head: string; cells: string[] }[]; sample: boolean }) {
+  return (
+    <section className="ah-lsk-card" aria-label={sample ? `${title}, sample data` : `${title}, reading`}>
+      <CardHead title={title} caption={caption} sample={sample} />
+      <table className="ah-lsk-table">
+        <thead>
+          <tr>
+            {columns.map((c) => (
+              <th key={c} scope="col">
+                {c}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={r.head}>
+              <th scope="row">{r.head}</th>
+              {r.cells.map((c, j) => (
+                <td key={columns[j + 1]}>{sample ? <span className={c === "Too early" ? "is-na" : undefined}>{c}</span> : <Bone w={`${[44, 36, 52][(i + j) % 3]}%`} />}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function Bars({ values, kind, sample }: { values: readonly number[]; kind: "days" | "months"; sample: boolean }) {
+  const max = Math.max(...values);
+  return (
+    <div className={`ah-lsk-cols is-${kind}`} aria-hidden>
+      {values.map((v, i) => (
+        <span key={i} style={{ height: `${sample ? Math.max(4, Math.round((v / max) * 100)) : skH(i + (kind === "months" ? 3 : 0))}%` }} />
+      ))}
+    </div>
+  );
+}
+
+export function LearnersPreview({ reason, onRetry, now = new Date() }: { reason: FailReason | "ok" | null | undefined; onRetry?: () => void; now?: Date }) {
+  const key: FailReason | "checking" = reason == null || reason === "ok" ? "checking" : reason;
+  const sample = key !== "checking";
+  const c = PREVIEW_COPY[key];
+  const day = 86_400_000;
+  const ticks = [29, 22, 15, 8, 0].map((back) => new Date(now.getTime() - back * day).toLocaleDateString("en-GB", DAY_FMT));
+  const signups = sum(SAMPLE.days);
+  const kpis: { label: (typeof PREVIEW_KPIS)[number]; value: number; before: number }[] = [
+    { label: "Learners", value: SAMPLE.learners, before: SAMPLE.learnersBefore },
+    { label: "Active, 7 days", value: SAMPLE.active7, before: SAMPLE.active7Before },
+    { label: "Paying", value: SAMPLE.paying, before: SAMPLE.payingBefore },
+    { label: "New sign-ups", value: signups, before: SAMPLE.daysBefore },
+  ];
+  const busiest = argMax(SAMPLE.months);
+  return (
+    <div className={`ah-lsk${sample ? " is-sample" : " is-checking"}`} data-testid="learners-preview">
+      <section className={`ah-lsk-banner${sample ? " is-sample" : ""}`} data-testid="connect-banner" aria-live="polite" aria-busy={!sample}>
+        <svg className="ah-lsk-banner__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden focusable="false">
+          <rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="none" stroke="currentColor" strokeWidth="2" />
+          <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+        <p className="ah-lsk-banner__text">{c.line}</p>
+        {c.action === "account" ? (
+          <a className="ah-primary ah-lsk-banner__act" href={hrefForSettingsFromAdmin()}>
+            {c.label}
+          </a>
+        ) : c.action === "retry" && onRetry ? (
+          <button type="button" className="ah-primary ah-lsk-banner__act" onClick={onRetry}>
+            {c.label}
+          </button>
+        ) : null}
+      </section>
+
+      {/* While the session is checked (well under a second), only the strip shows: no bars at made-up heights. */}
+      {sample ? (
+      <>
+      <ul className="ah-lsk-kpis" aria-label={sample ? "Headline figures, sample data" : "Headline figures, reading"}>
+        {kpis.map((k, i) => (
+          <li key={k.label} className="ah-lsk-kpi">
+            <span className="ah-lsk-kpi__head">
+              <span className="ah-lsk-kpi__label">{k.label}</span>
+              {sample ? <SampleTag /> : null}
+            </span>
+            {sample ? <span className="ah-lsk-kpi__value">{fmt(k.value)}</span> : <Bone w={`${[42, 34, 26, 38][i]}%`} className="is-figure" />}
+            <span className="ah-lsk-kpi__delta">
+              {sample ? <span className="ah-lsk-kpi__chip">{pct(((k.value - k.before) / k.before) * 100)}</span> : <Bone w="2.25rem" className="is-chip" />}
+              <span>vs 30 days before</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <section className="ah-lsk-card" aria-label={sample ? "New sign-ups per day, sample data" : "New sign-ups per day, reading"}>
+        <CardHead title="New sign-ups" caption="Per day, last 30 days" sample={sample} />
+        {sample ? (
+          <p className="ah-lsk-card__figure">
+            <strong>{fmt(signups)}</strong> sign-ups, busiest day {Math.max(...SAMPLE.days)}
+          </p>
+        ) : null}
+        <Bars values={SAMPLE.days} kind="days" sample={sample} />
+        <div className="ah-lsk-axis" aria-hidden>
+          {ticks.map((t) => (
+            <span key={t}>{t}</span>
+          ))}
+        </div>
+      </section>
+
+      <div className="ah-lsk-grid">
+        <PreviewTable
+          title="Stay"
+          caption="Active again on day 1, 7 and 30"
+          columns={["Joined", "Day 1", "Day 7", "Day 30"]}
+          rows={SAMPLE.stay.map((r) => ({ head: r.joined, cells: r.d.map((v) => (v === null ? "Too early" : share(v))) }))}
+          sample={sample}
+        />
+        <PreviewTable
+          title="Where attempts go"
+          caption="By unit, this week, month and term"
+          columns={["Unit", "Week", "Month", "Term"]}
+          rows={SAMPLE.attempts.map((r) => ({ head: r.unit, cells: r.v.map(fmt) }))}
+          sample={sample}
+        />
+      </div>
+
+      <section className="ah-lsk-card" aria-label={sample ? "Exam seasonality, sample data" : "Exam seasonality, reading"}>
+        <CardHead title="Exam seasonality" caption="Sign-ups per month" sample={sample} />
+        {sample ? (
+          <p className="ah-lsk-card__figure">
+            <strong>{fmt(sum(SAMPLE.months))}</strong> in the year, busiest in {MONTHS[busiest]}
+          </p>
+        ) : null}
+        <Bars values={SAMPLE.months} kind="months" sample={sample} />
+        <div className="ah-lsk-axis is-months" aria-hidden>
+          {MONTHS.map((m) => (
+            <span key={m}>{m}</span>
+          ))}
+        </div>
+      </section>
+      </>
+      ) : null}
+    </div>
+  );
+}
 
 /* ------------------------------------------------------------------ the board */
 
 /** `live` null means nothing was read (signed out, blocked, no connection): every tile is an example. */
-export function AnalyticsBoard({ live, notice, className }: { live: LiveStats | null; notice?: string; className?: string }) {
+export function AnalyticsBoard({ live, reason, onRetry, className, bare = false }: { live: LiveStats | null; reason?: FailReason | "ok" | null; onRetry?: () => void; className?: string; bare?: boolean }) {
   const L = live?.live;
   const ok = (k: keyof LiveStats["live"]): boolean => L?.[k] === true;
   const anyLive = L !== undefined && Object.values(L).some(Boolean);
@@ -110,23 +331,17 @@ export function AnalyticsBoard({ live, notice, className }: { live: LiveStats | 
     : null;
 
   return (
-    <div className={cn("mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6", className)}>
-      <header className="mb-5 flex flex-wrap items-center gap-3">
-        <h1 className="m-0 font-[family-name:var(--font-display)] text-2xl font-extrabold tracking-tight text-foreground">Learners</h1>
-        {!anyLive && (
-          <span
-            data-testid="sample-chip"
-            className="inline-flex min-h-8 items-center rounded-full border border-dashed border-border bg-card px-3 text-xs font-bold text-foreground"
-          >
-            No data, example
-          </span>
-        )}
-        <span className="text-sm text-muted-foreground">
-          {anyLive ? "Tiles marked Live are counted from the database. Tiles marked No data, example are shapes only." : (notice ?? "No admin session was read, so these are shapes only.")}
-        </span>
-      </header>
-
-      <section aria-label="Users, acquisition cost, join and stay, device" className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <div className={cn("ah-learners", bare ? "w-full min-w-0" : "mx-auto w-full max-w-[1320px] px-4 py-6 sm:px-6", className)}>
+      {/* Inside the admin (bare) the page around it owns the title; standalone it carries its own. */}
+      {bare ? null : (
+        <header className="mb-5 flex flex-wrap items-baseline gap-3">
+          <h1 className="m-0 text-[1.75rem] font-bold tracking-tight text-foreground">Learners</h1>
+        </header>
+      )}
+      {anyLive ? <p className="mb-3 mt-0 text-sm text-muted-foreground">Tiles marked Live are counted from the database. The info mark on each says from where.</p> : null}
+      {anyLive ? (
+      <>
+      <section aria-label="Users, acquisition cost, join and stay, device" className="mb-4 mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat
           label="Learners"
           live={ok("users")}
@@ -167,6 +382,7 @@ export function AnalyticsBoard({ live, notice, className }: { live: LiveStats | 
       </section>
 
       <AnalyticsBento
+        monoFamily="var(--admin-font, ui-sans-serif, system-ui, sans-serif)"
         currency=""
         credit={false}
         cardState={{
@@ -216,37 +432,38 @@ export function AnalyticsBoard({ live, notice, className }: { live: LiveStats | 
         }}
         colors={{ revenue: ["#7c66ee", "#5a3fd8"], desktop: ["#7c66ee", "#5a3fd8"], mobile: ["#f59e0b", "#ea580c"], radar: "#7c66ee" }}
       />
+      </>
+      ) : (
+        // Nothing read: the real layout filled with labelled sample data under one strip (round 4).
+        <LearnersPreview reason={reason === undefined ? "signed-out" : reason} onRetry={onRetry} />
+      )}
     </div>
   );
 }
 
-const WHY: Record<string, string> = {
-  "signed-out": "No admin session was read, so these are shapes only.",
-  "no-supabase": "This build has no Supabase connection.",
-  blocked: "The server did not let this account read the figures.",
-  error: "The figures did not load.",
-};
-
-/** The lazy page: reads the live figures, and shows every tile as an example while it cannot. */
-export default function StatsBoardPage() {
+/** The lazy page: reads the live figures, and keeps every tile quiet while it cannot. */
+export default function StatsBoardPage({ bare = false, onLive }: { bare?: boolean; onLive?: (live: LiveStats | null) => void }) {
   const [live, setLive] = useState<LiveStats | null>(null);
-  const [notice, setNotice] = useState<string>("Loading the figures.");
+  const [reason, setReason] = useState<FailReason | "ok" | null>(null);
+  const [tries, setTries] = useState(0);
   useEffect(() => {
     let cancelled = false;
+    setReason(null);
     void (async () => {
       const res = await fetchStats(await getSupabase(), new Date());
       if (cancelled) return;
       if (res.ok) {
         setLive(res.data);
-        setNotice("");
+        setReason("ok");
       } else {
         setLive(null);
-        setNotice(WHY[res.reason] ?? WHY.error!);
+        setReason(res.reason);
       }
+      onLive?.(res.ok ? res.data : null);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
-  return <AnalyticsBoard live={live} notice={notice} />;
+  }, [tries]);
+  return <AnalyticsBoard live={live} reason={reason} bare={bare} onRetry={() => setTries((n) => n + 1)} />;
 }

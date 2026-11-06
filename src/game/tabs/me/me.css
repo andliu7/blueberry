@@ -94,6 +94,26 @@
   flex-shrink: 0;
 }
 
+/* Opened from the admin: the back key says where it goes. Three columns keep
+   the title centred whatever the key's width. */
+.me-subhead--labelled {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+.me-subhead--labelled .me-subhead-spacer {
+  width: auto;
+}
+.me-icon-btn.me-back-labelled {
+  justify-self: start;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.875rem 0 0.5rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 a.me-icon-btn {
   text-decoration: none;
 }

@@ -1,0 +1,58 @@
+/* The goal card under a payout (CoinGoalBar.tsx): what the coins are for, and
+   how close the student now is. Gold for progress, green once it is reached. */
+.coin-goal {
+  width: min(22rem, 100%);
+  padding: 0.6rem 0.9rem 0.65rem;
+  border-radius: 1rem;
+  background: #ffffff;
+  border: 2px solid #f3d27a;
+  box-shadow: 0 4px 0 rgb(29 29 31 / 0.12);
+  text-align: left;
+  color: #1d1d1f;
+  font-family: var(--font-display, "Nunito", system-ui, sans-serif);
+}
+.coin-goal__row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+.coin-goal__kicker {
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5a00;
+}
+.coin-goal__count { font-size: 1rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #1d1d1f; }
+.coin-goal__of { color: #6b6b73; }
+.coin-goal__bar {
+  position: relative;
+  height: 0.875rem;
+  margin-top: 0.35rem;
+  border-radius: 999px;
+  background: #ece8f6;
+  box-shadow: inset 0 2px 0 rgb(29 29 31 / 0.08);
+  overflow: hidden;
+}
+.coin-goal__fill, .coin-goal__was {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+}
+/* What this payout added: bright gold, climbing with each coin. */
+.coin-goal__fill { background: #ffc21a; box-shadow: inset 0 -3px 0 rgb(181 122 0 / 0.35); transition: width 160ms cubic-bezier(0.2, 0.8, 0.3, 1); }
+/* What the student already had: the same gold, a shade deeper. */
+.coin-goal__was { background: #e3a20b; box-shadow: inset 0 -3px 0 rgb(120 70 0 / 0.3); }
+.coin-goal__line { margin: 0.35rem 0 0; font-size: 0.9375rem; font-weight: 800; line-height: 1.25; color: #1d1d1f; }
+.coin-goal[data-reached="true"] { border-color: #58cc02; }
+.coin-goal[data-reached="true"] .coin-goal__kicker { color: #1a7f37; }
+.coin-goal[data-reached="true"] .coin-goal__fill { background: #58cc02; box-shadow: inset 0 -3px 0 rgb(20 99 58 / 0.35); }
+.coin-goal[data-reached="true"] .coin-goal__was { display: none; }
+.coin-goal[data-reached="true"] .coin-goal__line { color: #14633a; }
+@media (min-width: 768px) {
+  .coin-goal { width: 26rem; padding: 0.75rem 1.1rem 0.8rem; }
+  .coin-goal__bar { height: 1.125rem; }
+  .coin-goal__line { font-size: 1.0625rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coin-goal__fill { transition: none; }
+}
+:root[data-motion="reduced"] .coin-goal__fill { transition: none; }

@@ -58,6 +58,8 @@ export const SECTION_LABEL: Readonly<Record<DeckSection, string>> = {
 export interface DeckFact {
   readonly label: string;
   readonly value: string;
+  /** No figure behind it: drawn quiet, never in the figure's weight. */
+  readonly empty?: boolean;
 }
 
 /** A small drawn picture of a rule, with every number read from the run code. */
@@ -127,7 +129,7 @@ function overview(lesson: LessonRow, unit: UnitRow, questions: readonly Slide[],
       facts: [
         { label: "Steps in a run", value: String(steps.length) },
         { label: "Questions", value: questions.length === 0 ? "none authored" : `${questions.length} (${mix})` },
-        { label: "Difficulty (moves graded)", value: moves === undefined ? "No data: no content behind it" : String(moves) },
+        { label: "Difficulty (moves graded)", value: moves === undefined ? "Not graded yet" : String(moves), ...(moves === undefined ? { empty: true } : {}) },
       ],
     },
     {
@@ -453,4 +455,50 @@ export function sectionStarts(deck: readonly DeckSlide[]): readonly { readonly s
     else out.push({ section: slide.section, at, count: 1 });
   });
   return out;
+}
+
+/* ------------------------------------------------------- overview page -- */
+
+/** One row of the Overview page's steps table: a template slot and what plays in it. */
+export interface OverviewStepRow {
+  readonly slot: string;
+  readonly steps: readonly string[];
+  readonly questions: number;
+  /** The id of the first question slide in this slot, when it has one. */
+  readonly firstId?: string;
+}
+
+/**
+ * The Overview tab drawn as a page, not a slide: what the lesson teaches, the run's
+ * steps with how many questions each slot holds, and the drafts still waiting on a
+ * human check. Every figure is read from the same plan and slides the deck uses.
+ */
+export function overviewSummary(lesson: LessonRow, questions: readonly Slide[]) {
+  const steps = planLesson(lesson.id)?.steps ?? [];
+  const take = takeawayFor(lesson.id);
+  const objective = pathwayNode(lesson.id)?.blurb ?? take?.text ?? null;
+  const rows: OverviewStepRow[] = [];
+  for (const step of steps) {
+    const last = rows[rows.length - 1];
+    const label = STEP_LABEL[step.beat.kind] ?? step.beat.kind;
+    if (last !== undefined && last.slot === step.slot) {
+      rows[rows.length - 1] = { ...last, steps: [...last.steps, label] };
+      continue;
+    }
+    const inSlot = questions.filter((q) => q.slot === step.slot);
+    rows.push({
+      slot: step.slot,
+      steps: [label],
+      questions: rows.some((r) => r.slot === step.slot) ? 0 : inSlot.length,
+      ...(inSlot[0] === undefined ? {} : { firstId: `q:${inSlot[0].id}` }),
+    });
+  }
+  return {
+    objective,
+    keyIdea: take === null || take.text === objective ? null : take.text,
+    rows: rows.map((r) => ({ ...r, slot: SLOT_LABEL[r.slot] ?? r.slot })),
+    stepCount: steps.length,
+    moves: NODE_MOVES[lesson.id],
+    drafts: questions.filter((q) => q.draft === true).map((q) => ({ id: `q:${q.id}`, prompt: q.prompt, kind: q.kind })),
+  };
 }

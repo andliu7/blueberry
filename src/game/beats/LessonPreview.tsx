@@ -164,9 +164,11 @@ export function LessonPreview({ node, priming, strip, reducedMotion, onStart, on
       </div>
 
       <div className="lesson-end__foot beat-action-bar foot-bleed pb-safe shrink-0 border-t-2 border-bb-border bg-bb-card px-4 pt-3 pb-3 md:px-6">
-        {/* The keys stay in the reading column on a wide screen. */}
+        {/* The keys stay in the reading column on a wide screen: 33rem is the
+            header's max-w-xl less its md:px-6, so their edges meet the
+            answer rows' edges exactly (round 3: they overhung by 24px). */}
         {phase === "guess" ? (
-          <div className="primer-foot mx-auto flex w-full max-w-xl gap-3">
+          <div className="primer-foot mx-auto flex w-full max-w-[33rem] gap-3">
             <ChipPress variant="quiet" className="primer-foot__skip" onClick={() => setPhase("map")}>
               Skip
             </ChipPress>
@@ -182,13 +184,13 @@ export function LessonPreview({ node, priming, strip, reducedMotion, onStart, on
             </ChipPress>
           </div>
         ) : phase === "locked" ? (
-          <div className="mx-auto w-full max-w-xl">
+          <div className="mx-auto w-full max-w-[33rem]">
             <ChipPress className="w-full" onClick={() => setPhase("map")}>
               Continue
             </ChipPress>
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-xl">
+          <div className="mx-auto w-full max-w-[33rem]">
             <ChipPress ref={startRef} className="w-full" data-track="lesson.preview_start" data-cta onClick={() => onStart(lockedIn ? picked : null)}>
               Start lesson
             </ChipPress>

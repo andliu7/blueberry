@@ -84,7 +84,7 @@
  * file only asks it.
  */
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useRef, type ReactNode } from "react";
 
 import { Berry } from "../../mascot/Berry";
 import { BloomHintRing, BloomStage } from "../../mascot/BloomStage";
@@ -107,8 +107,11 @@ import { BloomVerdictBerry } from "../BloomVerdictBerry";
 import { OptionMark } from "./OptionMark";
 import { EnergyVisualCard } from "../../energy/EnergyVisualCard";
 import type { McqProgress } from "./session";
+import { U1_BEAT_MODELS } from "../../content/u1/beatModels";
 import "../beat-chrome.css";
 import "../../lesson/scheme.css";
+
+const ModelSet = lazy(() => import("../ModelSet"));
 
 /**
  * Which of the four looks an option is wearing. One vocabulary, shared by the
@@ -236,6 +239,7 @@ export function McqBeatView({
   costume,
 }: McqBeatViewProps) {
   const answered = reveal !== null;
+  const modelSetId = U1_BEAT_MODELS[beat.id];
   // 15s with no press on an unanswered question: the bar berry thinks, with
   // a floating lone pair. The beat id resets the quiet clock for each new question.
   const idle = useIdleInput(answered ? "off" : "midItem", beat.id);
@@ -534,6 +538,16 @@ export function McqBeatView({
           }
         >
           {charred ? <p className="answer-tray__charred">{CHARRED_LINE}</p> : null}
+          {modelSetId !== undefined ? (
+            // Endo and exo are spatial (Unit 1 review suggestion 9): after the answer,
+            // folded, so it neither gives the answer away nor adds a step.
+            <details className="mb-2 rounded-xl border border-bb-border bg-bb-card p-2 text-scale-sm">
+              <summary className="cursor-pointer font-semibold">Turn it in 3-D</summary>
+              <Suspense fallback={null}>
+                <ModelSet set={modelSetId} />
+              </Suspense>
+            </details>
+          ) : null}
           {/* A2 round 5: the tray reads in one glance. A wrong answer leads with
               the labelled correct answer in large type, then ONE sentence of why,
               then why the student's own pick misses, open (audit 23 Oct, section

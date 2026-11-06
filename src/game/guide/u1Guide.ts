@@ -62,6 +62,13 @@ const STAGES: readonly GuideStage[] = [
             source: "u1-cat-count-both",
             quote: "Score each cation on resonance and on substitution.",
           },
+          // ADDED 3 Nov (Unit 1 review suggestion 4): the cation half of the side-by-side rule, to sit
+          // against the radical line below. It names no ranking of 1° allylic against 2° (owner, 17 Oct).
+          {
+            text: "Why substitution counts for so much on a cation: an empty orbital gains a lot from alkyl donation.",
+            source: "u1-cat-hyperconj",
+            quote: "An empty orbital gains a lot from that donation, which is why substitution counts for so much on a cation.",
+          },
         ],
         example: { source: "u1-cat-3allyl-vs-3", quote: "A 3° allylic cation beats a 3° alkyl one." },
       },
@@ -95,6 +102,12 @@ const STAGES: readonly GuideStage[] = [
             mark: "resonance beats substitution",
             source: "u1-rad-benzyl-vs-3",
             quote: "For radicals, allylic and benzylic resonance beats substitution",
+          },
+          {
+            text: "Why radicals differ from cations: alkyl groups help an empty orbital a lot and a half-filled one only a little.",
+            mark: "a half-filled one only a little",
+            source: "u1-rad-vs-cation",
+            quote: "Alkyl groups help an empty orbital a lot and a half-filled one only a little.",
           },
           {
             text: "Radicals are electron poor, so they follow the cation trend: 3° > 2° > 1° > methyl.",
@@ -359,10 +372,10 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-da",
         ideas: [
           {
-            text: "Diene plus dienophile give a cyclohexene in one step.",
+            text: "Diene plus an alkene dienophile give a cyclohexene in one step. An alkyne keeps one extra C=C.",
             mark: "a cyclohexene in one step",
             source: "u1-cd-da-ring",
-            quote: "diene plus dienophile give a cyclohexene in one step",
+            quote: "diene plus an alkene dienophile give a cyclohexene in one step",
           },
           {
             text: "It is concerted: one transition state, no intermediate.",
@@ -416,10 +429,10 @@ const STAGES: readonly GuideStage[] = [
         node: "u1-da-predict",
         ideas: [
           {
-            text: "A 1-substituted diene gives the ortho product; a 2-substituted diene gives para.",
-            mark: "a 2-substituted diene gives para",
+            text: "Join the diene's δ− end to the dienophile's δ+ end. A 1-substituted diene gives the 1,2 product on the ring (ortho); a 2-substituted diene gives 1,4 (para).",
+            mark: "Join the diene's δ− end to the dienophile's δ+ end",
             source: "u1-cd-pred-ortho-acrolein",
-            quote: "1-Substituted dienes give the ortho (1,2) product; 2-substituted dienes give the para (1,4) product.",
+            quote: "Join the diene's δ− end to the dienophile's δ+ end. 1-Substituted dienes give the 1,2 product on the ring; 2-substituted dienes give the 1,4 product.",
           },
           {
             text: "Working backward, the ring's C=C was the diene's C2-C3.",
@@ -432,7 +445,7 @@ const STAGES: readonly GuideStage[] = [
             quote: "Find the C=C, cut the two sigma bonds across from it.",
           },
         ],
-        example: { source: "u1-cd-pred-draw-para", quote: "2-Substituted dienes give the para (1,4) product." },
+        example: { source: "u1-cd-pred-draw-para", quote: "2-Substituted dienes give the 1,4 product on the ring (para)" },
       },
       {
         node: "u1-da-stereo",

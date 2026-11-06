@@ -42,7 +42,7 @@ import { languageByCode } from "../../app/i18n";
 import { LanguageSheet } from "../../app/ui/LanguagePicker";
 import { TabIcon } from "../../app/ui/TabIcon";
 import { FlameMark } from "../../app/ui/HudIcons";
-import { FLAGGED_TABS, hashParam, hrefForAdmin, hrefForTab, type TabId } from "../../app/routes";
+import { FLAGGED_TABS, cameFromAdmin, hashParam, hrefForAdmin, hrefForTab, type TabId } from "../../app/routes";
 import { useAuth } from "@/lib/AuthContext";
 import { isStaffRole } from "../../admin/staff";
 import { useHashRoute } from "../../app/useHashRoute";
@@ -768,11 +768,23 @@ function ExamSetting({ examDate, daysLeft, today }: { readonly examDate: string 
 }
 
 /** The top bar of a sub screen: a back key, and the screen's title. */
-function SubHeader({ title, backHref, backLabel }: { readonly title: string; readonly backHref: string; readonly backLabel: string }) {
+function SubHeader({
+  title,
+  backHref,
+  backLabel,
+  showLabel = false,
+}: {
+  readonly title: string;
+  readonly backHref: string;
+  readonly backLabel: string;
+  /** Print the back key's words beside the chevron (the trip back to the admin). */
+  readonly showLabel?: boolean;
+}) {
   return (
-    <header className="me-subhead">
-      <a href={backHref} className="me-icon-btn" aria-label={backLabel}>
+    <header className={`me-subhead${showLabel ? " me-subhead--labelled" : ""}`}>
+      <a href={backHref} className={`me-icon-btn${showLabel ? " me-back-labelled" : ""}`} aria-label={showLabel ? undefined : backLabel}>
         <Chevron left />
+        {showLabel ? <span>{backLabel}</span> : null}
       </a>
       <h1 className="me-subhead-title">{title}</h1>
       {/* An empty box the size of the back key keeps the title centred. */}
@@ -795,6 +807,11 @@ function SettingsScreen() {
   const [hoverPreview, toggleHoverPreview] = useStoredFlag("reference.hoverPreview");
   const [magnifier, toggleMagnifier] = useStoredFlag("reference.magnifier");
   const goalRef = useRef<HTMLElement>(null);
+  // Opened from the admin sidebar: the back key returns to the admin, and the Staff
+  // row shows even on a dev localhost where the role is not staff (AdminGate lets
+  // that machine in too). Read once per mount, like hashParam("focus") below.
+  const [fromAdmin] = useState(cameFromAdmin);
+  const showStaff = isStaffRole(role) || fromAdmin;
 
   // useEffect with [] runs once, after the screen first paints: open at the
   // top, or at the Goals group when the calendar's CHANGE GOAL sent us here.
@@ -805,10 +822,14 @@ function SettingsScreen() {
 
   return (
     <div className="me me--narrow">
-      <SubHeader title="Settings" backHref={hrefForTab("me")} backLabel="Back to Me" />
+      {fromAdmin ? (
+        <SubHeader title="Settings" backHref={hrefForAdmin("home")} backLabel="Back to admin" showLabel />
+      ) : (
+        <SubHeader title="Settings" backHref={hrefForTab("me")} backLabel="Back to Me" />
+      )}
 
       {/* First, not last (owner, 3 Nov: at the foot of the list it read as missing). */}
-      {isStaffRole(role) ? (
+      {showStaff ? (
         <section className="me-card me-group" aria-labelledby="me-set-staff">
           <h2 id="me-set-staff" className="me-group-title">
             Staff

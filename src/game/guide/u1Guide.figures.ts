@@ -1658,7 +1658,7 @@ export const U1_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
     "placeholder": true
   },
   "u1-da-predict": {
-    "caption": "A 2-substituted diene gives the para (1,4) product.",
+    "caption": "A 2-substituted diene puts δ− on C1, which joins the dienophile's δ+ CH2: the 1,4 product (para).",
     "panels": [
       {
         "kind": "mol",
@@ -1819,7 +1819,7 @@ export const U1_GUIDE_EXAMPLES: Readonly<Record<string, GuideExample>> = {
             }
           ]
         },
-        "name": "Para",
+        "name": "1,4 (para)",
         "focus": true
       }
     ],

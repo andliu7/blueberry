@@ -61,8 +61,9 @@ the owner can check the model rather than a hundred answers.
                      product: the nucleophile on the far terminus, the double
                      bond moved to the middle.
   Thermodynamic call: the product whose C=C carries more carbon substituents.
-                     Equal counts means the rule cannot call it, and the
-                     problem says so rather than picking one.
+                     Equal counts means neither product is clearly more
+                     stable; the problem asks why (both alkenes carry the same
+                     count) rather than picking one or offering "cannot call".
   Kinetic call:      the 1,2 product, the course's proximity rule. The script
                      only uses it where the 1,2 carbon is at least as
                      substituted as the 1,4 carbon, so proximity and charge
@@ -386,7 +387,59 @@ def r1(v: float) -> float:
     return round(v, 1)
 
 
-def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | None = None) -> dict:
+def push_arrows(m: Chem.Mol, to: str) -> list[tuple[str, int, int, str, int, int, bool]]:
+    """
+    ADDED 3 Nov (Unit 1 review suggestion 9): the curved arrows that turn
+    contributor `m` into contributor `to`, DERIVED from bond orders. RDKit's
+    ResonanceMolSupplier keeps atom indices, so the contributor equal to `to`
+    is found among m's own, and each bond that gains or loses a pi pair is read
+    off index by index. Returns (from kind, i, j, to kind, k, l) per arrow, a
+    kind being "bond" (the midpoint of i-j) or "atom" (atom i). A cation moves
+    one pi pair onto the bond to the + carbon; an anion moves its lone pair into
+    a new pi bond and the old pi pair onto the far carbon. A radical (CHANGED
+    3 Nov, so every resonance pair carries its arrows) moves ONE electron per
+    arrow, drawn half-headed: one from the odd electron and one from the pi
+    bond meet in the new pi bond, and the pi bond's other electron goes to the
+    far carbon. Its bonds are read off the cation analogue, same atom indices.
+    The last item of each tuple is True for a half-headed (one electron) arrow.
+    """
+    rad = is_radical(m)
+    base = cation_analogue(m) if rad else m
+    target = Chem.MolToSmiles(cation_analogue(mol(to)) if rad else mol(to))
+    for c in Chem.ResonanceMolSupplier(base, Chem.KEKULE_ALL):
+        if c is None or Chem.MolToSmiles(c) != target:
+            continue
+        Chem.Kekulize(c, clearAromaticFlags=True)
+        gain, lose = [], []
+        for b in base.GetBonds():
+            i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
+            before = b.GetBondTypeAsDouble()
+            after = c.GetBondBetweenAtoms(i, j).GetBondTypeAsDouble()
+            if after > before:
+                gain.append((i, j))
+            elif after < before:
+                lose.append((i, j))
+        if not gain and not lose:
+            continue  # the drawing itself (a symmetric ion, such as allyl, matches its own SMILES)
+        if len(gain) != 1 or len(lose) != 1:
+            return []
+        (gi, gj), (li, lj) = gain[0], lose[0]
+        charged = [a.GetIdx() for a in base.GetAtoms() if a.GetFormalCharge() != 0]
+        if len(charged) != 1:
+            return []
+        q = base.GetAtomWithIdx(charged[0]).GetFormalCharge()
+        far = lj if li in (gi, gj) else li
+        if rad:
+            if charged[0] not in (gi, gj):
+                return []
+            return [("atom", charged[0], charged[0], "bond", gi, gj, True), ("bond", li, lj, "bond", gi, gj, True), ("bond", li, lj, "atom", far, far, True)]
+        if q > 0:
+            return [("bond", li, lj, "bond", gi, gj, False)]
+        return [("atom", charged[0], charged[0], "bond", gi, gj, False), ("bond", li, lj, "atom", far, far, False)]
+    return []
+
+
+def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | None = None, push_to: str | None = None) -> dict:
     """
     A skeletal drawing. Carbons are vertices, heteroatoms are labels, a charge
     or an odd electron is a small mark beside its carbon. `marks` circles
@@ -539,11 +592,46 @@ def figure(smi: str, marks: list[int] | None = None, numbers: dict[int, str] | N
         x, y = at(i)
         rings.append({"x": r1(x), "y": r1(y), "r": 6})
 
+    curves = []
+    if push_to is not None:
+        arrows = push_arrows(m, push_to)
+        if not arrows:
+            fail(f"figure {smi}: no single-arrow push to {push_to}")
+        all_x = sum(at(k)[0] for k in range(m.GetNumAtoms())) / m.GetNumAtoms()
+        all_y = sum(at(k)[1] for k in range(m.GetNumAtoms())) / m.GetNumAtoms()
+
+        def point(kind: str, i: int, j: int) -> tuple[float, float]:
+            if kind == "atom":
+                # Start or land just off the atom, on its open side, clear of the charge mark.
+                return away(i, 5, 0.6)
+            (x1, y1), (x2, y2) = at(i), at(j)
+            return ((x1 + x2) / 2, (y1 + y2) / 2)
+
+        for fk, fi, fj, tk, ti, tj, half in arrows:
+            (sx, sy), (ex, ey) = point(fk, fi, fj), point(tk, ti, tj)
+            mx, my = (sx + ex) / 2, (sy + ey) / 2
+            dx, dy = ex - sx, ey - sy
+            length = math.hypot(dx, dy) or 1.0
+            nx, ny = -dy / length, dx / length
+            # Bow away from the atom the two bonds share (a bond-to-bond push),
+            # else away from the middle of the molecule, so it never lies on a bond.
+            shared = ({fi, fj} & {ti, tj}) if fk == tk == "bond" else set()
+            ox, oy = at(next(iter(shared))) if len(shared) == 1 else (all_x, all_y)
+            if (mx - ox) * nx + (my - oy) * ny < 0:
+                nx, ny = -nx, -ny
+            bow = max(13.0, 0.7 * length)
+            curve = {"x1": r1(sx), "y1": r1(sy), "cx": r1(mx + nx * bow), "cy": r1(my + ny * bow), "x2": r1(ex), "y2": r1(ey)}
+            if half:
+                curve["half"] = True
+            curves.append(curve)
+
     fig: dict = {"bonds": bonds}
     if labels:
         fig["labels"] = labels
     if rings:
         fig["rings"] = rings
+    if curves:
+        fig["curves"] = curves
     check_bounds(fig, smi)
     return fig
 
@@ -562,6 +650,10 @@ def check_bounds(fig: dict, what: str) -> None:
     for r in fig.get("rings", []):
         if r["x"] - r["r"] < 0 or r["x"] + r["r"] > W or r["y"] - r["r"] < 0 or r["y"] + r["r"] > H:
             fail(f"figure {what}: marker ring outside the viewBox")
+    for c in fig.get("curves", []):
+        mx, my = 0.25 * c["x1"] + 0.5 * c["cx"] + 0.25 * c["x2"], 0.25 * c["y1"] + 0.5 * c["cy"] + 0.25 * c["y2"]
+        if not (0 <= mx <= W and 0 <= my <= H):
+            fail(f"figure {what}: curved arrow bows outside the viewBox")
 
 
 def energy_figure(
@@ -635,6 +727,8 @@ POOLS: dict[str, list[dict]] = {}
 VISUALS: dict[str, dict] = {}
 TILES: dict[str, dict] = {}
 SORT_FIGURES: dict[str, dict] = {}
+# Drawings for the stage A and B worked examples (node_worked), keyed by name.
+WORKED: dict[str, dict] = {}
 IDS: set[str] = set()
 
 
@@ -834,14 +928,14 @@ def same_ion(a: str, b: str) -> bool:
     return Chem.MolToSmiles(mb) in forms
 
 
-def numbered(mapped: str, marks: tuple[int, ...] = (), show: bool = True) -> dict:
-    """A figure from a SMILES with atom maps: maps become locants, `marks` circles by map."""
+def numbered(mapped: str, marks: tuple[int, ...] = (), show: bool = True, push_to: str | None = None) -> dict:
+    """A figure from a SMILES with atom maps: maps become locants, `marks` circles by map. `push_to` (mapped too) draws the arrows to that contributor."""
     nums = {}
     for a in mol(mapped).GetAtoms():
         if a.GetAtomMapNum() and show:
             nums[a.GetIdx()] = str(a.GetAtomMapNum())
     ring = [atom_index(mapped, k) for k in marks]
-    return figure(unmap(mapped), marks=ring, numbers=nums)
+    return figure(unmap(mapped), marks=ring, numbers=nums, push_to=None if push_to is None else unmap(push_to))
 
 
 def inner_product(diene: str, e: str, nu: str) -> str:
@@ -1010,9 +1104,9 @@ def node_allylic() -> None:
     mcq(
         node, "u1-allylic-pick", "Pick the allylic cation.",
         [
-            ("vinyl", "The vinyl cation", "Here the charge sits ON a carbon of the double bond, not next to it. Its empty orbital points at right angles to the pi bond, so the pi electrons cannot reach it and there is no second contributor."),
-            ("allyl", "The allyl cation", "The charged carbon is bonded to one end of a C=C. The pi electrons can shift toward it, which moves the charge to the far end, so C1 and C3 share it. That neighbouring pi bond is what allylic means."),
-            ("homo", "The but-3-enyl cation", "There is a C=C in the molecule, but one carbon too far away. A CH2 sits between the charge and the pi bond, so no arrow connects them and the charge stays on one carbon."),
+            ("vinyl", "The + sits on a carbon of the C=C", "Here the charge sits ON a carbon of the double bond, not next to it. Its empty orbital points at right angles to the pi bond, so the pi electrons cannot reach it and there is no second contributor."),
+            ("allyl", "The + sits one bond from the C=C", "The charged carbon is bonded to one end of a C=C. The pi electrons can shift toward it, which moves the charge to the far end, so C1 and C3 share it. That neighbouring pi bond is what allylic means."),
+            ("homo", "The + sits two bonds from the C=C", "There is a C=C in the molecule, but one carbon too far away. A CH2 sits between the charge and the pi bond, so no arrow connects them and the charge stays on one carbon."),
         ],
         "allyl",
         "Allylic means the charged carbon is bonded to a carbon of a C=C. A charge on the double bond carbon itself (vinyl), or one carbon further away, gets no resonance.",
@@ -1049,7 +1143,7 @@ def node_allylic() -> None:
         "electrons",
         "Resonance contributors differ only in where electrons are drawn. Atoms never move, and the real species is one blend of all its contributors.",
         prov("RDKit confirms the two drawings are contributors of one ion with identical atoms and hydrogens", OS_14_2),
-        {"kind": "pair", "a": named(a, "contributor 1"), "b": named(b, "contributor 2")},
+        {"kind": "pair", "a": named(a, "contributor 1", push_to=b), "b": named(b, "contributor 2")},
         level=0, derived="electrons" if ok else None,
     )
     # ADDED 24 Oct (audit 23 Oct, first-timer #5): the lesson's drawing asks for
@@ -1123,7 +1217,7 @@ def node_rank_cation() -> None:
         node, "u1-cat-ladder-allylic",
         [
             ("all3", "prenyl", PRENYL_C, "Resonance shares the charge with the far end, and the charged carbon also carries two methyls."),
-            ("all2", "crotyl", CROTYL_C, "Shared by resonance, and one methyl on the better charged carbon."),
+            ("all2", "but-3-en-2-yl", CROTYL_C, "Shared by resonance, and one methyl on the better charged carbon."),
             ("all1", "allyl", ALLYL_C, "Shared by resonance, but both charged ends are primary."),
             ("et", "ethyl", ETHYL_C, "No pi bond next door, so one primary carbon holds the whole charge."),
         ],
@@ -1214,14 +1308,14 @@ def node_rank_cation() -> None:
     mcq(
         node, "u1-cat-allyl-vs-2", "Compare these two cations. Pick the closest statement.",
         [
-            ("crotyl", "The crotyl cation is more stable", "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."),
-            ("ipr", "The isopropyl cation is more stable", "Isopropyl's charged carbon is secondary, but so is the crotyl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."),
-            ("tie", "They are about as stable as each other", "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the crotyl cation has it, so the tie breaks."),
+            ("crotyl", "The but-3-en-2-yl cation is more stable", "Its best charged carbon is secondary, just like isopropyl's. On top of that, resonance spreads the charge over a second carbon. Same substitution plus resonance wins."),
+            ("ipr", "The isopropyl cation is more stable", "Isopropyl's charged carbon is secondary, but so is the but-3-en-2-yl cation's best one. Isopropyl has no C=C next door, so its one carbon holds the whole charge."),
+            ("tie", "They are about as stable as each other", "Count the substitution first: both have a secondary charged carbon, so that part ties. Then look for resonance. Only the but-3-en-2-yl cation has it, so the tie breaks."),
         ],
         "crotyl",
         "Same substitution, plus resonance: a 2° allylic cation beats a 2° alkyl cation, because resonance spreads the charge over a second carbon.",
         prov("compare() dominance: crotyl (2 charge positions, best 2°) over isopropyl (1 position, 2°); takeaway scale 3 against 2", OS_7_9, OS_14_2),
-        {"kind": "pair", "a": named(CROTYL_C, "crotyl cation"), "b": named(IPR_C, "isopropyl cation")},
+        {"kind": "pair", "a": named(CROTYL_C, "but-3-en-2-yl cation"), "b": named(IPR_C, "isopropyl cation")},
         brief="Count the substitution on each charged carbon, then look for resonance.",
         derived="crotyl" if crotyl_wins else None,
     )
@@ -1237,7 +1331,7 @@ def node_rank_cation() -> None:
         "sec",
         "Contributors are not equal. The one with the charge on the more substituted carbon counts for more.",
         prov("RDKit confirms the two drawings are one ion; substitution counted at each charge position", OS_14_2),
-        {"kind": "pair", "a": named(CROTYL_C, "+ on the 2° carbon"), "b": named(CROTYL_C_1, "+ on the 1° carbon")},
+        {"kind": "pair", "a": named(CROTYL_C, "+ on the 2° carbon", push_to=CROTYL_C_1), "b": named(CROTYL_C_1, "+ on the 1° carbon")},
         derived="sec" if ok else None,
     )
     mapped = "[CH2+:1][CH:2]=[CH:3][CH:4]=[CH2:5]"
@@ -1261,24 +1355,24 @@ def node_rank_cation() -> None:
     ladder(
         node, "u1-cat-middle-methyl",
         [
-            ("crotyl", "but-2-enyl", CROTYL_C_1, "Resonance shares the charge between C1 and C3, and C3 carries the methyl, so one of the two charged carbons is secondary."),
+            ("crotyl", "but-3-en-2-yl", CROTYL_C, "Resonance shares the charge between C1 and C3, and C3 carries the methyl, so one of the two charged carbons is secondary."),
             ("methallyl", "2-methylallyl", METHALLYL_C, "Resonance shares the charge, but the methyl sits on the middle carbon, which never carries it. Both charged carbons stay primary."),
             ("homo", "but-3-enyl", HOMOALLYL_C, "The C=C is one carbon too far from the charge, so there is no resonance. A plain primary cation."),
         ],
         "Rank these C4 cations, most stable at the top.",
         "All three have one C=C. Draw the contributors before you count methyls.",
         "carbocation_stability", "descending", ("Most stable", "Least stable"),
-        "Rank three C4 carbocations with one C=C by stability, most stable first: but-2-enyl, 2-methylallyl and but-3-enyl.",
+        "Rank three C4 carbocations with one C=C by stability, most stable first: but-3-en-2-yl, 2-methylallyl and but-3-enyl.",
         (
-            "But-2-enyl, then 2-methylallyl, then but-3-enyl.",
-            "The two allylic cations share the charge over two carbons, so both beat but-3-enyl, whose C=C is too far away to help. Between the allylic two, only but-2-enyl has its methyl on a carbon that carries the charge.",
+            "But-3-en-2-yl, then 2-methylallyl, then but-3-enyl.",
+            "The two allylic cations share the charge over two carbons, so both beat but-3-enyl, whose C=C is too far away to help. Between the allylic two, only but-3-en-2-yl has its methyl on a carbon that carries the charge.",
             "Draw both contributors of each card, then count carbons on the charged carbons only.",
         ),
         [
-            ("ranked-least-stable-first", ["homo", "methallyl", "crotyl"], "ordering_is_reversed", rev("but-2-enyl")),
+            ("ranked-least-stable-first", ["homo", "methallyl", "crotyl"], "ordering_is_reversed", rev("but-3-en-2-yl")),
             ("methallyl-above-crotyl", ["methallyl", "crotyl", "homo"], "ordering_one_adjacent_pair_swapped", (
-                "2-Methylallyl is placed above but-2-enyl.",
-                "Both have resonance. The methyl only helps when it sits on a charged carbon: in but-2-enyl it does (C3), in 2-methylallyl it sits on the middle carbon, which never carries the charge.",
+                "2-Methylallyl is placed above but-3-en-2-yl.",
+                "Both have resonance. The methyl only helps when it sits on a charged carbon: in but-3-en-2-yl it does (C3), in 2-methylallyl it sits on the middle carbon, which never carries the charge.",
                 "Mark the two charged carbons on each card, then look for the methyl on one of them.",
             )),
             ("homo-above-methallyl", ["crotyl", "homo", "methallyl"], "ordering_one_adjacent_pair_swapped", (
@@ -1300,7 +1394,7 @@ def node_rank_cation() -> None:
             ("withdraw", "Methyl groups pull density away", "It is the other way round. Alkyl groups donate into an electron-poor carbon, which is why more of them helps a cation."),
         ],
         "hyper",
-        "Alkyl groups stabilise a carbocation by hyperconjugation: their C-H and C-C bonds donate into the empty p orbital.",
+        "Alkyl groups stabilise a carbocation by hyperconjugation: their C-H and C-C bonds donate into the empty p orbital. An empty orbital gains a lot from that donation, which is why substitution counts for so much on a cation.",
         prov("neither species has a second charge position; substitution 3 against 1", OS_7_9),
         {"kind": "pair", "a": named(TBU_C, "tert-butyl"), "b": named(ETHYL_C, "ethyl")},
         level=0, derived="hyper" if ok else None,
@@ -1527,7 +1621,7 @@ def node_rank_anion() -> None:
         "pri",
         "For an anion, the better contributor puts the charge on the LESS substituted carbon, the reverse of a cation.",
         prov("RDKit confirms the two drawings are one ion; alkyl groups counted at each charge position", OS_7_9),
-        {"kind": "pair", "a": named(CROTYL_A_2, "− on the 2° carbon"), "b": named(CROTYL_A_1, "− on the 1° carbon")},
+        {"kind": "pair", "a": named(CROTYL_A_2, "− on the 2° carbon", push_to=CROTYL_A_1), "b": named(CROTYL_A_1, "− on the 1° carbon")},
         derived="pri" if ok else None,
         concepts=CONCEPT_CARBANION,
     )
@@ -1708,6 +1802,76 @@ def node_rank_radical() -> None:
         concepts=CONCEPT_RADICAL,
     )
     ok = compare(tbu, me) == 1 and compare(TBU_C, METHYL_C) == 1 and compare(TBU_A, METHYL_A) == -1
+    # ADDED 3 Nov (Unit 1 review (c)1 and suggestion 4, owner's answer): the
+    # cation rule and the radical rule side by side, with the why. MOVED 3 Nov
+    # (checker): authored right after u1-rad-allyl, so it plays near the start
+    # of the lesson. Its partner, u1-rad-allylic-vs-tbu, follows it (moved
+    # here from u1-quiz-a on 4 Nov, checker). Derived: the
+    # radical model ranks the allylic radical above the 3° one, the cation
+    # takeaway scale gives the matching cations no better than a tie, and both
+    # species share their charge over the same number of carbons, so the
+    # difference cannot be "more resonance forms".
+    me_cy_c = "C[C+]1CCCCC1"
+    side_ok = (
+        compare(cy_ene, me_cy) == 1
+        and takeaway_scale(CYHEXENYL_C) == takeaway_scale(me_cy_c)
+        and len(positions(cy_ene)) == len(positions(CYHEXENYL_C)) == 2
+        # CHANGED 3 Nov (checker): the prompt now names the degrees, so derive
+        # them: the allylic carbon is 2°, the ring carbon with the methyl 3°.
+        and [carbon_neighbours(mol(CYHEXENYL_C), p) for p in positions(CYHEXENYL_C)] == [2, 2]
+        and [carbon_neighbours(mol(me_cy_c), p) for p in positions(me_cy_c)] == [3]
+    )
+    mcq(
+        node, "u1-rad-vs-cation",
+        "A 2° allylic radical beats 3°, but a 2° allylic cation only ties 3°. Pick why.",
+        [
+            ("half", "Alkyl groups help a half-filled orbital less", "Right. An empty p orbital gains a lot from alkyl donation, so for a cation substitution keeps up with resonance. A half-filled one gains only a little, so for a radical resonance dominates."),
+            ("forms", "The radical has more resonance forms", "Count them. The allylic radical and the allylic cation each share over the same two end carbons, so both have two contributors. The difference is what alkyl groups are worth."),
+            ("charge", "Resonance only works on charged species", "Resonance spreads an odd electron just as it spreads a charge. That is why the allylic radical is so stable in the first place."),
+        ],
+        "half",
+        "Alkyl groups help an empty orbital a lot and a half-filled one only a little. So for cations resonance is worth about one extra carbon, but for radicals resonance dominates and an allylic radical beats a 3° one.",
+        prov("radical model (resonance first) against the cation takeaway scale (max + n - 1); both share over two carbons", OS_7_9, OS_10_5),
+        {"kind": "pair", "a": named(cy_ene, "cyclohex-2-enyl radical"), "b": named(me_cy, "1-methylcyclohexyl radical")},
+        brief="Both species share over the same two carbons. Ask what an alkyl group gives each one.",
+        derived="half" if side_ok else None,
+        concepts=CONCEPT_RADICAL,
+    )
+    # ADDED 4 Nov (Unit 1 review suggestion 4, owner 3 Nov: "apply ALL 12"),
+    # MOVED 4 Nov (checker) from u1-quiz-a to here: the owner's 24 Oct rule
+    # keeps a side quest optional, counted only when the student's syllabus
+    # covers it, so the radical half of the side-by-side rule lives in the
+    # radical branch and reaches u1-quiz-a only through its Challenge
+    # (beats/practice/pools.ts CHALLENGE_EXTRAS) or side-quest lending.
+    # The same C4 cation as the u1-quiz-a ladder, under the same name.
+    # Derived: but-3-en-2-yl and tert-butyl score the same on the cation
+    # takeaway scale (a tie as cations), and the radical model ranks the
+    # allylic radical first; both 2° allylic and 3° counts are read off RDKit.
+    crotyl_r, tbu_r = radical(CROTYL_C), radical(TBU_C)
+    rad_side = (
+        takeaway_scale(CROTYL_C) == takeaway_scale(TBU_C)
+        and compare(crotyl_r, tbu_r) == 1
+        and len(positions(crotyl_r)) == 2 and len(positions(tbu_r)) == 1
+        and max(carbon_neighbours(mol(crotyl_r), p) for p in positions(crotyl_r)) == 2
+        and [carbon_neighbours(mol(tbu_r), p) for p in positions(tbu_r)] == [3]
+    )
+    mcq(
+        node, "u1-rad-allylic-vs-tbu",
+        # CHANGED 4 Nov (checker): "only tie" leaned on the answer; the prompt states the tie plainly.
+        "As cations these two tie. As radicals, pick the more stable one and the reason.",
+        [
+            ("tbu", "tert-Butyl: three carbons beat two", "That is substitution alone. As cations it keeps up with resonance, so they tie. A half-filled orbital gains much less from alkyl groups, so for radicals the resonance side pulls ahead."),
+            ("allylic", "But-3-en-2-yl: resonance beats alkyl help here", "Right. Alkyl groups help an empty orbital a lot and a half-filled one only a little. So for the cations substitution keeps up, but for the radicals resonance dominates."),
+            ("tie", "Neither: they tie, as the cations do", "The cations tie because an empty orbital takes all the alkyl help it can get. A radical's orbital already holds one electron, so alkyl help is worth less and resonance decides."),
+        ],
+        "allylic",
+        "Alkyl groups help an empty orbital a lot and a half-filled one only a little. So a 2° allylic cation ties 3°, but a 2° allylic radical beats it.",
+        prov("cation takeaway scale (max + n - 1): but-3-en-2-yl 2 + 1 = tert-butyl 3; radical model (resonance first) ranks the allylic radical above 3°", OS_7_9, OS_10_5),
+        {"kind": "pair", "a": named(crotyl_r, "but-3-en-2-yl radical"), "b": named(tbu_r, "tert-butyl radical")},
+        brief="A radical carbon has one electron in its p orbital; a cation's is empty.",
+        derived="allylic" if rad_side else None,
+        concepts=CONCEPT_RADICAL,
+    )
     mcq(
         node, "u1-rad-trend", "Pick the trend alkyl radicals follow.",
         [
@@ -1743,11 +1907,11 @@ def node_rank_radical() -> None:
         node, "u1-rad-benzyl", "Pick where the odd electron of the benzyl radical can sit.",
         [
             ("ch2", "Only on the CH2 carbon", "The CH2 carbon sits next to the ring's pi system, so the odd electron is shared into it. Push one electron at a time and it reaches three ring carbons."),
-            ("all", "On the CH2 and every ring carbon", "It skips carbons, the same every-other pattern as the allyl system. The ipso and meta carbons never carry it."),
-            ("op", "On the CH2, both ortho and para", "Shift one electron at a time into the ring and the odd electron lands on the two ortho carbons and the para carbon: four carbons in all."),
+            ("all", "On the CH2 and every ring carbon", "It skips carbons, the same every-other pattern as the allyl system. The ring carbon bonded to the CH2, and the two one step further round, never carry it."),
+            ("op", "On the CH2 and three ring carbons", "Shift one electron at a time into the ring. It lands on the two ring carbons beside the one bonded to CH2, and on the carbon straight across: four carbons in all. Chemists call these ortho and para, names the aromatic unit explains."),
         ],
         "op",
-        "A benzylic radical is shared by the CH2 carbon and the ring's ortho and para carbons. That delocalisation makes it among the most stable radicals.",
+        "A benzylic radical is shared by the CH2 carbon and three ring carbons: the two beside the ring carbon bonded to CH2, and the one straight across. That delocalisation makes it among the most stable radicals.",
         prov("positions from ResonanceMolSupplier on the benzyl cation analogue: CH2, two ortho, para", OS_10_5),
         {"kind": "structure", "figure": numbered(mapped, show=False), "name": "benzyl radical"},
         derived="op" if where == [1, 2, 3, 5] else None,
@@ -1766,7 +1930,7 @@ def node_rank_radical() -> None:
         "sec",
         "As for cations, the radical contributor with the odd electron on the more substituted carbon counts for more.",
         prov("RDKit confirms one species through the cation analogue; substitution counted at each position", OS_10_5),
-        {"kind": "pair", "a": named(a, "dot on the 2° carbon"), "b": named(b, "dot on the 1° carbon")},
+        {"kind": "pair", "a": named(a, "dot on the 2° carbon", push_to=b), "b": named(b, "dot on the 1° carbon")},
         derived="sec" if ok else None,
         concepts=CONCEPT_RADICAL,
     )
@@ -1860,8 +2024,12 @@ def node_rank_radical() -> None:
 
 
 # ---------------------------------------------------------------------------
-# u1-quiz-a: a mixed 10 over cations, anions and resonance. No radicals:
-# radical items reach a quiz only through Challenge mode.
+# u1-quiz-a: a mixed set over cations, anions and resonance. No radical item:
+# the radical branch is optional (owner 24 Oct), so the radical half of the
+# side-by-side rule, u1-rad-allylic-vs-tbu, lives in u1-rank-radical and
+# reaches this quiz only through its Challenge or a syllabus that covers it
+# (CHANGED back 4 Nov, checker). The C4 allylic cation is but-3-en-2-yl
+# everywhere in this quiz, the name of the structure drawn.
 # ---------------------------------------------------------------------------
 
 PRENYL_C_1 = "[CH2+]C=C(C)C"
@@ -1874,7 +2042,7 @@ def node_quiz_a() -> None:
         node, "u1-qa-ladder-cation",
         [
             ("penta", "pentadienyl", "[CH2+]C=CC=C", "Three carbons share the charge."),
-            ("all2", "crotyl", CROTYL_C, "Two carbons share it, and one of them is secondary."),
+            ("all2", "but-3-en-2-yl", CROTYL_C, "Two carbons share it, and one of them is secondary."),
             ("ipr", "isopropyl", IPR_C, "Secondary, but one carbon holds the whole charge."),
             ("et", "ethyl", ETHYL_C, "Primary and no resonance."),
         ],
@@ -1883,7 +2051,7 @@ def node_quiz_a() -> None:
         "carbocation_stability", "descending", ("Most stable", "Least stable"),
         "Rank these four carbocations by stability, most stable first: pentadienyl, but-3-en-2-yl, isopropyl and ethyl.",
         (
-            "Pentadienyl, then 2° allylic, then isopropyl, then ethyl.",
+            "Pentadienyl, then but-3-en-2-yl, then isopropyl, then ethyl.",
             "The pentadienyl cation shares its charge over three carbons and the 2° allylic over two, with the same best substitution. The 2° allylic cation also beats isopropyl: same secondary carbon, plus resonance. Ethyl is primary with nothing else.",
             "For each card, count the carbons that carry the charge, then the carbons on the best one.",
         ),
@@ -1951,7 +2119,7 @@ def node_quiz_a() -> None:
         "ter",
         "For a cation, the better contributor puts the charge on the MORE substituted carbon.",
         prov("RDKit confirms one ion; substitution counted at each charge position", OS_14_2),
-        {"kind": "pair", "a": named(PRENYL_C_1, "+ on the 1° carbon"), "b": named(PRENYL_C_3, "+ on the 3° carbon")},
+        {"kind": "pair", "a": named(PRENYL_C_1, "+ on the 1° carbon", push_to=PRENYL_C_3), "b": named(PRENYL_C_3, "+ on the 3° carbon")},
         derived="ter" if ok else None,
     )
     a1, a3 = anion(PRENYL_C_1), anion(PRENYL_C_3)
@@ -1969,16 +2137,16 @@ def node_quiz_a() -> None:
         "pri",
         "For an anion, the better contributor puts the charge on the LESS substituted carbon.",
         prov("RDKit confirms one ion; alkyl groups counted at each charge position", OS_7_9),
-        {"kind": "pair", "a": named(a3, "− on the 3° carbon"), "b": named(a1, "− on the 1° carbon")},
+        {"kind": "pair", "a": named(a3, "− on the 3° carbon", push_to=a1), "b": named(a1, "− on the 1° carbon")},
         derived="pri" if ok else None,
         concepts=CONCEPT_CARBANION,
     )
-    t = {"tbu": (TBU_C, "tert-butyl, 3°"), "all2": (CROTYL_C, "2° allylic"), "all3": (PRENYL_C, "3° allylic"), "all1": (ALLYL_C, "allyl, 1° allylic")}
+    t = {"tbu": (TBU_C, "tert-butyl, 3°"), "all2": (CROTYL_C, "but-3-en-2-yl, 2° allylic"), "all3": (PRENYL_C, "3° allylic"), "all1": (ALLYL_C, "allyl, 1° allylic")}
     mcq(
         node, "u1-qa-best-cation", "Pick the most stable cation.",
         [
             ("tbu", "tert-butyl, 3°", "Tertiary, but one carbon holds the whole charge. The 3° allylic cation is just as substituted and shares the charge too."),
-            ("all2", "2° allylic", "It has resonance and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."),
+            ("all2", "but-3-en-2-yl, 2° allylic", "It has resonance and a secondary charged carbon. The 3° allylic cation has the same resonance and one more methyl."),
             ("all3", "3° allylic", "It wins on both counts: resonance shares the charge, and the better charged carbon is tertiary."),
             ("all1", "allyl, 1° allylic", "It has resonance, but both charged carbons are primary."),
         ],
@@ -2007,14 +2175,14 @@ def node_quiz_a() -> None:
     mcq(
         node, "u1-qa-middle-methyl", "Pick the more stable cation.",
         [
-            ("crotyl", "The 2° allylic cation", "One of its two charged carbons is secondary. The other cation's methyl sits on the middle carbon, which never carries the charge."),
+            ("crotyl", "But-3-en-2-yl, the 2° allylic cation", "One of its two charged carbons is secondary. The other cation's methyl sits on the middle carbon, which never carries the charge."),
             ("methallyl", "2-methylallyl, it has a methyl", "Its methyl is on C2, the carbon the charge skips. Both of its charged carbons are primary."),
             ("tie", "They tie, same atoms", "Same formula, but the methyl sits on a different carbon. Only a methyl on a charged carbon helps."),
         ],
         "crotyl",
         "Substitution only counts on carbons that carry the charge. Draw the contributors first.",
         prov("dominance over charge positions and substitution", OS_7_9, OS_14_2),
-        {"kind": "pair", "a": named(CROTYL_C, "2° allylic"), "b": named(METHALLYL_C, "2-methylallyl")},
+        {"kind": "pair", "a": named(CROTYL_C, "but-3-en-2-yl"), "b": named(METHALLYL_C, "2-methylallyl")},
         derived="crotyl" if compare(CROTYL_C, METHALLYL_C) == 1 else None,
     )
     mapped = "[CH2+:1][CH:2]=[CH:3][CH:4]=[CH:5][CH:6]=[CH2:7]"
@@ -2067,6 +2235,38 @@ def node_quiz_a() -> None:
         {"kind": "pair", "a": named(ALLYL_C, "allyl cation"), "b": named(ALLYL_A, "allyl anion")},
         derived="res" if ok else None,
     )
+    # ADDED 3 Nov (Unit 1 review suggestion 4, owner's answer (c)1): the cation
+    # half of the side-by-side rule, in the stage quiz; the radical half is in
+    # the optional radical branch (u1-rad-allylic-vs-tbu). Derived: on the cation takeaway scale the 1°
+    # allyl cation and the 2° isopropyl cation score the same, so here a C=C
+    # next door is worth one extra carbon; neither has a second carbon that
+    # carries the charge besides allyl's resonance partner.
+    one_carbon = (
+        takeaway_scale(ALLYL_C) == takeaway_scale(IPR_C)
+        and len(positions(ALLYL_C)) == 2 and len(positions(IPR_C)) == 1
+        and [carbon_neighbours(mol(ALLYL_C), p) for p in positions(ALLYL_C)] == [1, 1]
+        and [carbon_neighbours(mol(IPR_C), p) for p in positions(IPR_C)] == [2]
+    )
+    mcq(
+        node, "u1-qa-why-alkyl-counts",
+        # CHANGED 3 Nov (checker): the prompt ended "why alkyl helps a lot" and
+        # only the right option repeated it. Now the prompt states what the
+        # drawing shows (allyl and isopropyl rank about level) and asks why;
+        # the wrong options repeat the prompt's words, the right one does not.
+        "Allyl and isopropyl cations rank about level. Pick why alkyl groups count for so much.",
+        [
+            ("empty", "The charged carbon's p orbital is empty", "Right. Neighbouring C-H and C-C bonds lean into the empty orbital, and an empty orbital takes all the help it can get. That keeps substitution level with resonance on a cation."),
+            ("forms", "Alkyl groups add a resonance contributor", "An alkyl group has no pi bond, so it adds no contributor. It helps by hyperconjugation and induction."),
+            ("pull", "Alkyl groups pull charge away from the carbon", "It is the other way round. Alkyl groups push density in, which is exactly what an electron-poor carbon needs."),
+        ],
+        "empty",
+        "An empty p orbital gains a lot from alkyl donation, so on a cation substitution keeps up with resonance: a C=C next door is worth about one extra carbon.",
+        prov("cation takeaway scale (max + n - 1): allyl 1 + 1 = isopropyl 2; charge positions from ResonanceMolSupplier", OS_7_9, OS_14_2),
+        {"kind": "pair", "a": named(ALLYL_C, "allyl cation"), "b": named(IPR_C, "isopropyl cation")},
+        brief="Allyl has resonance, isopropyl one more carbon. Ask what a neighbouring bond gives the charged carbon.",
+        derived="empty" if one_carbon else None,
+    )
+
 
 
 # ---------------------------------------------------------------------------
@@ -2400,7 +2600,7 @@ def node_12v14() -> None:
         ],
         "c4", "Both contributors are needed: C2 gives the 1,2 product and C4 gives the 1,4 product.",
         prov("bromide attached at each charged carbon; C4 reproduces the 1,4 product", OS_14_2),
-        {"kind": "pair", "a": {"figure": numbered(c2), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
+        {"kind": "pair", "a": {"figure": numbered(c2, push_to=c4), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
         level=0, derived="c4" if ok else None, **k,
     )
     t = {
@@ -2451,7 +2651,7 @@ def node_12v14() -> None:
         ],
         "near", "The 1,2 product is formed faster because the bromide is closest to C2, the end with more charge. Speed, not stability.",
         prov("C2 is secondary and C4 primary in the cation; the 1,2 product is the monosubstituted, less stable alkene", OS_14_2),
-        {"kind": "pair", "a": {"figure": numbered(c2), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
+        {"kind": "pair", "a": {"figure": numbered(c2, push_to=c4), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
         level=2, derived="near" if ok else None, **k,
     )
 
@@ -2533,31 +2733,35 @@ def node_hx() -> None:
         node, "u1-hx-label-thermo", "HCl adds to 2-methylpenta-1,3-diene. Pick the thermodynamic product.",
         [
             ("p12", n12, "This is the 1,2 product, chlorine on the tertiary carbon. Its C=C carries only two carbons, so it is not the more stable one."),
-            ("close", "Too close to call by alkene substitution", "The two alkenes differ here: one C=C carries three carbons and the other two. The rule can call it."),
+            ("loser", "3-chloro-2-methylpent-1-ene", "This needs H+ on C4 first, which leaves a weaker cation than H+ on C1. It is a minor product at any temperature."),
             ("p14", n14, "Its C=C carries three carbons against two in the other product. The more substituted alkene is the more stable product."),
         ],
         "p14", "Call the thermodynamic product by alkene substitution: the product whose C=C carries more carbons.",
         prov("both products from diene_addition; alkene substitution 2 against 3; names checked with OPSIN", OS_14_3),
         scheme_visual(MP2, "2-methylpenta-1,3-diene", "HCl"),
-        tiles={"p12": iupac(r["p12"], n12, "u1-hx-label-thermo p12"), "close": word_tile("Too close to call by alkene substitution", "Too close", "to call"),
+        tiles={"p12": iupac(r["p12"], n12, "u1-hx-label-thermo p12"), "loser": iupac(r["losers"][0]["p12"], "3-chloro-2-methylpent-1-ene", "u1-hx-label-thermo loser"),
                "p14": iupac(r["p14"], n14, "u1-hx-label-thermo p14")},
         level=0, derived=derived, **k,
     )
     r = diene_addition(HEXADIENE, "H", "Br")
     n12, n14 = "4-bromohex-2-ene", "2-bromohex-3-ene"
+    # CHANGED 3 Nov (owner's answer to the Unit 1 review): "the rule cannot call
+    # it" is no longer an option. The item asks the reason, which has a real
+    # answer; "no clear winner" lives only in the explanation, where it is true.
+    iupac(r["p12"], n12, "u1-hx-too-close p12")
+    iupac(r["p14"], n14, "u1-hx-too-close p14")
     mcq(
-        node, "u1-hx-too-close", "HBr adds to hexa-2,4-diene. Pick the thermodynamic product.",
+        node, "u1-hx-too-close", "HBr adds to hexa-2,4-diene, warm. Pick why 1,4 gets no stability edge.",
         [
-            ("p14", n14, "Tempting, because 1,4 often wins warm. That is only because it usually has the more substituted C=C, and here both alkenes carry two carbons."),
-            ("close", "Too close to call by alkene substitution", "Each product's C=C carries two carbons, so the substitution rule gives no winner."),
-            ("p12", n12, "Nothing favours the 1,2 product on stability here either. Both alkenes are disubstituted."),
+            ("p14-worse", "The 1,4 product's C=C is less substituted", "Count the carbons on each C=C. The 1,4 product's carries two, and so does the 1,2 product's. Neither is worse."),
+            ("same", "Both products' C=C carry two carbons", "Right. 1,4 usually wins warm only because its C=C is more substituted. Here both alkenes are disubstituted, so stability gives 1,4 nothing extra."),
+            ("cold", "Warm locks in the 1,2 product", "Warm does the opposite: products can return to the cation and re-sort by stability. Locking in the fast product is what cold does."),
         ],
-        "close", "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. When the counts tie, the rule cannot call it.",
+        "same", "Decide the thermodynamic product by alkene substitution. Do not assume 1,4 always wins. Here both alkenes carry two carbons, so neither product is clearly more stable: no clear winner on stability.",
         prov("both products from diene_addition; alkene substitution 2 against 2; names checked with OPSIN", OS_14_3),
-        scheme_visual(HEXADIENE, "hexa-2,4-diene", "HBr"),
-        tiles={"p14": iupac(r["p14"], n14, "u1-hx-too-close p14"), "close": word_tile("Too close to call by alkene substitution", "Too close", "to call"),
-               "p12": iupac(r["p12"], n12, "u1-hx-too-close p12")},
-        level=2, derived="close" if r["thermo"] is None else None, **k,
+        scheme_visual(HEXADIENE, "hexa-2,4-diene", "HBr", WARM_UNDER),
+        conditions=WARM,
+        level=2, derived="same" if r["thermo"] is None and r["alkene_subs"] == (2, 2) else None, **k,
     )
     r = diene_addition(ISOPRENE, "H", "Br")
     n12, n14 = "3-bromo-3-methylbut-1-ene", "1-bromo-3-methylbut-2-ene"
@@ -2895,9 +3099,9 @@ def node_x2() -> None:
             ("shared", "The cation's charge is shared by C2 and C4", "After Br+ adds to C1, the cation is allylic: the charge sits on C2 in one contributor and C4 in the other. Bromide can attack either one."),
             ("sub", "C4 is the most substituted carbon", "C4 is a CH2 end carbon, the least substituted here. It gets bromide only because it carries the charge in one contributor."),
         ],
-        "shared", "The allylic cation after X+ adds to C1 has the charge on C2 and C4, which is why X2 gives 1,2 and 1,4 products.",
+        "shared", "The allylic cation after X+ adds to C1 has the charge on C2 and C4, which is why X2 gives 1,2 and 1,4 products. Orgo I drew a bromonium ion; with a diene the bromonium opens to an allylic cation, so both ends are reachable.",
         prov("charge positions of the bromo allylic cation from ResonanceMolSupplier: C2 and C4", OS_14_2),
-        {"kind": "pair", "a": {"figure": numbered(c2), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
+        {"kind": "pair", "a": {"figure": numbered(c2, push_to=c4), "name": "+ on C2"}, "b": {"figure": numbered(c4), "name": "+ on C4"}},
         level=0, derived="shared" if where == [2, 4] and same_ion(unmap(c2), unmap(c4)) else None, **k,
     )
     r = diene_addition(PIPERYLENE, "Br", "Br")
@@ -2921,25 +3125,47 @@ def node_x2() -> None:
     )
     r = diene_addition(CHD, "Cl", "Cl")
     n12, n14 = "3,4-dichlorocyclohexene", "3,6-dichlorocyclohexene"
+    # CHANGED 3 Nov (owner's answer to the Unit 1 review): a real answer, the
+    # true statement about the two dichlorides, instead of "too close to call".
+    iupac(r["p12"], n12, "u1-x2-chd-warm a")
+    iupac(r["p14"], n14, "u1-x2-chd-warm b")
     mcq(
-        node, "u1-x2-chd-warm", "Cl2 adds to cyclohexa-1,3-diene at 40 degrees. Pick the alkene rule's call.",
+        node, "u1-x2-chd-warm", "Cl2 adds to cyclohexa-1,3-diene at 40 degrees. Pick the true statement.",
         [
-            ("b", n14, "Often the 1,4 product wins warm because it has the better alkene. Here both ring C=C bonds carry two carbons."),
-            ("a", n12, "Nothing favours the 1,2 product on alkene substitution either. Both are disubstituted ring alkenes."),
-            ("close", "Too close to call by alkene substitution", "Both ring alkenes carry two carbons, so substitution gives no winner. The rule is silent here."),
+            ("b", "The 1,4 dichloride has the better C=C", "Often the 1,4 product wins warm because it has the better alkene. Here both ring C=C bonds carry two carbons, so it has no edge."),
+            ("same", "Both dichlorides have a disubstituted C=C", "Right. Each ring C=C carries two carbons, so warming has no more stable alkene to drift toward."),
+            ("a", "Warming locks in the 1,2 dichloride", "Warm lets both dichlorides return to the allylic cation and re-sort. It is cold that locks in the faster product."),
         ],
-        "close", "When the two alkenes are equally substituted, the substitution rule cannot pick the thermodynamic product.",
+        "same", "Same temperature rule as HX, but here both ring alkenes are disubstituted, so alkene substitution gives no clear winner when it is warm.",
         prov("both dichlorides from diene_addition; alkene substitution 2 against 2; names checked with OPSIN", OS_14_3),
         scheme_visual(CHD, "cyclohexa-1,3-diene", "Cl_2, 1 equiv", WARM_UNDER),
-        tiles={"b": iupac(r["p14"], n14, "u1-x2-chd-warm b"), "a": iupac(r["p12"], n12, "u1-x2-chd-warm a"),
-               "close": word_tile("Too close to call by alkene substitution", "Too close", "to call")},
-        conditions="one equivalent of Cl2; " + WARM, level=2, derived="close" if r["thermo"] is None else None, **k,
+        conditions="one equivalent of Cl2; " + WARM, level=2, derived="same" if r["thermo"] is None and r["alkene_subs"] == (2, 2) else None, **k,
     )
 
 
 def node_quiz_b() -> None:
     node = "u1-quiz-b"
     k = dict(concepts=CONCEPT_KVT)
+    # ADDED 3 Nov (Unit 1 review suggestion 11): stage A spaced back into the
+    # stage B checkpoint, in a new setting. Rank the two cations the two
+    # protonations of penta-1,3-diene make; the dominance rule decides it.
+    rp = diene_addition(PIPERYLENE, "H", "Br")
+    loser = rp["losers"][0]["cation"] if len(rp["losers"]) == 1 else None
+    mcq(
+        node, "u1-qb-space-cations",
+        "H+ can add to either end of penta-1,3-diene. Pick the better cation it can make.",
+        [
+            ("c1", "H+ on C1: shared by two 2° carbons", "Right. H+ on C1 leaves a + on C2, shared with C4. Both are 2°, so both contributors are well supported. That is the stage A score: resonance, then substitution."),
+            ("c4", "H+ on C4: shared by a 2° and a 1° carbon", "This cation is allylic too, but one of its two charged carbons is only 1°. Same resonance, less substitution, so it ranks lower."),
+            ("tie", "They tie: both are allylic", "Both are allylic, so resonance ties. Then count carbons on the charged carbons: two 2° beat a 2° and a 1°."),
+        ],
+        "c1",
+        "Rank the cations before you pick a product: same resonance, so substitution decides. H+ on C1 gives a cation shared by two 2° carbons, the better one.",
+        prov("both protonations run by diene_addition; cations ranked by the dominance rule (resonance, then substitution)", OS_7_9, OS_14_2),
+        {"kind": "pair", "a": named(rp["cation"], "from H+ on C1"), "b": named(loser, "from H+ on C4")} if loser else None,
+        derived="c1" if loser is not None and compare(rp["cation"], loser) == 1 else None,
+        concepts=CONCEPT_RES,
+    )
     p = (7.4, 2.4, 8.8, 0.6)
     mcq(
         node, "u1-qb-diagram-warm", "Run this warm and reversible. Pick the major product.",
@@ -3112,7 +3338,30 @@ def node_quiz_b() -> None:
 # stereo layers dropped (no item here asks about E/Z or wedges).
 # ---------------------------------------------------------------------------
 
-PRACTICE_NODES = {"u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-quiz-b"}
+# ADDED 3 Nov (Unit 1 review suggestion 8): every drawing opens on its starting
+# material instead of a blank board, so producing a structure is an edit of
+# what the student was given. Keyed by entry id; draw() refuses a start that
+# would already grade as the answer or as a named miss.
+STARTS: dict[str, str] = {
+    "u1-cat-draw-protonate": "C=C(C)C",
+    "u1-qa-draw-protonate": "CC1=CCCCC1",
+    "u1-ani-draw-pentene": "C=CCCC",
+    "u1-rad-draw-bromination": "CC1CCCCC1",
+    "u1-ed-draw-cold": "C=CC=C",
+    "u1-hx-draw-isoprene-cold": "C=C(C)C=C",
+    "u1-hx-dmb-cold": "C=C(C)C(C)=C",
+    "u1-hx-hexadiene-cold": "CC=CC=CC",
+    "u1-hx-mp4-warm": "C=CC=C(C)C",
+    "u1-x2-dmb-cold": "C=C(C)C(C)=C",
+    "u1-x2-draw-warm": "C=CC=C",
+    "u1-qb-draw-chd": "C1=CCCC=C1",
+    "u1-12v14-draw-14": "CC=CC=CC",
+    "u1-kvt-draw-warm": "C=C(C)C(C)=C",
+}
+
+# CHANGED 3 Nov (Unit 1 review suggestions 8 and 12): u1-x2 is a practice lesson
+# too, so it also plays easiest first with its drawings last.
+PRACTICE_NODES = {"u1-rank-cation", "u1-rank-anion", "u1-rank-radical", "u1-quiz-a", "u1-energy-diagram", "u1-hx-dienes", "u1-x2", "u1-quiz-b"}
 
 
 def no_stereo(inchi: str) -> str:
@@ -3162,6 +3411,8 @@ def draw(
     if answer is None:
         fail(f"{id}: the script could not derive the structure to draw")
         return
+    if start is None:
+        start = STARTS.get(id)
     if id in IDS:
         fail(f"duplicate id {id}")
     IDS.add(id)
@@ -3220,13 +3471,11 @@ def draw(
     entry["provenance"] = provenance
     entry["placeholder"] = True
     pool = POOLS.setdefault(node, [])
-    # In an in-a-row run the third problem is a drawing, so a student who stops
-    # at the first tier still draws once. In a lesson the order does not matter:
-    # the drawings get their own produce step (template.ts).
-    if node in PRACTICE_NODES and len(pool) >= 2 and not keep_place:
-        pool.insert(2, entry)
-    else:
-        pool.append(entry)
+    # CHANGED 3 Nov (Unit 1 review suggestion 8): a drawing comes AFTER the
+    # node's recognise questions, not third. easiest_first moves every drawing
+    # to the end of a practice pool; in a lesson the drawings get their own
+    # produce step after the quick questions anyway (template.ts).
+    pool.append(entry)
 
 
 def hydrogenated(smi: str) -> str:
@@ -3594,6 +3843,80 @@ def node_produce_more() -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Worked examples (ADDED 3 Nov, checker on Unit 1 review suggestion 1). Each
+# practice lesson's worked example (content/u1/lessonExplainers.ts) used to
+# solve a question that then came up in its own lesson, so the student
+# re-answered a problem whose answer they had just read. Each now solves a
+# DIFFERENT problem of the same kind, on species no stage A or B question
+# draws. The calls are derived here with the same model the pools use, and
+# the drawings go out as STAGE_AB_WORKED_FIGURES for the explainer cards.
+# ---------------------------------------------------------------------------
+
+EBD = "C=C(CC)C=C"  # 2-ethylbuta-1,3-diene; atom 0 is C1, next to the carbon with the ethyl
+
+
+def node_worked() -> None:
+    def need(ok: bool, what: str) -> None:
+        if not ok:
+            fail(f"worked example: {what}")
+
+    # u1-rank-cation: propyl, cyclopentyl, cyclopent-2-enyl.
+    cp, cpe, pr = "[CH+]1CCCC1", "[CH+]1C=CCC1", "CC[CH2+]"
+    need(most_stable([cp, cpe, pr]) == cpe and compare(cp, pr) == 1, "cyclopent-2-enyl should beat cyclopentyl, which beats propyl")
+    need([carbon_neighbours(mol(cpe), q) for q in positions(cpe)] == [2, 2] and len(positions(cp)) == 1, "cyclopent-2-enyl shares over two 2° carbons")
+    WORKED["cation-propyl"] = named(pr, "propyl, 1°")
+    WORKED["cation-cyclopentyl"] = named(cp, "cyclopentyl, 2°")
+    WORKED["cation-cyclopentenyl"] = named(cpe, "cyclopent-2-enyl, 2° allylic")
+
+    # u1-rank-anion: 2-methylallyl, isobutyl, isopropyl.
+    ma, ib, ip = "[CH2-]C(C)=C", "CC(C)[CH2-]", IPR_A
+    need(compare(ma, ib) == 1 and compare(ib, ip) == 1 and compare(ma, ip) == 1, "2-methylallyl > isobutyl > isopropyl anion")
+    need(factors(ma)[2] == 0 and len(positions(ma)) == 2, "the 2-methylallyl anion's methyl is on no charged carbon")
+    WORKED["anion-methallyl"] = named(ma, "2-methylallyl anion")
+    WORKED["anion-isobutyl"] = named(ib, "isobutyl anion, 1°")
+    WORKED["anion-isopropyl"] = named(ip, "isopropyl anion, 2°")
+
+    # u1-rank-radical: cyclopent-2-enyl against tert-butyl; the matching cations only tie.
+    rcpe, rtb = radical(cpe), radical(TBU_C)
+    need(compare(rcpe, rtb) == 1, "the cyclopent-2-enyl radical should beat tert-butyl")
+    need(compare(cpe, TBU_C) == 0 and takeaway_scale(cpe) == takeaway_scale(TBU_C), "the matching cations should only tie")
+    WORKED["radical-cyclopentenyl"] = named(rcpe, "cyclopent-2-enyl radical")
+    WORKED["radical-tbu"] = named(rtb, "tert-butyl radical")
+
+    # u1-energy-diagram: its own two-product diagram, one no question draws
+    # (the butadiene diagram would solve u1-ed-draw-cold).
+    ed_p = (6.6, 3.0, 9.0, 0.6)
+    ed_d = ed(*ed_p)
+    need(ed_d["kinetic"] == "A" and ed_d["thermo"] == "B", "the worked diagram: K over the lower hump, T in the deeper well")
+    WORKED["ed-diagram"] = {"figure": energy_figure(*ed_p, names=("K", "T")), "name": "two products, K and T, from one start"}
+
+    # u1-hx-dienes and u1-x2: 2-ethylbuta-1,3-diene with HBr, then with Br2.
+    r = diene_addition(EBD, "H", "Br")
+    need(r["attacked"] == 0 and r["kinetic"] == r["p12"] and r["thermo"] == r["p14"], "HBr: H+ on C1, cold 1,2, warm 1,4")
+    need(r["alkene_subs"] == (1, 3), "HBr: the 1,2 product's C=C carries one carbon, the 1,4 product's three")
+    need(len(r["losers"]) == 1, "HBr: one losing orientation")
+    need(sorted(carbon_neighbours(mol(r["cation"]), q) for q in positions(r["cation"])) == [1, 3], "H+ on C1 leaves the + on a 3° and a 1° carbon")
+    WORKED["hx-diene"] = named(EBD, "2-ethylbuta-1,3-diene")
+    WORKED["hx-cation"] = named(r["cation"], "H+ on C1: 3° allylic")
+    WORKED["hx-cation-c4"] = named(r["losers"][0]["cation"], "H+ on C4: 2° allylic")
+    WORKED["hx-p12"] = iupac(r["p12"], "3-bromo-3-methylpent-1-ene", "worked hx p12")
+    WORKED["hx-p14"] = iupac(r["p14"], "1-bromo-3-methylpent-2-ene", "worked hx p14")
+    x = diene_addition(EBD, "Br", "Br")
+    need(x["attacked"] == 0, "Br2: Br+ on C1, as H+ was")
+    WORKED["x2-cation"] = named(x["cation"], "Br+ on C1: 3° allylic")
+    WORKED["x2-p12"] = iupac(x["p12"], "3,4-dibromo-3-ethylbut-1-ene", "worked x2 p12")
+    WORKED["x2-p14"] = iupac(x["p14"], "1,4-dibromo-2-ethylbut-2-ene", "worked x2 p14")
+
+    # Each problem's answer (the winning species, the diene, the products) may
+    # not be one a stage A or B question already draws. Reference species
+    # beside it (the isopropyl anion, the tert-butyl radical) may be.
+    drawn = json.dumps([VISUALS, TILES, SORT_FIGURES], ensure_ascii=False)
+    answers = ["cation-cyclopentenyl", "anion-methallyl", "radical-cyclopentenyl", "ed-diagram", "hx-diene", "hx-p12", "hx-p14", "x2-p12", "x2-p14"]
+    for key, entry in ((k, WORKED[k]) for k in answers):
+        need(json.dumps(entry["figure"], ensure_ascii=False) not in drawn, f"{key} is already drawn by a pool question")
+
+
 def build() -> None:
     node_allylic()
     node_rank_cation()
@@ -3608,6 +3931,7 @@ def build() -> None:
     node_quiz_b()
     node_draws()
     node_produce_more()
+    node_worked()
     check_names()
     for node in PRACTICE_NODES:
         POOLS[node] = easiest_first(POOLS[node])
@@ -3629,13 +3953,15 @@ def easiest_first(entries: list[dict]) -> list[dict]:
     order and clears at three right, so a pool that opened on a ladder, a
     drawing or a level 2 trick question cleared many students before they met
     its level 0 "why" questions. Now everything plays lowest rung first, ties in
-    authored order (sorted() is stable). The drawings keep the seats draw()
-    gave them, third or where a converted MCQ sat, so the first tier still
-    reaches one (test/u1Active.test.ts).
+    authored order (sorted() is stable).
+
+    CHANGED 3 Nov (Unit 1 review suggestion 8): the drawings go LAST, after
+    recognition, in authored order, because producing a structure is the
+    hardest step. Each now opens on its starting material (STARTS).
     """
-    seats = {i: e for i, e in enumerate(entries) if not e.get("__ladder__") and e["item"]["kind"] == "draw"}
-    rest = iter(sorted((e for i, e in enumerate(entries) if i not in seats), key=play_level))
-    return [seats[i] if i in seats else next(rest) for i in range(len(entries))]
+    draws = [e for e in entries if not e.get("__ladder__") and e["item"]["kind"] == "draw"]
+    rest = sorted((e for e in entries if e.get("__ladder__") or e["item"]["kind"] != "draw"), key=play_level)
+    return rest + draws
 
 
 # ---------------------------------------------------------------------------
@@ -3658,8 +3984,8 @@ HEADER = '''/**
  * beats/mcq/mcqFigures.ts uses (its VISUALS and OPTION_FIGURES tables are
  * private to that file). STAGE_AB_VISUALS is the question drawing and
  * STAGE_AB_OPTION_TILES the drawn options; STAGE_AB_SORT_FIGURES draws each
- * sort card. The lookups mcqVisualFor and mcqOptionTiles do not read these
- * yet; wiring them in is an engine change, recorded in the authoring log.
+ * sort card. beats/mcq/mcqFigures.ts reads them through content/u1 (U1_VISUALS
+ * and U1_OPTION_TILES), so mcqVisualFor and mcqOptionTiles draw them today.
  *
  * Ladders are built by ./ladder.ts, shared with stage-cd.active.ts, with the
  * same createProblem and createOrderingAnswer calls beats/sort/ladders.ts makes.
@@ -3701,6 +4027,8 @@ def emit() -> str:
         + ts(SORT_FIGURES)
         + ";\n"
     )
+    out.append("/** Drawings for the stage A and B worked examples (lessonExplainers.ts), keyed by name. No pool question draws them. */")
+    out.append("export const STAGE_AB_WORKED_FIGURES: Readonly<Record<string, NamedFigure>> = " + ts(WORKED) + ";\n")
     return "\n".join(out)
 
 

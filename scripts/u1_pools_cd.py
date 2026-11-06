@@ -14,7 +14,9 @@ What it derives, section by section:
      terminal phases and the HOMO-LUMO gap for each polyene.
   3. Diels-Alder: products from a reaction SMARTS, regiochemistry from Huckel
      frontier coefficients (largest HOMO coefficient on the diene meets the
-     largest LUMO coefficient on the dienophile), then the ortho/meta/para
+     largest LUMO coefficient on the dienophile), checked against the
+     resonance picture the lessons teach first (the donor's delta-minus diene
+     end joins the withdrawing group's delta-plus dienophile end), then the ortho/meta/para
      relation of the two substituents read off the product ring.
   4. Diene conformations: C=C-C=C dihedral over an ETKDG ensemble, to call a
      diene locked s-cis, locked s-trans, or free.
@@ -202,6 +204,12 @@ def nbs_section() -> dict:
     assert set(facts["tetramethylethylene"]["products"]) == {flat("C=C(C)C(C)(C)Br"), flat("BrCC(C)=C(C)C")}
     assert set(facts["methylenecyclohexane"]["products"]) == {flat("C=C1CCCCC1Br"), flat("BrCC1=CCCCC1")}
     assert facts["cyclohexane"]["classes"] == 0
+    # ADDED 3 Nov (checker): the u1-nbs-practice worked example solves pent-1-ene,
+    # which no NBS question asks, so the lesson never re-asks the solved problem.
+    facts["pent1ene"] = {"classes": len(allylic_classes("C=CCCC")), "products": nbs_products("C=CCCC")}
+    say(f"pent1ene (worked example) classes={facts['pent1ene']['classes']} products={facts['pent1ene']['products']}")
+    assert facts["pent1ene"]["classes"] == 1
+    assert set(facts["pent1ene"]["products"]) == {flat("C=CC(Br)CC"), flat("BrCC=CCC")}
     assert facts["methylcyclohexene1"]["classes"] == 3
     say()
     return facts
@@ -419,6 +427,99 @@ def regio(diene_key: str, phile_key: str) -> dict:
     }
 
 
+# ADDED 3 Nov (Unit 1 review M2, suggestion 2): the RESONANCE picture of the
+# same regiochemistry, the one the lessons now teach first. Orgo I resonance and
+# EDG/EWG, no orbital coefficients:
+#   diene       the donor is modelled as an oxyanion on the same carbon (the
+#               strongest form of "a lone pair pushes in"); RDKit enumerates its
+#               contributors and the diene END carbons that carry the minus
+#               charge are the delta-minus end. A methyl donates the same way,
+#               only weaker (hyperconjugation), so it gets the same model; that
+#               is a modelling choice, and the Huckel call below must agree.
+#   dienophile  the withdrawing group's pi bond is drawn charge separated
+#               (C+ on its carbon, minus on O or N); the alkene carbons that
+#               carry the plus charge in any contributor are the delta-plus end.
+#   join        the product where delta-minus bonds to delta-plus. It must be
+#               the product the Huckel coefficients pick, or the script stops.
+RES_FLAGS = Chem.KEKULE_ALL | Chem.ALLOW_INCOMPLETE_OCTETS | Chem.UNCONSTRAINED_CATIONS
+DIENE_ENDS = Chem.MolFromSmarts("[CX3:1]=[CX3:2]-[CX3:3]=[CX3:4]")
+
+
+def charged_carbons(mol: Chem.Mol, sign: int, flags: int = Chem.KEKULE_ALL) -> set[int]:
+    out: set[int] = set()
+    for c in Chem.ResonanceMolSupplier(mol, flags):
+        if c is None:
+            continue
+        for a in c.GetAtoms():
+            if a.GetSymbol() == "C" and a.GetFormalCharge() == sign:
+                out.add(a.GetIdx())
+    return out
+
+
+def delta_minus_end(diene: str) -> int:
+    """The diene end carbon that carries the minus charge once the donor pushes in."""
+    m = Chem.RWMol(Chem.MolFromSmiles(diene))
+    Chem.Kekulize(m, clearAromaticFlags=True)
+    ends = {mt[0] for mt in m.GetSubstructMatches(DIENE_ENDS)} | {mt[3] for mt in m.GetSubstructMatches(DIENE_ENDS)}
+    inner = {mt[1] for mt in m.GetSubstructMatches(DIENE_ENDS)} | {mt[2] for mt in m.GetSubstructMatches(DIENE_ENDS)}
+    pi = ends | inner
+    donor = None
+    for a in m.GetAtoms():
+        if a.GetIdx() in pi:
+            continue
+        nbs = [n.GetIdx() for n in a.GetNeighbors() if n.GetIdx() in pi]
+        if nbs and (a.GetSymbol() == "O" or (a.GetSymbol() == "C" and a.GetDegree() == 1)):
+            donor = (a.GetIdx(), nbs[0])
+    assert donor is not None, f"no donor on {diene}"
+    d, carrier = donor
+    # The oxyanion model: the donor becomes O- bonded straight to its pi carbon.
+    for b in list(m.GetAtomWithIdx(d).GetBonds()):
+        other = b.GetOtherAtomIdx(d)
+        if other != carrier:
+            m.RemoveBond(d, other)
+    atom = m.GetAtomWithIdx(d)
+    atom.SetAtomicNum(8)
+    atom.SetFormalCharge(-1)
+    atom.SetNoImplicit(False)
+    # A cut-off methyl stays in the molecule as a separate CH4, so no atom index moves.
+    Chem.SanitizeMol(m)
+    minus = charged_carbons(m, -1) & ends
+    assert len(minus) == 1, (diene, minus)
+    return next(iter(minus))
+
+
+def delta_plus_end(phile: str) -> int:
+    """The dienophile alkene carbon that carries the plus charge once the withdrawing group pulls."""
+    m = Chem.RWMol(Chem.MolFromSmiles(phile))
+    Chem.Kekulize(m, clearAromaticFlags=True)
+    alkene = Chem.MolFromSmarts("[CX3:1]=[CX3:2]")
+    alk = {i for mt in m.GetSubstructMatches(alkene) for i in mt if not any(
+        n.GetSymbol() in ("O", "N") and m.GetBondBetweenAtoms(i, n.GetIdx()).GetBondType() != Chem.BondType.SINGLE
+        for n in m.GetAtomWithIdx(i).GetNeighbors())}
+    for b in m.GetBonds():
+        a, z = b.GetBeginAtom(), b.GetEndAtom()
+        if b.GetBondType() in (Chem.BondType.DOUBLE, Chem.BondType.TRIPLE) and {a.GetSymbol(), z.GetSymbol()} in ({"C", "O"}, {"C", "N"}):
+            c, x = (a, z) if a.GetSymbol() == "C" else (z, a)
+            b.SetBondType(Chem.BondType.SINGLE if b.GetBondType() == Chem.BondType.DOUBLE else Chem.BondType.DOUBLE)
+            c.SetFormalCharge(1)
+            x.SetFormalCharge(-1)
+            break
+    Chem.SanitizeMol(m)
+    plus = charged_carbons(m, 1, RES_FLAGS) & alk
+    assert len(plus) == 1, (phile, plus)
+    return next(iter(plus))
+
+
+def resonance_regio(diene_key: str, phile_key: str) -> str:
+    """The product made by joining the diene's delta-minus end to the dienophile's delta-plus end."""
+    diene, phile = MOL[diene_key], MOL[phile_key]
+    minus, plus = delta_minus_end(diene), delta_plus_end(phile)
+    for fl, (smi, pairing, p) in da_products(diene, phile).items():
+        if (minus, plus) in pairing:
+            return fl
+    raise AssertionError(f"no product joins {diene_key} C{minus} to {phile_key} C{plus}")
+
+
 def da_section() -> dict:
     say("== 3. Diels-Alder products and regiochemistry ==")
     out = {}
@@ -481,6 +582,8 @@ def da_section() -> dict:
         ("methoxybutadiene2", "acrylonitrile"), ("isoprene", "acrylonitrile"),
         ("piperylene", "methylacrylate"), ("isoprene", "methylacrylate"), ("isoprene", "mvk"),
         ("methoxybutadiene2", "methylacrylate"), ("piperylene", "acrylonitrile"),
+        # ADDED 3 Nov (checker): the u1-da-predict worked example, a pair no question asks.
+        ("methoxybutadiene2", "mvk"),
     ]:
         r = regio(dk, ek)
         reg[f"{dk}+{ek}"] = r
@@ -489,6 +592,18 @@ def da_section() -> dict:
     for k, r in reg.items():
         expected = "ortho" if k.startswith(("piperylene", "methoxybutadiene1")) else "para"
         assert r["relation"] == expected, (k, r)
+        dk, ek = k.split("+")
+        joined = resonance_regio(dk, ek)
+        say(f"    resonance picture: diene delta-minus C{delta_minus_end(MOL[dk])}, dienophile delta-plus C{delta_plus_end(MOL[ek])} -> {joined}")
+        assert joined == r["major"], ("resonance and Huckel disagree", k, joined, r["major"])
+    # u1-cd-pred-delta-minus and u1-cd-pred-delta-plus (stage-cd.ts) key on these two.
+    assert delta_minus_end(MOL["methoxybutadiene1"]) == 5, "1-methoxybutadiene: delta-minus should sit on C4 (atom 5)"
+    assert delta_minus_end(MOL["methoxybutadiene2"]) == 5, "2-methoxybutadiene: delta-minus should sit on C1, the CH2 on the OCH3 carbon (atom 5)"
+    assert delta_plus_end(MOL["acrolein"]) == 0, "propenal: delta-plus should sit on the CH2 (atom 0)"
+    # The worked example (lessonExplainers.ts u1-da-predict): MVK's delta-plus is its CH2, and
+    # 2-methoxybutadiene plus MVK gives the 1,4 (para) product drawn as paraKetoneOMe.
+    assert delta_plus_end(MOL["mvk"]) == 0, "MVK: delta-plus should sit on the CH2 (atom 0)"
+    assert reg["methoxybutadiene2+mvk"]["major"] == flat("CC(=O)C1CC=C(OC)CC1"), reg["methoxybutadiene2+mvk"]
     out["regio"] = reg
     say()
     return out
@@ -670,6 +785,48 @@ def norbornene_endo_exo(smiles_flat: str, sub_smarts: str) -> list[dict]:
     return rows
 
 
+def inside_outside_da(diene: str) -> dict:
+    """Methyls inside or outside in the s-cis diene, and the product built suprafacially on that geometry."""
+    from rdkit.Chem import rdMolTransforms
+    m = Chem.AddHs(Chem.MolFromSmiles(diene))
+    AllChem.EmbedMolecule(m, randomSeed=7)
+    a, b, c, d = m.GetSubstructMatch(Chem.MolFromSmarts("[CH1]=[CH1]-[CH1]=[CH1]"))
+    conf = m.GetConformer()
+    rdMolTransforms.SetDihedralDeg(conf, a, b, c, d, 0.0)
+    pos = lambda i: np.array(list(conf.GetAtomPosition(i)))
+    methyls = []
+    for end, far in ((a, d), (d, a)):
+        me = [n.GetIdx() for n in m.GetAtomWithIdx(end).GetNeighbors() if n.GetSymbol() == "C" and n.GetIdx() not in (a, b, c, d)][0]
+        h = [n.GetIdx() for n in m.GetAtomWithIdx(end).GetNeighbors() if n.GetSymbol() == "H"][0]
+        methyls.append("inside" if np.linalg.norm(pos(me) - pos(far)) < np.linalg.norm(pos(h) - pos(far)) else "outside")
+    normal = np.cross(pos(b) - pos(a), pos(c) - pos(a))
+    normal /= np.linalg.norm(normal)
+    heavy = Chem.RemoveHs(m)
+    hc = heavy.GetConformer()
+    rw = Chem.RWMol(heavy)
+    e, f = rw.AddAtom(Chem.Atom(6)), rw.AddAtom(Chem.Atom(6))
+    rw.GetBondBetweenAtoms(a, b).SetBondType(Chem.BondType.SINGLE)
+    rw.GetBondBetweenAtoms(b, c).SetBondType(Chem.BondType.DOUBLE)
+    rw.GetBondBetweenAtoms(c, d).SetBondType(Chem.BondType.SINGLE)
+    rw.AddBond(a, e, Chem.BondType.SINGLE)
+    rw.AddBond(d, f, Chem.BondType.SINGLE)
+    rw.AddBond(e, f, Chem.BondType.SINGLE)
+    for bond in rw.GetBonds():
+        bond.SetStereo(Chem.BondStereo.STEREONONE)
+    p = rw.GetMol()
+    Chem.SanitizeMol(p)
+    built = Chem.Conformer(p.GetNumAtoms())
+    for i in range(heavy.GetNumAtoms()):
+        built.SetAtomPosition(i, hc.GetAtomPosition(i))
+    for new, old in ((e, a), (f, d)):
+        # Both new bonds on the SAME face of the diene plane: suprafacial.
+        built.SetAtomPosition(new, Point3D(*(np.array(list(hc.GetAtomPosition(old))) - 1.55 * normal)))
+    p.RemoveAllConformers()
+    p.AddConformer(built, assignId=True)
+    Chem.AssignStereochemistryFrom3D(p)
+    return {"methyls": methyls, "product": Chem.MolToSmiles(p)}
+
+
 def stereo_section() -> dict:
     say("== 5. Stereo ==")
     out = {}
@@ -681,6 +838,18 @@ def stereo_section() -> dict:
     trans = [r for r in rows if r["relation"] == "trans"]
     assert len(cis) == 1 and cis[0]["meso"] is True
     assert len(trans) == 2 and all(not r["meso"] for r in trans)  # an enantiomer pair
+
+    # ADDED 3 Nov (checker): the u1-da-3d worked example, a pair no question asks.
+    # 2,3-Dimethylbutadiene plus dimethyl maleate: one constitution, and the cis
+    # diester (the one maleate gives) is meso; the trans pair is chiral.
+    prods = sorted(da_products(MOL["dimethylbutadiene"], MOL["dimethylmaleate"]).keys())
+    assert prods == [flat("COC(=O)C1CC(C)=C(C)CC1C(=O)OC")], prods
+    rows = cis_trans_isomers(prods[0], "[C;R;$(C(C(=O)OC))]~[C;R;$(C(C(=O)OC))]")
+    for r in rows:
+        say(f"4,5-dimethylcyclohex-4-ene-1,2-diester  {r}")
+    assert [r["meso"] for r in rows if r["relation"] == "cis"] == [True]
+    assert len([r for r in rows if r["relation"] == "trans" and not r["meso"]]) == 2
+    out["dmbdiester"] = rows
 
     # 3,6-dimethylcyclohexene: relate the two methyl-bearing ring carbons directly.
     rows = []
@@ -750,6 +919,25 @@ def stereo_section() -> dict:
     out["norbornenediester"] = rows
     mixed = [r for r in rows if r["labels"] == ["endo", "exo"]]
     assert mixed and all(not r["meso"] for r in mixed)
+    # ADDED 3 Nov (Unit 1 review suggestion 10): the inside/outside rule,
+    # derived rather than applied. Each hexa-2,4-diene is embedded and turned
+    # s-cis; a terminal methyl is INSIDE when it sits nearer the far diene end
+    # than its own end's H does. The product is then built on that geometry:
+    # both new bonds form on one face of the diene plane (suprafacial), and the
+    # stereocentres are read from those coordinates and matched to the cis
+    # (meso) or trans isomer above.
+    io = {}
+    for key in ("hexadieneEE", "hexadieneEZ", "hexadieneZZ"):
+        io[key] = inside_outside_da(MOL.get(key) or {"hexadieneEZ": r"C/C=C/C=C\C", "hexadieneZZ": r"C/C=C\C=C/C"}[key])
+        rel = [r for r in out["dimethylcyclohexene"] if r["smiles"] == io[key]["product"]]
+        assert len(rel) == 1, (key, io[key])
+        io[key]["relation"] = rel[0]["relation"]
+        io[key]["meso"] = rel[0]["meso"]
+        say(f"inside/outside {key}: {io[key]}")
+    assert io["hexadieneEE"]["methyls"] == ["outside", "outside"] and io["hexadieneEE"]["relation"] == "cis"
+    assert sorted(io["hexadieneEZ"]["methyls"]) == ["inside", "outside"] and io["hexadieneEZ"]["relation"] == "trans"
+    assert io["hexadieneZZ"]["methyls"] == ["inside", "inside"] and io["hexadieneZZ"]["relation"] == "cis"
+    out["insideOutside"] = io
     say()
     return out
 
@@ -1080,6 +1268,7 @@ FIGURES: dict[str, tuple[str, tuple[int, ...]]] = {
     "bicycloheptenefused": ("C1=CC2CCC2C1", ()),
     "cycloheptene": ("C1=CCCCCC1", ()),
     "hexadieneZZ": (r"C/C=C\C=C/C", ()),
+    "hexadieneEZ": (r"C/C=C/C=C\C", ()),
     "dmbCyclobutane": ("C=C(C)C1(C)CC(C#N)C1", ()),
     "anhydrideadduct-wrongene": ("O=C1OC(=O)C2=C1CCCC2", ()),
     "dmbAnhWrong": ("CC1CC2=C(CC1C)C(=O)OC2=O", ()),
@@ -1088,6 +1277,11 @@ FIGURES: dict[str, tuple[str, tuple[int, ...]]] = {
     "paraEsterOMe": ("COC(=O)C1CC=C(OC)CC1", ()),
     "metaEsterOMe": ("COC(=O)C1CCC=C(OC)C1", ()),
     "orthoEsterOMe": ("COC(=O)C1CCC=CC1OC", ()),
+    # ADDED 3 Nov (checker): the worked examples in lessonExplainers.ts solve
+    # problems no question asks; these are their products, asserted above.
+    "bromopent1ene3": ("C=CC(Br)CC", ()),
+    "bromopent2ene1": ("BrC/C=C/CC", ()),
+    "paraKetoneOMe": ("CC(=O)C1CC=C(OC)CC1", ()),
 }
 
 
@@ -1152,6 +1346,7 @@ def stereo_figures(st: dict) -> dict:
     di_rr = trans_cip(st["diester"], "R")
     di_ss = trans_cip(st["diester"], "S")
     dm_cis = one(st["dimethylcyclohexene"], relation="cis", meso=True)
+    dmb_cis = one(st["dmbdiester"], relation="cis", meso=True)
     dm_rr = trans_cip(st["dimethylcyclohexene"], "R")
     an_endo = one(st["endoexo"], labels=["endo", "endo"])
     an_exo = one(st["endoexo"], labels=["exo", "exo"])
@@ -1182,6 +1377,8 @@ def stereo_figures(st: dict) -> dict:
         "st-nitrile-r": ("one", cn_r),
         "st-nitrile-s": ("one", cn_s),
         "st-nitrile-rac": ("pair", cn_r, cn_s),
+        # The u1-da-3d worked example (lessonExplainers.ts); no question draws it.
+        "st-dmbdiester-cis": ("one", dmb_cis),
     }
     for key, spec in figs.items():
         say(f"{key:22s} {' . '.join(spec[1:])}")
@@ -1297,6 +1494,104 @@ def write_figures(figs: dict) -> None:
 
 
 # --------------------------------------------------------------------------
+# 7c. Turnable 3-D models (ADDED 3 Nov, Unit 1 review suggestion 9): endo and
+#     exo are spatial ideas, so the norbornene adducts are also written as
+#     RDKit ETKDG + MMFF coordinates, for beats/Model3D.tsx to turn by hand.
+#     Each model is re-labelled endo or exo FROM ITS OWN COORDINATES (the
+#     carbonyl carbons nearer the C=C bridge than the CH2 bridge is endo) and
+#     the script stops if that disagrees with the label section 5 picked it by.
+#     Framed so the default view reads like the textbook drawing: the CH2
+#     bridge points up, the C=C bridge sits left, the dienophile's carbons right.
+#     Heavy atoms only, plus the H on each carbon the dienophile supplied.
+# --------------------------------------------------------------------------
+MODEL_OUT = ROOT / "src" / "game" / "content" / "u1" / "stage-cd.models.ts"
+
+
+def model3d(smi: str, want: list[str]) -> dict:
+    mh = Chem.AddHs(Chem.MolFromSmiles(smi))
+    assert AllChem.EmbedMolecule(mh, randomSeed=11) == 0, smi
+    AllChem.MMFFOptimizeMolecule(mh)
+    pos = mh.GetConformer().GetPositions()
+    ene = [b for b in mh.GetBonds() if b.GetBondType() == Chem.BondType.DOUBLE and b.IsInRing()
+           and b.GetBeginAtom().GetSymbol() == "C" and b.GetEndAtom().GetSymbol() == "C"]
+    assert len(ene) == 1, smi
+    e = {ene[0].GetBeginAtomIdx(), ene[0].GetEndAtomIdx()}
+    heads = {n.GetIdx() for i in e for n in mh.GetAtomWithIdx(i).GetNeighbors() if n.GetAtomicNum() == 6 and n.GetIdx() not in e}
+    c7 = [a.GetIdx() for a in mh.GetAtoms() if a.GetAtomicNum() == 6 and a.GetIdx() not in heads | e
+          and sum(1 for n in a.GetNeighbors() if n.GetIdx() in heads) == 2]
+    assert len(c7) == 1, smi
+    c7 = c7[0]
+    # The two carbons the dienophile supplied: ring carbons bonded to a bridgehead, not C7, not the C=C.
+    phile = sorted({n.GetIdx() for h in heads for n in mh.GetAtomWithIdx(h).GetNeighbors()
+                    if n.GetAtomicNum() == 6 and n.GetIdx() not in e | heads | {c7}})
+    assert len(phile) == 2, smi
+    ene_mid = pos[list(e)].mean(axis=0)
+    labels = []
+    for c in phile:
+        sub = [n.GetIdx() for n in mh.GetAtomWithIdx(c).GetNeighbors()
+               if n.GetAtomicNum() == 6 and n.GetIdx() not in heads and n.GetIdx() not in phile]
+        assert len(sub) == 1, smi
+        labels.append("endo" if np.linalg.norm(pos[sub[0]] - ene_mid) < np.linalg.norm(pos[sub[0]] - pos[c7]) else "exo")
+    assert sorted(labels) == sorted(want), (smi, labels, want)
+    head_mid = pos[list(heads)].mean(axis=0)
+    up = pos[c7] - head_mid
+    up /= np.linalg.norm(up)
+    right = pos[phile].mean(axis=0) - ene_mid
+    right -= up * float(np.dot(right, up))
+    right /= np.linalg.norm(right)
+    toward = np.cross(right, up)
+    keep = [a.GetIdx() for a in mh.GetAtoms() if a.GetAtomicNum() != 1
+            or a.GetNeighbors()[0].GetIdx() in phile]
+    index = {old: new for new, old in enumerate(keep)}
+    centre = pos[[i for i in keep if mh.GetAtomWithIdx(i).GetAtomicNum() != 1]].mean(axis=0)
+    atoms = []
+    for i in keep:
+        v = pos[i] - centre
+        atoms.append({"el": mh.GetAtomWithIdx(i).GetSymbol(),
+                      "x": round(float(np.dot(v, right)), 2), "y": round(float(np.dot(v, up)), 2), "z": round(float(np.dot(v, toward)), 2)})
+    bonds = []
+    for b in mh.GetBonds():
+        i, j = b.GetBeginAtomIdx(), b.GetEndAtomIdx()
+        if i in index and j in index:
+            bond = {"a": index[i], "b": index[j]}
+            if b.GetBondType() == Chem.BondType.DOUBLE:
+                bond["order"] = 2
+            bonds.append(bond)
+    say(f"model {smi}: {labels}, {len(atoms)} atoms")
+    return {"smiles": smi, "labels": sorted(labels), "atoms": atoms, "bonds": bonds}
+
+
+def write_models(stereo_figs: dict) -> None:
+    say("== 7c. Turnable 3-D models ==")
+    models = {
+        "nbanh-endo": model3d(stereo_figs["st-nbanh-endo"][1], ["endo", "endo"]),
+        "nbanh-exo": model3d(stereo_figs["st-nbanh-exo"][1], ["exo", "exo"]),
+        "nbdiester-endoexo": model3d(stereo_figs["st-nbdiester-endoexo"][1], ["endo", "exo"]),
+    }
+    lines = [
+        "/**",
+        " * GENERATED by scripts/u1_pools_cd.py section 7c. Do not edit by hand: rerun the script.",
+        " *",
+        " * Turnable 3-D models of the norbornene adducts (Unit 1 review suggestion 9),",
+        " * from RDKit ETKDG + MMFF coordinates in angstroms. Framed so the CH2 bridge",
+        " * points up (+y), the C=C bridge sits left and the dienophile's carbons right.",
+        " * `labels` is endo or exo per dienophile substituent, measured on these",
+        " * coordinates and asserted equal to the label section 5 chose the isomer by.",
+        " */",
+        'import type { Model3D } from "../../beats/model3d";',
+        "",
+        "export const CD_MODELS: Readonly<Record<string, Model3D>> = Object.freeze({",
+    ]
+    for key, v in models.items():
+        lines.append(f"  {json.dumps(key)}: {json.dumps(v, separators=(',', ':'), ensure_ascii=False)},")
+    lines.append("});")
+    lines.append("")
+    MODEL_OUT.write_text("\n".join(lines), encoding="utf-8")
+    say(f"wrote {len(models)} models to {MODEL_OUT.relative_to(ROOT)}")
+    say()
+
+
+# --------------------------------------------------------------------------
 # 8. Active items (U1-P3, 2026-10-17): "Draw it" items and match boards for
 #    stages C and D, written to stage-cd.active.ts. GENERATED, unlike
 #    stage-cd.ts: every answer below is computed in this section from the
@@ -1372,6 +1667,29 @@ def _grade_key(inchi: str, stereo: bool) -> str:
     return "/".join([head] + [layer for layer in layers if not layer.startswith(drop)])
 
 
+# ADDED 3 Nov (Unit 1 review suggestion 8): each drawing opens on its starting
+# material (the reactants, side by side, or the product to take apart), never a
+# blank board, and every drawing sits AFTER its node's questions (`at` is no
+# longer honoured: the active items join the end of the pool). A start that
+# grades as the answer or a named miss is refused, as stage-ab's are.
+CD_STARTS: dict[str, str] = {
+    "u1-cd-mo-draw-conjugated": "C=CCC=C",
+    "u1-cd-nbs-draw-cyclohexene": "C1=CCCCC1",
+    "u1-cd-nbs-draw-cyclopentene": "C1=CCCC1",
+    "u1-cd-qc-draw-isobutylene": "C=C(C)C",
+    "u1-cd-da-draw-acrolein": "C=CC=C.C=CC=O",
+    "u1-cd-dienes-draw-dmb": "C=C(C)C(C)=C.C=C",
+    "u1-cd-phile-draw-acrylonitrile": "C=CC=C.C=CC#N",
+    "u1-cd-pred-draw-para": "C=CC(C)=C.C=CC=O",
+    "u1-cd-pred-draw-diene": "CC1=C(C)CC(C=O)CC1",
+    "u1-cd-qd-draw-dmad": "C=CC=C.COC(=O)C#CC(=O)OC",
+    "u1-cd-exam-draw-mvk": "C=CC(C)=C.C=CC(C)=O",
+    "u1-cd-st-draw-norbornene": "C1=CCC=C1.C=C",
+    "u1-cd-st-draw-maleate": r"C=CC=C.COC(=O)/C=C\C(=O)OC",
+    "u1-cd-3d-draw-fumarate": "C=CC=C.COC(=O)/C=C/C(=O)OC",
+}
+
+
 def active_draw(node, id, prompt, brief, visual, answer, name, why, look_at, explanation, provenance, concept,
                 conditions=None, at=None, misses=(), stereo=False):
     """One "Draw it" entry. `misses` are (id, SMILES, what it is, coach line):
@@ -1412,6 +1730,16 @@ def active_draw(node, id, prompt, brief, visual, answer, name, why, look_at, exp
         "answer": {"smiles": smi, "inchi": inchi, "name": name, "figure": figure(smi)},
         "stereo": stereo, "why": why, "lookAt": look_at,
     }
+    start = CD_STARTS.get(id)
+    if start is not None:
+        s_smi = canon(start) if stereo else flat(start)
+        k = _grade_key(_inchi(s_smi), stereo)
+        # A start that IS the named "start" miss is allowed: the board opens on the
+        # starting material, and handing it back unchanged gets that miss's coach line.
+        if k in keys and keys[k] != "start":
+            ACTIVE_FAILS.append(f"{id}: the board would open on a structure that already grades as {keys[k]}")
+        else:
+            beat["start"] = canon(start)
     if out_misses:
         beat["misses"] = out_misses
     entry = {"id": id, "item": {"kind": "draw", "beat": beat}, "explanation": explanation}
@@ -1419,7 +1747,7 @@ def active_draw(node, id, prompt, brief, visual, answer, name, why, look_at, exp
         entry["conditions"] = conditions
     entry["provenance"] = provenance
     entry["placeholder"] = True
-    ACTIVE.setdefault(node, []).append({"__at__": at, **entry})
+    ACTIVE.setdefault(node, []).append({"__at__": None, **entry})
 
 
 def _finish_mol(rw) -> str | None:
@@ -1619,7 +1947,7 @@ def active_match(node, id, prompt, brief, concept, pairs, explanation, provenanc
         _lint(f"{id} {pid} why", why, 320)
         _lint(f"{id} {pid} hint", hint, 160)
     beat = {
-        "kind": "match", "id": id, "node": node, "conceptIds": [concept], "levels": [1, 2],
+        "kind": "match", "id": id, "node": node, "conceptIds": [concept], "levels": [2],
         "prompt": prompt, "brief": brief, "presentation": "columns",
         "pairs": [{"id": p, "left": l, "right": r, "why": w, "leftFigure": card_figure(smi), "hint": h}
                   for p, l, r, w, smi, h in pairs],
@@ -1756,6 +2084,16 @@ def active_section(facts: dict) -> None:
         others = [fl for _, fl, rel in rows if fl != da["regio"][key]["major"]]
         return others[0] if len(others) == 1 else None
 
+    # CHANGED 3 Nov (checker, owner rule on context before o/m/p): the miss
+    # label leads with the ring numbering and keeps the nickname second, like
+    # every other Diels-Alder label. The relation is read off the drawn
+    # product (regio_relation), never typed.
+    def other_regio_label(key: str) -> str:
+        rels = [rel for _, fl, rel in da["regio"][key]["all"] if fl != da["regio"][key]["major"]]
+        assert len(rels) == 1, (key, rels)
+        ring = {"ortho": "1,2", "meta": "1,3", "para": "1,4"}[rels[0]]
+        return f"{ring} on the ring (the {rels[0]} product)"
+
     reg = da["regio"]["isoprene+acrolein"]
     active_draw(
         "u1-da-predict", "u1-cd-pred-draw-para",
@@ -1763,12 +2101,12 @@ def active_section(facts: dict) -> None:
         "The two can line up two ways. Decide which way wins before you draw.",
         pair("isoprene", "isoprene", "acrolein", "propenal"),
         reg["major"] if reg["relation"] == "para" else None, "4-methylcyclohex-3-ene-1-carbaldehyde",
-        "The diene's largest HOMO coefficient bonds to the dienophile's largest LUMO coefficient. For isoprene and propenal that puts CH3 and CHO 1,4 on the ring: the para product.",
-        "A 2-substituted diene gives the para product. Draw the cyclohexene, put CH3 on the ring C=C, and CHO three carbons away, across the ring.",
-        "2-Substituted dienes give the para (1,4) product.",
-        "scripts/u1_pools_cd.py section 3 (Huckel frontier coefficients pick the pairing, para read off the product) and section 8; name checked with OPSIN.",
+        "The CH3 on isoprene's C2 donates a little and puts δ− on C1. The C=O of propenal puts δ+ on its CH2 end. Join δ− to δ+ and CH3 and CHO land 1,4 on the ring, the product chemists call para.",
+        "A 2-substituted diene gives the 1,4 product. Draw the cyclohexene, put CH3 on the ring C=C, and CHO three carbons away, across the ring.",
+        "2-Substituted dienes give the 1,4 product on the ring (para): the δ− end of the diene joins the δ+ end of the dienophile.",
+        "scripts/u1_pools_cd.py section 3 (resonance picture, delta-minus end to delta-plus end, asserted equal to the Huckel pairing; para read off the product) and section 8; name checked with OPSIN.",
         "ewg_edg_rubric", conditions="heat", at=2,
-        misses=[("meta", other_regio("isoprene+acrolein"), "the meta product",
+        misses=[("meta", other_regio("isoprene+acrolein"), other_regio_label("isoprene+acrolein"),
                  "Right ring, wrong alignment: CH3 and CHO end up 1,3. Line up the diene's most electron-rich end with the dienophile's most electron-poor carbon.")],
     )
     target = "CC1=C(C)CC(C=O)CC1"
@@ -1834,13 +2172,13 @@ def active_section(facts: dict) -> None:
         "Two alignments are possible. Pick the major one before you draw.",
         pair("isoprene", "isoprene", "mvk", "methyl vinyl ketone"),
         mvk["major"] if mvk["relation"] == "para" else None, "1-(4-methylcyclohex-3-en-1-yl)ethan-1-one",
-        "Isoprene's largest HOMO coefficient is on C1, next to the methyl-bearing carbon; methyl vinyl ketone's largest LUMO coefficient is on its CH2 end. Bonding those two puts CH3 and the acetyl group 1,4: the para product.",
-        "A 2-substituted diene gives the para product: draw the cyclohexene, CH3 on the ring C=C, and the C(=O)CH3 three carbons away, across the ring.",
-        "2-Substituted dienes give the para (1,4) product.",
-        "scripts/u1_pools_cd.py section 3 (Huckel frontier coefficients pick the pairing, para read off the product) and section 8; name checked with OPSIN.",
+        "Isoprene's methyl on C2 puts δ− on C1, the end next to it. The ketone puts δ+ on the CH2 end of methyl vinyl ketone. Joining δ− to δ+ puts CH3 and the acetyl group 1,4 on the ring: the para product. In orbital terms, the biggest HOMO lobe meets the biggest LUMO lobe.",
+        "A 2-substituted diene gives the 1,4 product: draw the cyclohexene, CH3 on the ring C=C, and the C(=O)CH3 three carbons away, across the ring.",
+        "2-Substituted dienes give the 1,4 product on the ring (para): the δ− end of the diene joins the δ+ end of the dienophile.",
+        "scripts/u1_pools_cd.py section 3 (resonance picture, delta-minus end to delta-plus end, asserted equal to the Huckel pairing; para read off the product) and section 8; name checked with OPSIN.",
         "ewg_edg_rubric", conditions="heat",
-        misses=[("meta", other_regio("isoprene+mvk"), "the meta product",
-                 "Right ring, wrong alignment: CH3 and the acetyl end up 1,3. Pair the diene's biggest HOMO lobe with the dienophile's biggest LUMO lobe.")]
+        misses=[("meta", other_regio("isoprene+mvk"), other_regio_label("isoprene+mvk"),
+                 "Right ring, wrong alignment: CH3 and the acetyl end up 1,3. Join the diene's δ− end to the dienophile's δ+ CH2.")]
         + da_misses(mvk["major"]),
     )
 
@@ -2027,7 +2365,7 @@ export interface ActiveEntry {
 function match(spec: { readonly beat: MatchBeat; readonly explanation: string; readonly provenance: string }): PoolEntry {
   return {
     id: spec.beat.id,
-    item: { kind: "match", board: buildMatchBoard(spec.beat, 1) },
+    item: { kind: "match", board: buildMatchBoard(spec.beat, spec.beat.levels[0] ?? 1) },
     explanation: spec.explanation,
     provenance: spec.provenance,
     placeholder: true,
@@ -2081,6 +2419,7 @@ def run() -> int:
     figs = figures_section(facts["mo"], stereo_figs)
     write_figures(figs)
     say(f"wrote {len(figs)} figures to {FIG_OUT.relative_to(ROOT)}")
+    write_models(stereo_figs)
     active_section(facts)
     if ACTIVE_FAILS:
         say("REFUSED stage-cd.active.ts. Nothing written:")

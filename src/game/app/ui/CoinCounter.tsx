@@ -30,11 +30,21 @@
  * along the rail, pops on landing and shows the amount as +N. A spend gets a dip
  * with no spin. Under reduced motion the number changes at once and +N stands
  * still for two seconds, so the fact survives without the movement.
+ *
+ * THE ARRIVAL (reward gauntlet, Nov). A payout earned off screen used to arrive
+ * as a number rolling on its own. Now the coins fly in (CoinStream.tsx): the
+ * header, back from a lesson with more than it last drew, throws a stream from
+ * the middle of the screen into its coin, and the reward screen throws one from
+ * its chest. The number steps only as each coin lands, the +N under the rail
+ * grows with it, and the coin swallows each one. Reduced motion skips the
+ * flight and keeps the still +N.
  */
 
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useReducedMotionPref } from "@/lib/motionPref";
+import type { Point } from "../../chest/payoutPath";
 import { CoinNumerals } from "./CoinNumerals";
+import { CoinStream, streamCoinCount, streamSteps } from "./CoinStream";
 import { COIN_BODY, CoinEdgeStops } from "./HudIcons";
 
 const ROLL_MS = 1100;
@@ -105,8 +115,8 @@ interface CoinRoll {
  */
 let headerSeen: number | null = null;
 
-function useCoinRoll(target: number, reducedMotion: boolean, remember: boolean, instant: boolean): CoinRoll {
-  const [shown, setShown] = useState(() => (remember && headerSeen !== null ? headerSeen : target));
+function useCoinRoll(target: number, reducedMotion: boolean, remember: boolean, instant: boolean, initial?: number): CoinRoll {
+  const [shown, setShown] = useState(() => initial ?? (remember && headerSeen !== null ? headerSeen : target));
   const [phase, setPhase] = useState<Phase>("idle");
   const [gain, setGain] = useState<CoinRoll["gain"]>(null);
   // What is on screen right now. A ref, because updating it must not render.
@@ -118,7 +128,13 @@ function useCoinRoll(target: number, reducedMotion: boolean, remember: boolean, 
     const from = shownRef.current;
     if (from === target) return;
     gainKey.current += 1;
-    setGain({ key: gainKey.current, amount: target - from });
+    const key = gainKey.current;
+    const delta = target - from;
+    // Changes that land while the last +N is still up add to it: coins landing
+    // one at a time read +10, +20 ... +50, not five separate fives.
+    setGain((prev) =>
+      prev !== null && Math.sign(prev.amount) === Math.sign(delta) ? { key, amount: prev.amount + delta } : { key, amount: delta },
+    );
     const timers: number[] = [];
     const clearGainAfter = (ms: number) => {
       timers.push(window.setTimeout(() => setGain(null), ms));
@@ -195,6 +211,12 @@ export function CoinCounter({
   remember = false,
   instant = false,
   pile = false,
+  payFrom,
+  payOrigin,
+  payDelay = 420,
+  payLayer,
+  onPaid,
+  onStep,
 }: {
   /** The balance to show. It rolls to a new one whenever this changes. */
   readonly value: number;
@@ -208,16 +230,87 @@ export function CoinCounter({
   readonly instant?: boolean;
   /** Draw the discs under the coin. */
   readonly pile?: boolean;
+  /**
+   * Fly the gain in as coins, from this balance up to `value`. The header works
+   * this out itself (`remember`); the reward screen passes it with `payOrigin`.
+   */
+  readonly payFrom?: number;
+  /** Where the paying coins leave from. Defaults to the middle of the screen. */
+  readonly payOrigin?: () => Point | null;
+  /** Ms before the first coin leaves. */
+  readonly payDelay?: number;
+  /** The layer the paying coins fly in. Default: above everything on the page. */
+  readonly payLayer?: HTMLElement | null;
+  /** Every paid coin is in. */
+  readonly onPaid?: () => void;
+  /** A paid coin landed: the balance the number now reads, so a goal bar can fill in step. */
+  readonly onStep?: (balance: number) => void;
 }) {
   // The attribute carries the Settings switch as well as the OS, which the
   // caller's prop does not: without this the digits would roll with the switch on.
   const reducedPref = useReducedMotionPref();
-  const { shown, phase, gain } = useCoinRoll(value, reducedMotion || reducedPref, remember, instant);
+  const still = reducedMotion || reducedPref;
+  // The payout to fly in, decided once on arrival: the caller's, or for the
+  // header, the coins earned while it was away. Never on a page load.
+  const [pay] = useState(() => {
+    const from = payFrom ?? (remember ? headerSeen : null);
+    if (still || from === null || value <= from) return null;
+    return { from, count: streamCoinCount(value - from), steps: streamSteps(from, value, streamCoinCount(value - from)) };
+  });
+  const [paidTo, setPaidTo] = useState<number | null>(pay === null ? null : pay.from);
+  const rootRef = useRef<HTMLSpanElement>(null);
+  const [catchTick, setCatchTick] = useState(0);
+  const [landedAll, setLandedAll] = useState(false);
+  const flying = paidTo !== null && !landedAll;
+  // While coins land, and after, until the balance moves on, the number IS the
+  // landing: read straight from the step, never through the roll's effect, which
+  // can trail a landing behind and leave the counter a step under the goal card.
+  const held = paidTo !== null && (flying || value === paidTo);
+  const roll = useCoinRoll(held ? paidTo : value, still, remember, instant || held, pay?.from);
+  const shown = held ? paidTo : roll.shown;
+  const phase = roll.phase;
+  // The +N under the rail (reward gauntlet, round 4): the whole payout, from the
+  // first frame of the flight, so it never reads +0 and always agrees with the
+  // amount the reward screen shows. The balance above it climbs as coins land.
+  // Once every coin is in it pops again, keyed afresh, and then fades.
+  const gain =
+    pay !== null && flying
+      ? { key: -1, amount: value - pay.from }
+      : roll.gain !== null && held && pay !== null
+        ? { key: roll.gain.key, amount: paidTo - pay.from }
+        : roll.gain;
+  const coinCentre = useCallback((): Point | null => {
+    const coin = rootRef.current?.querySelector(".coin-counter-coin")?.getBoundingClientRect();
+    if (coin === undefined || coin.width === 0) return null;
+    return { x: coin.left + coin.width / 2, y: coin.top + coin.height / 2 };
+  }, []);
+  const origin = useCallback(
+    (): Point | null => payOrigin?.() ?? { x: window.innerWidth / 2, y: window.innerHeight * 0.58 },
+    [payOrigin],
+  );
+  const land = useCallback(
+    (landed: number) => {
+      const at = pay?.steps[landed - 1] ?? value;
+      setPaidTo(at);
+      setCatchTick((n) => n + 1);
+      onStep?.(at);
+    },
+    [pay, value, onStep],
+  );
+  // The last landing already set the true total, and the number stays held on it
+  // (above), so nothing rolls again from the step before it.
+  const paid = useCallback(() => {
+    setLandedAll(true);
+    onPaid?.();
+  }, [onPaid]);
   const discs = pile ? pileDiscs(value) : 0;
   const down = gain !== null && gain.amount < 0;
   return (
     <span
+      ref={rootRef}
       className={`coin-counter${size === "hero" ? " coin-counter--hero" : ""}`}
+      data-catch={catchTick === 0 ? undefined : catchTick % 2 === 0 ? "a" : "b"}
+      data-paying={flying ? "" : undefined}
       data-phase={phase}
       data-dir={down ? "down" : "up"}
       style={{ "--cc-discs": discs, "--cc-frac": treasuryProgress(shown).fraction.toFixed(3) } as CSSProperties}
@@ -236,13 +329,14 @@ export function CoinCounter({
         <CoinNumerals text={formatCoins(shown)} />
       </span>
       {gain === null ? null : (
-        <span key={gain.key} className="coin-counter-gain" aria-hidden>
+        <span key={gain.key} className="coin-counter-gain" data-hold={gain.key === -1 ? "" : undefined} aria-hidden>
           <CoinNumerals text={`${gain.amount > 0 ? "+" : "−"}${formatCoins(Math.abs(gain.amount))}`} />
         </span>
       )}
       <span className="sr-only" aria-live="polite">
-        {gain === null ? "" : `${gain.amount > 0 ? "Plus" : "Minus"} ${Math.abs(gain.amount)} ${Math.abs(gain.amount) === 1 ? "coin" : "coins"}.`}
+        {gain === null || flying ? "" : `${gain.amount > 0 ? "Plus" : "Minus"} ${Math.abs(gain.amount)} ${Math.abs(gain.amount) === 1 ? "coin" : "coins"}.`}
       </span>
+      {pay !== null ? <CoinStream count={pay.count} from={origin} to={coinCentre} delay={payDelay} layer={payLayer} onLand={land} onDone={paid} /> : null}
     </span>
   );
 }

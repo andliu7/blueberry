@@ -97,6 +97,8 @@ export function paidHeadline(paid: OpenResult): string {
 
 /* ------------------------------------------------------------ the store -- */
 
+import type { CoinGoal } from "../shop/coinGoal";
+
 /** What opening paid. The economy decides it; the screen only animates it. */
 export interface OpenResult {
   readonly diamonds: number;
@@ -108,6 +110,11 @@ export interface PlayRequest {
   /** The card under the total, e.g. "From your Daily gift". */
   readonly detail: string;
   readonly open: () => OpenResult;
+  /**
+   * What the coins move toward, worked out after `open`. Absent, the opening
+   * reads the balance from the store and names the next shelf item itself.
+   */
+  readonly goal?: (paid: OpenResult) => CoinGoal | null;
 }
 
 export interface ChestFlowState {

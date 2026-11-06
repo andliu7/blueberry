@@ -1,0 +1,340 @@
+/*
+ * Learners page (#/app/admin/stats) only. Owner, 3 Nov: "learners feels stretched".
+ * Round 4: with nothing read, the page draws its real layout filled with labelled sample
+ * data (LearnersPreview in StatsBoard.tsx, rules at the end); bones only while checking. The first rules are for the live board: a figure is the tile's headline, like Stripe's "All 6".
+ * Every rule hangs off .ah-learners, so other admin pages are untouched.
+ */
+
+.av-page .ah-learners .ah-stat-value .ah-nil {
+  font-size: inherit;
+}
+
+/* ------------------------------------------------------------------ round 3: the greyed skeleton
+   Nothing read: the real layout at full width, every figure a grey bone, under one slim
+   banner. Stripe's Customers list: a row of segment cards, then the table at full width. */
+.av-page .ah-lsk {
+  --lsk-bone: color-mix(in oklab, var(--bb-muted-foreground) 14%, var(--bb-card));
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+}
+.av-page .ah-lsk-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 48px;
+  padding: 0.375rem 0.375rem 0.375rem 0.875rem;
+  border: 1px solid color-mix(in oklab, #5a3fd8 22%, var(--bb-border));
+  border-radius: 10px;
+  background: color-mix(in oklab, #5a3fd8 5%, var(--bb-card));
+  color: var(--bb-foreground);
+}
+.av-page .ah-lsk-banner__icon {
+  flex: none;
+  color: #5a3fd8;
+}
+.av-page .ah-lsk-banner__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-scale-sm);
+  line-height: 1.4;
+}
+.av-page .ah-lsk-banner__act {
+  flex: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.av-page .ah-lsk-bone {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--lsk-bone);
+}
+.av-page .ah-lsk-bone.is-figure {
+  height: 22px;
+  margin: 0.5rem 0 0.625rem;
+  border-radius: 6px;
+}
+.av-page .ah-lsk-bone.is-chip {
+  flex: none;
+  height: 16px;
+  border-radius: 999px;
+}
+.av-page .ah-lsk-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.av-page .ah-lsk-kpi {
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  background: var(--bb-card);
+}
+.av-page .ah-lsk-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.av-page .ah-lsk-kpi__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.av-page .ah-lsk-kpi__label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--bb-muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.av-page .ah-lsk-kpi__value {
+  color: var(--bb-foreground);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-lsk-kpi__chip {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: color-mix(in oklab, #15803d 12%, var(--bb-card));
+  color: #166534;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* "Sample data": one small amber tag per card, Stripe's test-data colour, never purple. */
+.av-page .ah-lsk-tag {
+  flex: none;
+  padding: 1px 7px;
+  border: 1px solid #f5c98a;
+  border-radius: 999px;
+  background: #fff7eb;
+  color: #9a4b07;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+.av-page .ah-lsk-card__head .ah-lsk-tag {
+  margin-right: auto;
+  align-self: center;
+}
+.av-page .ah-lsk-card__figure {
+  margin: -0.25rem 0 0.75rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-sm);
+}
+.av-page .ah-lsk-card__figure strong {
+  margin-right: 0.25rem;
+  color: var(--bb-foreground);
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-lsk.is-sample .ah-lsk-cols > span {
+  background: color-mix(in oklab, #5a3fd8 42%, var(--bb-card));
+}
+.av-page .ah-lsk.is-sample .ah-lsk-table td {
+  color: var(--bb-foreground);
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-lsk-table td .is-na {
+  color: var(--bb-muted-foreground);
+  white-space: nowrap;
+}
+.av-page .ah-lsk-banner.is-sample {
+  border-color: #f5c98a;
+  background: #fff7eb;
+}
+.av-page .ah-lsk-banner.is-sample .ah-lsk-banner__icon {
+  color: #b45309;
+}
+.av-page .ah-lsk-kpi__delta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  white-space: nowrap;
+}
+.av-page .ah-lsk-card {
+  min-width: 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--bb-border);
+  border-radius: 10px;
+  background: var(--bb-card);
+}
+.av-page .ah-lsk-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.625rem;
+  margin-bottom: 0.75rem;
+}
+.av-page .ah-lsk-card__title {
+  margin: 0;
+  color: var(--bb-foreground);
+  font-size: var(--text-scale-base);
+  font-weight: 600;
+}
+.av-page .ah-lsk-card__caption {
+  margin-left: auto;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+}
+.av-page .ah-lsk-cols {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+  padding-bottom: 1px;
+  border-bottom: 1px solid var(--bb-border);
+  background: repeating-linear-gradient(to top, transparent 0 34px, var(--bb-border) 34px 35px);
+}
+.av-page .ah-lsk-cols > span {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 3px 3px 0 0;
+  background: var(--lsk-bone);
+}
+.av-page .ah-lsk-cols.is-months {
+  gap: 10px;
+  height: 96px;
+}
+.av-page .ah-lsk-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.375rem;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-variant-numeric: tabular-nums;
+}
+.av-page .ah-lsk-axis.is-months {
+  gap: 10px;
+}
+.av-page .ah-lsk-axis.is-months > span {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+.av-page .ah-lsk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.av-page .ah-lsk-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: var(--text-scale-sm);
+}
+.av-page .ah-lsk-table :is(th, td) {
+  height: 40px;
+  padding: 0 0.5rem;
+  border-top: 1px solid var(--bb-border);
+  text-align: left;
+  font-weight: 400;
+  vertical-align: middle;
+}
+.av-page .ah-lsk-table :is(th, td):first-child {
+  width: 34%;
+  padding-left: 0;
+}
+.av-page .ah-lsk-table thead th {
+  height: 32px;
+  border-top: 0;
+  color: var(--bb-muted-foreground);
+  font-size: var(--text-scale-xs);
+  font-weight: 600;
+}
+.av-page .ah-lsk-table tbody th {
+  color: var(--bb-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.av-page .ah-lsk.is-checking .ah-lsk-bone,
+.av-page .ah-lsk.is-checking .ah-lsk-cols > span {
+  animation: ah-lsk-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ah-lsk-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-page .ah-lsk.is-checking .ah-lsk-bone,
+  .av-page .ah-lsk.is-checking .ah-lsk-cols > span {
+    animation: none;
+  }
+}
+@media (max-width: 900px) {
+  .av-page .ah-lsk-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .av-page .ah-lsk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .av-page .ah-lsk-banner {
+    flex-wrap: wrap;
+    padding: 0.625rem 0.75rem;
+  }
+  .av-page .ah-lsk-banner__text {
+    flex-basis: calc(100% - 1.75rem);
+  }
+  .av-page .ah-lsk-banner__act {
+    width: 100%;
+    justify-content: center;
+  }
+  .av-page .ah-lsk-cols.is-days {
+    gap: 2px;
+    height: 110px;
+  }
+  .av-page .ah-lsk-cols.is-months,
+  .av-page .ah-lsk-axis.is-months {
+    gap: 4px;
+  }
+  .av-page .ah-lsk-card {
+    padding: 0.875rem 1rem;
+  }
+  .av-page .ah-lsk-kpi {
+    padding: 0.75rem 0.875rem;
+  }
+  .av-page .ah-lsk-kpi__delta .ah-lsk-bone {
+    display: none;
+  }
+  .av-page .ah-lsk-kpi__head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+  .av-page .ah-lsk-kpi__delta {
+    flex-wrap: wrap;
+    gap: 0.125rem 0.375rem;
+    white-space: normal;
+  }
+  .av-page .ah-lsk-kpi__value {
+    font-size: 28px;
+  }
+  .av-page .ah-lsk-table :is(th, td):first-child {
+    width: 38%;
+  }
+  .av-page .ah-lsk-table thead th {
+    white-space: nowrap;
+  }
+}

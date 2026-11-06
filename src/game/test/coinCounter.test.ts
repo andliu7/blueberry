@@ -325,3 +325,13 @@ describe("reduced motion", () => {
     expect(HUD_CSS).toMatch(/@media \(prefers-reduced-motion: reduce\) \{\s*\.coin-counter,\s*\.coin-counter \*/);
   });
 });
+
+describe("the +N under the rail while coins fly (reward gauntlet, round 4)", () => {
+  const counter = read("../app/ui/CoinCounter.tsx");
+  const hud = read("../app/ui/hud.css");
+  it("reads the whole payout from the first frame, never +0, and holds until the last coin is in", () => {
+    expect(counter).toContain("pay !== null && flying");
+    expect(counter).toContain("amount: value - pay.from");
+    expect(hud).toMatch(/\.coin-counter-gain\[data-hold\] \{[\s\S]*?coin-gain-hold/);
+  });
+});

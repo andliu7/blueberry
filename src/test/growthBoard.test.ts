@@ -53,13 +53,16 @@ describe("GrowthBoard", () => {
   it("with no data it shows an example empty state and no invented figure (server markup)", () => {
     const html = renderToStaticMarkup(createElement(GrowthBoard));
     expect(html).toContain("No data, example");
-    expect(html).toContain("Example graph for");
+    expect(html).toContain("Feeds from logged ad spend");
     expect(html).not.toContain("$3.40");
     expect(html).not.toContain("5,200");
     expect(html).not.toContain("1,530");
     expect(html).not.toContain("Nov 14");
     expect(html).not.toContain("+12%");
-    expect(html.match(/No data, example/g)?.length).toBe(1);
+    // 3 Nov: the empty state says why once, in its heading; the per-tile notes live
+    // behind info marks, and no tile shouts a "No data" headline.
+    expect(html).not.toContain(">No data<");
+    expect(html.match(/data-testid="example-note"/g)?.length).toBe(3);
   });
 
   it("hides the chip for real data", () => {

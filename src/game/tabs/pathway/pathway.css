@@ -1759,6 +1759,12 @@
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   margin-bottom: 0.15rem;
+  /* The course name is one label: "II" alone on a line read as a stray mark
+     (reward gauntlet, Nov). It shrinks a little on a narrow card instead. */
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .path-unitcard .path-unitbar__course { font-size: 0.6875rem; letter-spacing: 0.05em; }
 }
 .path-unitcard .path-unitbar__unit {
   font-size: var(--h-3);

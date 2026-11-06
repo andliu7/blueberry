@@ -323,6 +323,22 @@ export function hrefForAdmin(node?: string): string {
   return node === undefined ? `#/${BASE}/admin` : `#/${BASE}/admin/${encodeURIComponent(node)}`;
 }
 
+/**
+ * Me > Settings, opened from the admin sidebar. The flag rides inside the hash
+ * (see hashParam) and turns the settings back key into "Back to admin", so the
+ * round trip admin -> settings -> admin is one tap each way (owner, 3 Nov).
+ */
+export const FROM_ADMIN_PARAM = "from";
+
+export function hrefForSettingsFromAdmin(): string {
+  return `${hrefForTab("me", "settings")}?${FROM_ADMIN_PARAM}=admin`;
+}
+
+/** True when the current hash carries the flag hrefForSettingsFromAdmin sets. */
+export function cameFromAdmin(): boolean {
+  return hashParam(FROM_ADMIN_PARAM) === "admin";
+}
+
 /** A development gallery, "#/app/gallery/berry" for the mascot (mascot/BerryGallery.tsx). */
 export function hrefForGallery(name = "berry"): string {
   return `#/${BASE}/gallery/${encodeURIComponent(name)}`;

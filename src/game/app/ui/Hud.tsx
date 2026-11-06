@@ -477,13 +477,14 @@ function XpStage({ stage, reducedMotion }: { readonly stage: StageReadout; reado
         land();
         return;
       }
-      const b = bloom.getBoundingClientRect();
       const r = bar.getBoundingClientRect();
       const w = flyer.offsetWidth;
       const h = flyer.offsetHeight;
-      // Start under Bloom, below the header, where there is room to read it.
-      const x0 = Math.max(8, b.left + b.width / 2 - w / 2);
-      const y0 = b.bottom + 18;
+      // Start over the path, a third of the way down: just under Bloom it sat
+      // on the unit card's words (reward gauntlet, Nov). Centred, over the
+      // lesson just done, then up into the bar.
+      const x0 = Math.max(8, Math.min(window.innerWidth - w - 8, window.innerWidth / 2 - w / 2));
+      const y0 = Math.max(r.bottom + 120, window.innerHeight * 0.36);
       // End on the bar, at the point the fill is about to reach.
       const x1 = r.left + r.width * now.fraction - w / 2;
       const y1 = r.top + r.height / 2 - h / 2;

@@ -68,6 +68,7 @@ import {
   type Scheme,
 } from "../../lesson/lessonFigures";
 import { U1_OPTION_TILES, U1_VISUALS } from "../../content/u1";
+import { WHY_PAIRED, WHY_RULE, isSayWhyId, sayWhyTarget } from "../sayWhy";
 import { U3_OPTION_TILES, U3_VISUALS } from "../../content/u3";
 import { U4_OPTION_TILES, U4_VISUALS } from "../../content/u4";
 import { U5_OPTION_TILES, U5_VISUALS } from "../../content/u5";
@@ -713,6 +714,8 @@ const VISUALS: Readonly<Record<string, McqVisual>> = Object.freeze({
 
 /** The visual for a beat, or null when the table has not met it. */
 export function mcqVisualFor(beatId: string): McqVisual | null {
+  // A say-why step (beats/sayWhy.ts) shows the drawing of the question it stands in front of.
+  if (isSayWhyId(beatId)) return mcqVisualFor(sayWhyTarget(beatId));
   // Unit 1's draft pools carry their own drawings (content/u1), keyed by
   // their own beat ids; the keys below stay this table's, which the suite
   // holds to MCQ_BEATS. test/u1Pools.test.ts holds the pool tables.
@@ -861,6 +864,9 @@ export function mcqOptionTiles(
   beatId: string,
   optionIds: readonly string[],
 ): Readonly<Record<string, NamedFigure>> | null {
+  // A paired say-why step is a real question, so its tiles draw; a rule step's options are rules, never tiles.
+  if (beatId.startsWith(WHY_RULE)) return null;
+  if (beatId.startsWith(WHY_PAIRED)) return mcqOptionTiles(sayWhyTarget(beatId), optionIds);
   const table = OPTION_FIGURES[beatId] ?? U1_OPTION_TILES[beatId] ?? U2_OPTION_TILES[beatId] ?? U2T_OPTION_TILES[beatId] ?? U3_OPTION_TILES[beatId] ?? U4_OPTION_TILES[beatId] ?? U5_OPTION_TILES[beatId] ?? U6_OPTION_TILES[beatId] ?? U7_OPTION_TILES[beatId] ?? U8_OPTION_TILES[beatId] ?? U9_OPTION_TILES[beatId] ?? U10_OPTION_TILES[beatId] ?? U0_OPTION_TILES[beatId];
   if (table === undefined) return null;
   return optionIds.every((id) => table[id] !== undefined) ? table : null;

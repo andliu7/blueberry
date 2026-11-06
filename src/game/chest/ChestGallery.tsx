@@ -1,7 +1,9 @@
-/** Development surface at #/app/gallery/chest: the C1 opening with a made-up 25 diamond payout. Lazy. */
+/** Development surface at #/app/gallery/chest: the C1 opening with a made-up 50 coin payout and goal, the lesson payout's own numbers. Lazy. */
 import { useState } from "react";
 import { useReducedMotion } from "../app/hooks";
 import { ChestArt, CoinArt, StoneArt } from "./ChestArt";
+import { nextCoinGoal } from "../shop/coinGoal";
+import { shelfGoals } from "../shop/shelfGoals";
 import ChestOpening from "./ChestOpening";
 
 export default function ChestGallery() {
@@ -18,7 +20,12 @@ export default function ChestGallery() {
       </div>
       <ChestOpening
         key={run}
-        request={{ detail: "Gallery test", open: () => ({ diamonds: 25, xp: 0 }) }}
+        request={{
+          detail: "From your section chest",
+          open: () => ({ diamonds: 50, xp: 0 }),
+          // A made-up balance, short of the real shelf's next price, so the goal bar has somewhere to go.
+          goal: (paid) => nextCoinGoal(640, 640 + paid.diamonds, shelfGoals([])),
+        }}
         reducedMotion={reducedMotion}
         onClose={() => setRun((n) => n + 1)}
       />

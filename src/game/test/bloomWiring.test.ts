@@ -191,8 +191,11 @@ describe("the gallery shows everything", () => {
     expect(html).toContain("Reduced motion (the still poses)");
   });
 
-  it("is reachable from the staff viewer", () => {
-    expect(read("../admin/AdminHome.tsx")).toMatch(/href: hrefForGallery\(\)/);
+  it("is reachable from the staff viewer, inside the admin frame so Home stays one tap away", () => {
+    // Owner, 3 Nov: "can't go back on Bloom". The sidebar opens it at #/app/admin/bloom,
+    // and the viewer mounts the gallery inside AdminShell, whose sidebar holds Home.
+    expect(read("../admin/AdminHome.tsx")).toMatch(/id: "bloom", label: "Bloom", icon: "star", href: hrefForAdmin\("bloom"\)/);
+    expect(read("../admin/AdminViewer.tsx")).toMatch(/node === "bloom" \? \(\s*page\("bloom",[^\n]*<BerryGallery/);
   });
 });
 

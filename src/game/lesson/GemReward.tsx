@@ -9,11 +9,18 @@
  * violet). Everything shown is a prop: the caller passes the server receipt's
  * numbers, this file does no economy math and defines no price.
  */
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Press } from "../app/ui/Press";
 import { DiamondMark } from "../app/ui/HudIcons";
+import { CoinCounter, formatCoins } from "../app/ui/CoinCounter";
+import { CoinGoalBar } from "../app/ui/CoinGoalBar";
+import { CoinNumerals, layoutNumerals } from "../app/ui/CoinNumerals";
 import { CoinShapes } from "../chest/ChestArt";
+import { ChestFloor, ChestModel, ChestWorld, LID_CLOSED, LID_CRACKED, LID_OPEN, LID_SWING } from "../chest/ChestModel";
+import { CHEST_POINTS } from "../chest/chestPaint";
+import { type CoinGoal } from "../shop/coinGoal";
 import { Berry } from "../mascot/Berry";
+import "../chest/chestOpening.css";
 import "./gem-reward.css";
 
 /** Counts 0 to `to` on one rAF loop; reduced motion renders the end at once. */
@@ -146,8 +153,12 @@ export interface GemRewardProps {
   readonly reducedMotion?: boolean;
   /** gems / streak: the amount, from the receipt. */
   readonly gems?: number;
+  /** gems: the coin balance after the payout, from the store. The counter climbs to it from `balance - gems`. */
+  readonly balance?: number;
   /** gems: plain-language reason. */
   readonly reason?: string;
+  /** gems: what the coins move toward, from coinGoal.ts. Null or absent draws no bar. */
+  readonly goal?: CoinGoal | null;
   /** xp: the tiles, from the receipt and the session tally. */
   readonly xp?: number;
   readonly accuracy?: number | null;
@@ -173,34 +184,187 @@ export function GemReward(p: GemRewardProps) {
   return <ChestReveal {...p} />;
 }
 
+/**
+ * THE COIN PAYOUT, measured against Clash Royale's reward drops (reward gauntlet,
+ * Nov). It starts SHUT: the student taps the chest, the box bursts open in a
+ * flash, and the amount RISES OUT OF THE OPEN BOX to stand over it while the
+ * coins stream from the box into the counter in the top bar.
+ *
+ * TWO READINGS, EACH THE SAME EVERYWHERE (round 4). The AMOUNT is the whole
+ * payout from the moment the lid goes: the +N that pops out of the box and the
+ * +N chip under the counter both read it, so neither ever shows +0. The BALANCE
+ * is `shown`, what the counter has reached as each coin lands: the counter's
+ * digits and the goal card's count and bar climb together and finish on the
+ * same frame. The counter always shows a balance, never a gain.
+ *
+ * ONE LAYOUT, TOP TO BOTTOM: the bar, the amount, the chest, the goal card, the
+ * line in words, the one button. The card stands BELOW the box, so the coins,
+ * which fly up out of it, never cross the card, and they fly in their own layer
+ * under the amount, so a coin never covers a word. The button slot holds the
+ * hint while the box is shut and CONTINUE once the last coin is in.
+ *
+ * Reduced motion: the tap opens it at once, every reading is already the new
+ * balance, and nothing flies or rises.
+ */
+type PayPhase = "closed" | "opening" | "paid";
+
 function GemsScreen(p: GemRewardProps) {
   const still = p.reducedMotion === true;
-  const n = useCountUp(p.gems ?? 0, still);
+  const gems = p.gems ?? 0;
+  const after = p.balance ?? gems;
+  const before = after - gems;
+  const [phase, setPhase] = useState<PayPhase>("closed");
+  const [lid, setLid] = useState(LID_CLOSED);
+  const [drained, setDrained] = useState(false);
+  const [shown, setShown] = useState(before);
+  const [layer, setLayer] = useState<HTMLDivElement | null>(null);
+  const rigRef = useRef<HTMLSpanElement>(null);
+  const amountRef = useRef<HTMLHeadingElement>(null);
+  const tapRef = useRef<HTMLButtonElement>(null);
+  const timers = useRef<number[]>([]);
+  useEffect(() => {
+    tapRef.current?.focus();
+    const ids = timers.current;
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, []);
+  const mouth = useCallback(() => {
+    const rig = rigRef.current?.getBoundingClientRect();
+    if (rig === undefined) return null;
+    return { x: rig.left + rig.width * CHEST_POINTS.mouth.x, y: rig.top + rig.height * CHEST_POINTS.mouth.y };
+  }, []);
+  const open = () => {
+    if (phase !== "closed") return;
+    if (still) {
+      setLid(LID_OPEN);
+      setDrained(true);
+      setShown(after);
+      setPhase("paid");
+      return;
+    }
+    // How far the amount climbs: from the chest's mouth up to where it stands.
+    const from = mouth();
+    const amount = amountRef.current;
+    const box = amount?.getBoundingClientRect();
+    if (from !== null && amount !== null && box !== undefined) {
+      amount.style.setProperty("--rise", `${Math.round(from.y - (box.top + box.height / 2))}px`);
+    }
+    setPhase("opening");
+    const at: [number, () => void][] = [
+      [0, () => setLid(LID_CRACKED)],
+      ...LID_SWING.map((frame, i): [number, () => void] => [140 + i * 55, () => setLid(frame)]),
+      [400, () => setLid(4)],
+      [480, () => setLid(LID_OPEN)],
+      [990, () => setDrained(true)],
+    ];
+    timers.current.push(...at.map(([ms, run]) => window.setTimeout(run, ms)));
+  };
+  const paid = phase === "paid";
+  const shut = phase === "closed" ? "true" : undefined;
+  const gained = Math.max(0, shown - before);
+  const finalText = `+${gems}`;
+  // The amount's cap height: as big as the width allows, and short enough to
+  // stand between the bar and the open lid. Its width is the total's, so the
+  // number never shifts as digits arrive.
+  const viewW = typeof window === "undefined" ? 390 : window.innerWidth;
+  const viewH = typeof window === "undefined" ? 844 : window.innerHeight;
+  const finalEm = (layoutNumerals(finalText).boxW + 18) / 100;
+  const capPx = Math.min(92, viewH * (viewW >= 768 ? 0.095 : 0.085), (Math.min(viewW, 560) - 150) / finalEm);
+  const goal = p.goal ?? null;
   return (
-    <main className="gr gr--field" data-motion={still ? "still" : "live"} data-reward="gems" aria-label="Coins earned">
-      <h1 className="gr-head gr-in" style={{ animationDelay: "80ms" }} aria-label={`${p.gems ?? 0} coins`}>
-        <span className="gr-num" aria-hidden>+{n}</span>
-        <span className="gr-unit" aria-hidden>
-          <GemMark className="gr-head-icon" /> coins
+    <main className="gr gr--pay" data-motion={still ? "still" : "live"} data-reward="gems" data-phase={phase} data-paid={paid ? "true" : "false"} aria-label="Coins earned">
+      <div className="chest-open gr-pay-world" data-chest-phase={phase === "closed" ? "tapping" : paid ? "done" : "flying"} aria-hidden>
+        <ChestWorld />
+        <span className="gr-pay-sun">
+          <i />
         </span>
-      </h1>
-      <div className="gr-stage">
-        <Burst kind="gem" />
-        <div className="gr-hero gr-pop">
-          <Chest />
-        </div>
-        <div className="gr-buddy gr-in" style={{ animationDelay: "420ms" }}>
-          <Mascot px={92} still={still} />
+        <span ref={rigRef} className="chest-open__rig" style={{ "--light": phase === "closed" ? 0.3 : paid ? 0.62 : 1 } as CSSProperties}>
+          <ChestFloor />
+          <span className="chest-open__pool" />
+          <span className="chest-open__contact" />
+          <span className="chest-open__chest gr-pay-chest">
+            <span className="chest-open__beam" />
+            <span className="chest-open__glow" />
+            <span className="chest-open__rays">
+              <i />
+            </span>
+            <ChestModel lid={lid} drained={drained} />
+            <i className="chest-open__star chest-open__star--a" />
+            <i className="chest-open__star chest-open__star--b" />
+            <i className="chest-open__star chest-open__star--c" />
+          </span>
+        </span>
+        <span className="chest-world__foot gr-pay-foot" />
+        {still ? null : <span className="gr-pay-flash" />}
+      </div>
+
+      {/* The coins' own layer: over the bar they land in, under every word. */}
+      <div ref={setLayer} className="gr-pay-coins" aria-hidden />
+
+      <header className="gr-pay-bar">
+        <span className="gr-pay-title">Lesson reward</span>
+        <span className="gr-pay-counter" aria-label={`Coin balance ${formatCoins(paid ? after : before)}`}>
+          {/* Remounted on the tap, so the stream leaves the box only once it is open. */}
+          <CoinCounter
+            key={phase === "closed" ? "shut" : "pay"}
+            value={phase === "closed" ? before : after}
+            reducedMotion={still}
+            pile
+            mark={<DiamondMark heavy className="hud-mark" />}
+            payFrom={phase === "closed" || still ? undefined : before}
+            payOrigin={mouth}
+            payDelay={460}
+            payLayer={layer}
+            onStep={setShown}
+            onPaid={() => {
+              setShown(after);
+              setPhase("paid");
+            }}
+          />
+        </span>
+      </header>
+
+      <div className="gr-pay-top">
+        {phase === "closed" ? (
+          <p className="gr-pay-tease">
+            Lesson complete!
+            <span>Your chest is ready</span>
+          </p>
+        ) : null}
+        <h1 ref={amountRef} className="gr-pay-amount" data-shut={shut} aria-label={`${gems} coins`}>
+          <span className="gr-pay-num" style={{ fontSize: `${capPx}px`, width: `${finalEm}em` }} aria-hidden>
+            {/* The whole payout from the burst on, never +0. Remounted per landing, so each coin in kicks it. */}
+            <span key={gained} className="gr-pay-tick">
+              <CoinNumerals text={finalText} />
+            </span>
+          </span>
+          <span className="gr-pay-unit" aria-hidden>
+            coins
+          </span>
+        </h1>
+      </div>
+
+      <div className="gr-pay-words">
+        {goal === null ? null : (
+          <div className="gr-pay-goal" data-shut={shut}>
+            <CoinGoalBar goal={goal} shown={shown} className="gr-goal" />
+          </div>
+        )}
+        <p className="gr-pay-reason" data-shut={shut}>
+          {p.reason ?? "Lesson complete!"}
+        </p>
+        <div className="gr-foot gr-pay-cta">
+          {phase === "closed" ? (
+            <p className="gr-pay-hint" aria-hidden>
+              Tap the chest
+            </p>
+          ) : (
+            <Press variant="primary" size="lg" block onClick={p.onContinue} disabled={!paid} tabIndex={paid ? undefined : -1}>
+              Continue
+            </Press>
+          )}
         </div>
       </div>
-      <p className="gr-reason gr-in" style={{ animationDelay: "320ms" }}>
-        {p.reason ?? "Nice work."}
-      </p>
-      <div className="gr-foot">
-        <Press variant="primary" size="lg" block onClick={p.onContinue}>
-          Continue
-        </Press>
-      </div>
+      {phase === "closed" ? <button ref={tapRef} type="button" className="gr-pay-tap" onClick={open} aria-label="Treasure chest. Tap to open it" /> : null}
     </main>
   );
 }

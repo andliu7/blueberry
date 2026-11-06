@@ -121,6 +121,8 @@ import { splitSections, type SectionStop } from "./pathwaySections";
 import { TreasureChest, type ChestState } from "./TreasureChest";
 import { passedTests, sectionTestSize, unitExamId, unitSections, TEST_OUT_UNITS, UNIT_EXAM_SIZE } from "./testOuts";
 import { PathStars } from "./PathStars";
+import { hexLookOn } from "../../app/ui/hexLook";
+import { HexNodeFace, HexNodeLip } from "./HexNode";
 import { browserStorage, hasSavedLesson, nodeOfHref, savedBar } from "../../resume/lessonSave";
 import { SavedRing } from "../../resume/SavedRing";
 // The written unit guidebook (src/game/guide), opened from the unit card's GUIDEBOOK key.
@@ -534,7 +536,9 @@ function Chip({
   // open it.
   const dimmed = dim && state !== "locked";
   const isQueued = queued;
-  const chipClass = `path-node path-node--${state} ${dimmed ? "path-node--dim" : ""} ${isQueued ? "path-node--queued" : ""} ${clickable ? "path-node--press" : ""}`;
+  // The hexagon ring (piece "hex"), opt in until it wins: app/ui/hexLook.ts.
+  const hex = hexLookOn();
+  const chipClass = `path-node path-node--${state} ${dimmed ? "path-node--dim" : ""} ${isQueued ? "path-node--queued" : ""} ${clickable ? "path-node--press" : ""} ${hex ? "hx-node" : ""}`;
   /*
     The TWO states that carry a mark of their own: done wears the check and
     review this app's own refresh. Rest, current and LOCKED carry no state
@@ -554,7 +558,9 @@ function Chip({
         why blueberry_r7-compiled-v2's green chips carry checks and nothing
         else.
       */}
+      {hex ? <HexNodeLip /> : null}
       <span className="path-node__face">
+        {hex ? <HexNodeFace aromatic={state !== "locked" && !isQueued} /> : null}
         {stateGlyph !== null ? stateGlyph : badge !== null ? <MotifGlyph badge={badge} /> : null}
       </span>
     </>
@@ -718,6 +724,20 @@ function StartTag({ saved = false }: { readonly saved?: boolean }) {
     <span className="path-start" aria-hidden>
       {saved ? "CONTINUE" : "START"}
     </span>
+  );
+}
+
+/** The hexagon look's START card under the live node (hexNode.css, .hx-pop). */
+function StartPopover({ label, detail, saved, onStart }: { readonly label: string; readonly detail: string; readonly saved: boolean; readonly onStart: () => void }) {
+  const step = /^Step \d+ of \d+/.exec(detail)?.[0] ?? null;
+  return (
+    <div className="hx-pop">
+      {step !== null ? <p className="hx-pop__eyebrow">{step}</p> : null}
+      <p className="hx-pop__title">{label}</p>
+      <button type="button" className="btn3d btn3d--block hx-pop__start" aria-label={`${saved ? "Continue" : "Start"}: ${label}`} onClick={onStart}>
+        {saved ? "Continue" : "Start"}
+      </button>
+    </div>
   );
 }
 
@@ -919,7 +939,15 @@ function TrackSlab({
         report for the owner. The accessible name is unchanged: every chip
         still announces its full title.
       */}
-      {state === "current" || (queued && lane === "check") ? (
+      {/*
+        THE START POPOVER, hexagon look only (piece "hex", round 4). One
+        filled card under the live hexagon: the lesson's name and a real,
+        full-width lipped START key that does what the chip does. It takes the
+        place of the outlined tag and the name beside the chip.
+      */}
+      {hexLookOn() && state === "current" && sheetNode !== null ? (
+        <StartPopover label={label} detail={detail} saved={href !== null && hasSavedLesson(browserStorage(), href)} onStart={() => onOpenNode(sheetNode, gateNode)} />
+      ) : state === "current" || (queued && lane === "check") ? (
         <div className="path-row__name">
           {state === "current" ? <StartTag saved={href !== null && hasSavedLesson(browserStorage(), href)} /> : null}
           {state === "current" ? <NodeLabel label={label} /> : null}

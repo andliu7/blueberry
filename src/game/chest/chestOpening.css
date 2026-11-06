@@ -767,6 +767,97 @@
 /* The beam shoots out of the mouth, which is the middle of the drawing. */
 .chest-open__beam { bottom: 50%; left: 48%; }
 
+
+/* Round 2 of the reward gauntlet: the goal card under the payout, filling with
+   the tally, and a bigger continue cue. */
+.chest-open[data-words="goal"] .chest-world__foot { --foot: 14.5rem; }
+.chest-open__goal { margin-top: 0.75rem; }
+.chest-open[data-chest-phase="flying"] .chest-open__goal,
+.chest-open[data-chest-phase="done"] .chest-open__goal { animation: chest-hint-in 320ms var(--bb-ease-out) both; }
+.chest-open__hint.is-continue {
+  /* Still words, not a button (owner, 31 Oct: the whole screen is the one
+     control), but big enough to read as the next step, and breathing. */
+  font-size: 1.375rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+.chest-open[data-chest-phase="done"] .chest-open__hint.is-continue {
+  animation: chest-hint-in 320ms var(--bb-ease-out) both, chest-continue-breathe 1.6s 900ms ease-in-out infinite;
+}
+@keyframes chest-continue-breathe { 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  .chest-open__goal, .chest-open[data-chest-phase="done"] .chest-open__hint.is-continue { animation: none !important; }
+}
+
+/* Round 3 of the reward gauntlet: one layout with the lesson payout. The amount
+   stands over the box above the flying coins, so no coin crosses it, and the
+   hint and the continue cue take the lesson payout's button slot and shapes: a
+   white pill while the box is shut, the violet pill once it has paid. Still
+   words, not a button: the whole screen stays the one control. */
+.chest-open__payoff { z-index: 82; }
+.chest-open__hint:not(:empty) {
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.95);
+  box-shadow: 0 4px 0 rgb(29 29 31 / 0.18);
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #3a24b0;
+}
+.chest-open__hint.is-continue:not(:empty) {
+  width: min(100%, 26rem);
+  padding: 0.95rem 1.5rem;
+  border-radius: 999px;
+  background: #5a3fd8;
+  box-shadow: 0 4px 0 #3a24b0;
+  font-size: 1.0625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+/* Round 4 of the reward gauntlet. The counter at the top reads the BALANCE,
+   climbing as each coin lands, and the payout stands under it as a chip, the
+   header's own +N: the student sees the new total and what made it. */
+.chest-open__tally {
+  flex-direction: column;
+  align-items: flex-end;
+}
+.chest-open__tally-gain {
+  --cc-digit: var(--coin-face-lit, #ffe27a);
+  --cc-digit-line: #140a00;
+  position: relative;
+  display: block;
+  margin: 0.25rem 0.5rem 0 0;
+  padding: 0.3rem 0.55rem 0.25rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #21130a, #3e2710);
+  box-shadow: 0 0 0 0.1875rem #2a1500, 0 0.1875rem 0 0.1875rem rgb(0 0 0 / 0.2);
+  line-height: 0;
+  animation: chest-gain-pop 420ms 320ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+@keyframes chest-gain-pop {
+  from { opacity: 0; transform: translateY(-0.5rem) scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+
+/* A wide screen (round 4): no flat dark band under the box. The chest stands
+   bigger and lower, and the foot of the ground is a soft shade over the mown
+   field, not a slab of one colour, so the meadow runs to the bottom edge. */
+@media (min-width: 768px) and (min-height: 600px) {
+  .chest-open:not(.gr-pay-world) { --rig-w: min(24rem, 43vh); }
+  .chest-open:not(.gr-pay-world) .chest-open__rig { top: calc(64% - 0.915 * var(--rig-h)); }
+  .chest-open:not(.gr-pay-world) .chest-world { --horizon: calc(64% - 0.295 * var(--rig-h)); }
+  .chest-world__foot,
+  .chest-open[data-words] .chest-world__foot {
+    background: linear-gradient(to top, rgb(var(--chest-shadow) / 0.55) 0, rgb(var(--chest-shadow) / 0.28) 9rem, transparent 17rem);
+  }
+  .chest-open__words { bottom: calc(env(safe-area-inset-bottom, 0px) + 1.75rem); }
+  .chest-open__payoff,
+  .chest-open__payoff-rays { top: calc(env(safe-area-inset-top, 0px) + 4.5rem); }
+  .chest-open__payoff-rays { top: calc(env(safe-area-inset-top, 0px) + 4.5rem + 2.625rem); }
+}
+
 /* Reduced motion: the meaning stays, the movement goes. The site's own switch
    counts as well as the OS. Last in the file, so no rule above outranks it. */
 html[data-motion="reduced"] .chest-open__rays,

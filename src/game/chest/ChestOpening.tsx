@@ -37,7 +37,14 @@
  * this layer, since the counter in the top bar is hidden.
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { deriveEconomy, type EconomyEvent } from "@blueberry/economy";
 import { useReducedMotionPref } from "@/lib/motionPref";
+import { useProgress } from "../app/hooks";
+import { economyOptions } from "../app/progress";
+import { CoinGoalBar } from "../app/ui/CoinGoalBar";
+import { formatCoins } from "../app/ui/CoinCounter";
+import { nextCoinGoal, type CoinGoal } from "../shop/coinGoal";
+import { shelfGoals } from "../shop/shelfGoals";
 import { CoinNumerals, layoutNumerals } from "../app/ui/CoinNumerals";
 import { playCorrect, playGem } from "../sound/gameSound";
 import { CoinArt, StoneArt, type StoneTone } from "./ChestArt";
@@ -130,6 +137,7 @@ export default function ChestOpening({
   readonly onClose: () => void;
 }) {
   const siteReducedMotion = useReducedMotionPref();
+  const snapshot = useProgress();
   const reducedMotion = osReducedMotion || siteReducedMotion;
   const [phase, setPhase] = useState<Phase>("tapping");
   const [taps, setTaps] = useState(0);
@@ -168,6 +176,9 @@ export default function ChestOpening({
   const flash = useRef<Animation | null>(null);
   const gulp = useRef<Animation | null>(null);
   const alive = useRef(true);
+  // Whether a goal card will stand under the words, read by the burst's spill.
+  const goalRef = useRef(false);
+  const goalDecided = useRef(false);
 
   const wait = (ms: number) =>
     new Promise<void>((resolve) => {
@@ -339,30 +350,18 @@ export default function ChestOpening({
         easing: "cubic-bezier(.16, 1, .3, 1)",
       });
     }
+    // The total has counted up over the box with the landings: the last one rings it.
     const payoff = payoffRef.current;
     if (payoff !== null) {
       animate(
         payoff,
         [
-          { opacity: 0, transform: "scale(2.3) rotate(-4deg)", easing: "cubic-bezier(.5, 0, .9, .5)" },
-          { opacity: 1, transform: "scale(0.9) rotate(0.8deg)", offset: 0.3, easing: "cubic-bezier(.2, .7, .4, 1)" },
-          { opacity: 1, transform: "scale(1.07)", offset: 0.58, easing: "ease-in-out" },
-          { opacity: 1, transform: "scale(1)" },
+          { opacity: 1, transform: "scale(1.24)", easing: "cubic-bezier(.3, 0, .3, 1)" },
+          { opacity: 1, transform: "scale(0.95)", offset: 0.4, easing: "ease-in-out" },
+          { opacity: 1, transform: "none" },
         ],
-        { duration: 600, fill: "forwards" },
+        { duration: 460, fill: "forwards" },
       );
-      const rays = payoffRaysRef.current;
-      if (rays !== null) {
-        animate(
-          rays,
-          [
-            { opacity: 0, transform: "scale(0.25)" },
-            { opacity: 1, transform: "scale(1.1)", offset: 0.34 },
-            { opacity: 0.6, transform: "scale(1)" },
-          ],
-          { duration: 1100, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" },
-        );
-      }
     }
     // The total lands on the box: it takes the weight, and the ground takes that.
     timers.current.push(
@@ -468,7 +467,8 @@ export default function ChestOpening({
     // ground in front of and beside the box, kicking dust, bounce and stay there.
     const halfBox = rigW * 0.46;
     const roomX = Math.min(190, w / 2 - 28);
-    const roomY = Math.max(46, Math.min(h - groundY - 158, 134));
+    // The goal card under the words needs about 80px more of the ground's foot.
+    const roomY = Math.max(46, Math.min(h - groundY - (goalRef.current ? 240 : 158), 134));
     spillRefs.current.forEach((el, i) => {
       if (el === null) return;
       const spot = scatterSpot(i, SPILL.length, roomX, roomY);
@@ -529,6 +529,35 @@ export default function ChestOpening({
       rise: Math.min(300, Math.max(90, mouthY - rowBottom - 24)),
       reach: Math.min(170, w / 2 - 44),
     };
+    // Round 3: the amount rises out of the open box and stands over it, counting
+    // with the landings, so the box, the number and the tally read one payout.
+    const payoffEl = payoffRef.current;
+    if (payoffEl !== null) {
+      const box = payoffEl.getBoundingClientRect();
+      const dy = Math.round(mouthY - (box.top + box.height / 2));
+      animate(
+        payoffEl,
+        [
+          { opacity: 0, transform: `translateY(${dy}px) scale(0.2)` },
+          { opacity: 1, transform: `translateY(${Math.round(dy * 0.6)}px) scale(0.5)`, offset: 0.12 },
+          { opacity: 1, transform: "translateY(-10px) scale(1.1)", offset: 0.62 },
+          { opacity: 1, transform: "none" },
+        ],
+        { duration: 640, delay: 300, easing: "cubic-bezier(.2, .85, .3, 1)", fill: "forwards" },
+      );
+      const rays = payoffRaysRef.current;
+      if (rays !== null) {
+        animate(
+          rays,
+          [
+            { opacity: 0, transform: "scale(0.25)" },
+            { opacity: 1, transform: "scale(1.1)", offset: 0.34 },
+            { opacity: 0.6, transform: "scale(1)" },
+          ],
+          { duration: 1100, delay: 420, easing: "cubic-bezier(.16, 1, .3, 1)", fill: "forwards" },
+        );
+      }
+    }
     if (tallyRef.current !== null) {
       animate(
         tallyRef.current,
@@ -628,6 +657,24 @@ export default function ChestOpening({
   const open = phase !== "tapping";
   // The tally stays up through the finish: it is what the chest paid, already counted.
   const tallyOn = paid !== null && paid.diamonds > 0 && !reducedMotion;
+  // What the coins move toward (round 2): worked out once, after the open wrote
+  // the payout, from the same balance the header reads. The bar fills with the tally.
+  const [goal, setGoal] = useState<CoinGoal | null>(null);
+  // The balance the counter climbs from (round 4): the counter at the top always
+  // reads a balance, never a gain and never an empty rail. The goal's own
+  // numbers when there is one, so the card and the counter agree to the coin.
+  const [walletFrom, setWalletFrom] = useState<number | null>(null);
+  useEffect(() => {
+    if (paid === null || paid.diamonds <= 0 || goalDecided.current) return;
+    goalDecided.current = true;
+    const after = deriveEconomy(snapshot.journal, new Date().toISOString(), economyOptions(snapshot.course)).diamonds.balance;
+    const next = request.goal !== undefined ? request.goal(paid) : nextCoinGoal(after - paid.diamonds, after, shelfGoals(snapshot.journal as readonly EconomyEvent[]));
+    goalRef.current = next !== null;
+    setGoal(next);
+    setWalletFrom(Math.max(0, next !== null ? next.from : after - paid.diamonds));
+  }, [paid, request, snapshot]);
+  const goalOn = goal !== null && (phase === "flying" || phase === "done");
+  const goalShown = goal === null ? 0 : phase === "done" || !tallyOn ? goal.to : goal.from + tally;
   const countX = useCountUp(paid?.xp ?? 0, phase === "done" && !reducedMotion);
   // How bright the light behind the box is: grows per tap, full at the burst.
   // It never cuts out: the light eases down to what the gold left in the box still gives.
@@ -648,7 +695,7 @@ export default function ChestOpening({
   }
 
   // How much ground the words need under them: see .chest-world__foot.
-  const wordsSize = paid === null || !phaseDoneWithLine(phase, headline) ? "short" : tallyOn ? "line" : "tall";
+  const wordsSize = goal !== null && phase !== "tapping" ? "goal" : paid === null || !phaseDoneWithLine(phase, headline) ? "short" : tallyOn ? "line" : "tall";
 
   // Width is reserved for the final number, so the coin never moves as digits arrive.
   const finalText = `+${paid?.diamonds ?? 0}`;
@@ -657,7 +704,12 @@ export default function ChestOpening({
   const railCap = Math.min(RAIL_CAP_PX, (roomPx * 0.6) / finalEm);
   const payoffCap = Math.min(PAYOFF_CAP_PX, roomPx / finalEm);
   const totalCoins = paid?.diamonds ?? 0;
+
   const railFill = totalCoins > 0 ? Math.min(100, (tally / totalCoins) * 100) : 0;
+  // The counter's reading: the balance, climbing by each landing. Its width is the final balance's.
+  const walletText = walletFrom === null ? "" : formatCoins(walletFrom + tally);
+  const walletEm = numberWidthEm(formatCoins((walletFrom ?? 0) + totalCoins));
+  const walletCap = Math.min(RAIL_CAP_PX, (roomPx * 0.6) / walletEm);
 
   // Built once, on arrival and while nothing moves, so the burst does not stall to
   // mount them: the tally re-renders per landing, and these never need to.
@@ -780,9 +832,11 @@ export default function ChestOpening({
             <h2 className="chest-open__amount" aria-label={paidHeadline(paid)}>
               <span aria-hidden>{headline}</span>
             </h2>
-            <p className="chest-open__detail">{request.detail}</p>
+            {/* With a goal card under it, the card says what matters; the source is still read out. */}
+            <p className={goal === null ? "chest-open__detail" : "sr-only"}>{request.detail}</p>
           </div>
         ) : null}
+        {goalOn && goal !== null ? <CoinGoalBar goal={goal} shown={goalShown} className="chest-open__goal" /> : null}
         <p className={`chest-open__hint${phase === "done" ? " is-continue" : ""}`} aria-live="polite">
           {phase === "tapping" ? tapHint(taps) : phase === "done" ? "Tap to continue" : ""}
         </p>
@@ -791,6 +845,7 @@ export default function ChestOpening({
       {tallyOn ? (
         <p ref={payoffRef} className="chest-open__payoff" style={{ opacity: 0 }} aria-hidden>
           <span className="chest-open__payoff-num" style={{ fontSize: `${payoffCap}px`, width: `${finalEm}em` }}>
+            {/* The whole payout from the burst on (round 4): it never reads +0. */}
             <CoinNumerals text={finalText} />
           </span>
         </p>
@@ -810,8 +865,8 @@ export default function ChestOpening({
           <span ref={tallyRowRef} className="chest-open__tally-row">
             <span className="chest-open__tally-rail">
               <span className="chest-open__tally-fill" style={{ width: `${railFill}%` }} />
-              <span className="chest-open__tally-num" style={{ fontSize: `${railCap}px`, width: `${finalEm}em` }} data-tally={tally}>
-                <CoinNumerals text={`+${tally}`} />
+              <span className="chest-open__tally-num" style={{ fontSize: `${walletCap}px`, width: `${walletEm}em` }} data-tally={tally}>
+                <CoinNumerals text={walletText} />
               </span>
             </span>
             <span className="chest-open__tally-gem">
@@ -820,6 +875,10 @@ export default function ChestOpening({
                 <CoinArt />
               </span>
             </span>
+          </span>
+          {/* The payout as a chip under the balance, the header's own +N. */}
+          <span className="chest-open__tally-gain" style={{ fontSize: `${Math.round(railCap * 0.62)}px` }}>
+            <CoinNumerals text={finalText} />
           </span>
         </p>
       ) : null}
